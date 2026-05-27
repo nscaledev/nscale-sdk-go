@@ -1,0 +1,8 @@
+# Default: any human-touched file needs a maintainer review.
+*                              @nscaledev/sdk-maintainers
+
+# Service directories are bot territory — bot bypasses approval via ruleset,
+# but if a human edits these they still need a maintainer to sign off.
+/storage/                      @nscaledev/sdk-maintainers
+/region/                       @nscaledev/sdk-maintainers
+/identity/                     @nscaledev/sdk-maintainers
