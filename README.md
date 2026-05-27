@@ -4,11 +4,14 @@ Generated Go clients for the [Nscale](https://nscale.com) public APIs.
 
 Each subdirectory is one service:
 
-| Package        | Import path                                        |
-| -------------- | -------------------------------------------------- |
-| Object storage | `github.com/nscaledev/nscale-sdk-go/storage`       |
-| Region         | `github.com/nscaledev/nscale-sdk-go/region`        |
-| Identity       | `github.com/nscaledev/nscale-sdk-go/identity`      |
+| Package      | Import path                                     |
+| ------------ | ----------------------------------------------- |
+| Storage      | `github.com/nscaledev/nscale-sdk-go/storage`    |
+| Region       | `github.com/nscaledev/nscale-sdk-go/region`     |
+| Identity     | `github.com/nscaledev/nscale-sdk-go/identity`   |
+| Compute      | `github.com/nscaledev/nscale-sdk-go/compute`    |
+| Reservations | `github.com/nscaledev/nscale-sdk-go/reservations` |
+| Kubernetes   | `github.com/nscaledev/nscale-sdk-go/kubernetes` |
 
 ## Install
 
