@@ -1,0 +1,47 @@
+# .github/workflows/release-please.yml
+#
+# Lives in the SDK repo (nscaledev/nscale-sdk-go), NOT in source service repos.
+#
+# release-please watches main, accumulates Conventional Commits, and maintains a
+# single "chore(main): release X.Y.Z" PR. When that PR merges it tags vX.Y.Z and
+# creates a GitHub Release. We auto-merge it for fully hands-off releases.
+#
+# Prereqs:
+#   - release-please-config.json and .release-please-manifest.json sit at repo root.
+#   - A repo secret RELEASE_PLEASE_TOKEN (GitHub App token preferred; PAT works)
+#     with contents: write + pull_requests: write. The default GITHUB_TOKEN
+#     CANNOT trigger downstream workflows from the release commit, so use a PAT
+#     if you want CI to run on the release tag.
+
+name: release-please
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: rp
+        with:
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+      - name: Enable auto-merge on the Release PR
+        if: steps.rp.outputs.prs_created == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+        run: |
+          # release-please may open multiple PRs in monorepo mode; iterate.
+          echo '${{ steps.rp.outputs.pr }}' \
+            | jq -r 'select(.number != null) | .number' \
+            | while read -r num; do
+                gh pr merge --squash --auto --delete-branch "$num"
+              done
