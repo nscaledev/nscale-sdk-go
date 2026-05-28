@@ -21,7 +21,7 @@ Pre-1.0: the package layout and types may change before `v1.0.0`.
 
 ## Versioning
 
-Released automatically by [release-please](https://github.com/googleapis/release-please) from Conventional Commits on `main`. See `CHANGELOG.md` (created on the first release).
+Semver. Releases are tagged manually by maintainers (`git tag vX.Y.Z && git push --tags && gh release create vX.Y.Z --generate-notes`). Automated release tooling will be added once a dedicated release bot is in place.
 
 ## Contributing
 
