@@ -1,0 +1,1025 @@
+openapi: 3.0.3
+info:
+  title: Kubernetes Service API
+  description: |-
+    The Kubernetes Service API provides services that allows provisioning and life cycle
+    management of Kubernetes clusters.
+  version: 1.13.0
+paths:
+  /.well-known/openid-protected-resource:
+    description: |-
+      Implements OIDC authorization service discovery.
+    get:
+      x-no-security-requirements: true
+      x-hidden: true
+      description: |-
+        Reads the OIDC discovery page identifying authorization servers.
+      responses:
+        '200':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/openidProtectedResourceResponse'
+  /api/v1/organizations/{organizationID}/regions:
+    description: |-
+      Accesses a filtered list of regions for use with different cluster types.
+      Use the query parameter to specify either physical (based on VMs and 
+      baremetal nodes) or virtual (e.g. vCluster) compatible regions.
+    parameters:
+    - $ref: '#/components/parameters/organizationIDParameter'
+    - $ref: '#/components/parameters/regionTypeParameter'
+    get:
+      x-hidden: true
+      description: |-
+        Lists a curated set of regions.
+      security:
+      - oauth2Authentication: []
+      responses:
+        '200':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/region/main/pkg/openapi/server.spec.yaml#/components/responses/regionsResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v1/organizations/{organizationID}/regions/{regionID}/flavors:
+    description: |-
+      Kubernetes flavor services.
+    parameters:
+    - $ref: '#/components/parameters/organizationIDParameter'
+    - $ref: '#/components/parameters/regionIDParameter'
+    get:
+      x-hidden: true
+      description: |-
+        Lists all Kubernetes compatible flavors that the user has access to.
+      security:
+      - oauth2Authentication: []
+      responses:
+        '200':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/region/main/pkg/openapi/server.spec.yaml#/components/responses/flavorsResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v1/organizations/{organizationID}/regions/{regionID}/images:
+    description: |-
+      Kubernetes image services.
+    parameters:
+    - $ref: '#/components/parameters/organizationIDParameter'
+    - $ref: '#/components/parameters/regionIDParameter'
+    get:
+      x-hidden: true
+      description: |-
+        Lists all Kubernetes compatible images that the user has access to.
+      security:
+      - oauth2Authentication: []
+      responses:
+        '200':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/region/main/pkg/openapi/server.spec.yaml#/components/responses/imagesResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v1/organizations/{organizationID}/clustermanagers:
+    description: |-
+      Implements cluster manager management services. Cluster managers manage the
+      life cycle of Kubernetes clusters, through provisioning, upgrading, to deletion.
+      Cluster managers must reference a versioned application bundle that defines the
+      software versions of cluster manager components, and forms the basis of automatic
+      upgrade functionality.
+    parameters:
+    - $ref: '#/components/parameters/organizationIDParameter'
+    get:
+      x-hidden: true
+      description: |-
+        Lists cluster managers within the organization.
+      security:
+      - oauth2Authentication: []
+      responses:
+        '200':
+          $ref: '#/components/responses/clusterManagersResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v1/organizations/{organizationID}/projects/{projectID}/clustermanagers:
+    description: |-
+      Implements cluster manager management services. Cluster managers manage the
+      life cycle of Kubernetes clusters, through provisioning, upgrading, to deletion.
+      Cluster managers must reference a versioned application bundle that defines the
+      software versions of cluster manager components, and forms the basis of automatic
+      upgrade functionality.
+    parameters:
+    - $ref: '#/components/parameters/organizationIDParameter'
+    - $ref: '#/components/parameters/projectIDParameter'
+    post:
+      x-hidden: true
+      description: |-
+        Creates a new cluster manager within the project.
+      security:
+      - oauth2Authentication: []
+      requestBody:
+        $ref: '#/components/requestBodies/createControlPlaneRequest'
+      responses:
+        '202':
+          $ref: '#/components/responses/clusterManagerResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '409':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/conflictResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v1/organizations/{organizationID}/projects/{projectID}/clustermanagers/{clusterManagerID}:
+    description: |-
+      Implements cluster manager management services. Cluster managers manage the
+      life cycle of Kubernetes clusters, through provisioning, upgrading, to deletion.
+      Cluster managers must reference a versioned application bundle that defines the
+      software versions of cluster manager components, and forms the basis of automatic
+      upgrade functionality.
+    parameters:
+    - $ref: '#/components/parameters/organizationIDParameter'
+    - $ref: '#/components/parameters/projectIDParameter'
+    - $ref: '#/components/parameters/clusterManagerIDParameter'
+    put:
+      x-hidden: true
+      description: |-
+        Updates a cluster manager within the scoped project.
+      security:
+      - oauth2Authentication: []
+      requestBody:
+        $ref: '#/components/requestBodies/createControlPlaneRequest'
+      responses:
+        '202':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/acceptedResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+    delete:
+      x-hidden: true
+      description: |-
+        Deletes a cluster manager from within the scoped project.
+        This is a cascading operation and will delete all managed clusters.
+      security:
+      - oauth2Authentication: []
+      responses:
+        '202':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/acceptedResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v1/organizations/{organizationID}/clusters:
+    description: Cluster services.
+    parameters:
+    - $ref: '#/components/parameters/organizationIDParameter'
+    - $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/parameters/tagSelectorParameter'
+    get:
+      x-hidden: true
+      description: |-
+        List all clusters within the organization.
+      security:
+      - oauth2Authentication: []
+      responses:
+        '200':
+          $ref: '#/components/responses/kubernetesClustersResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v1/organizations/{organizationID}/projects/{projectID}/clusters:
+    description: Cluster services.
+    parameters:
+    - $ref: '#/components/parameters/organizationIDParameter'
+    - $ref: '#/components/parameters/projectIDParameter'
+    post:
+      x-hidden: true
+      description: |-
+        Creates a new cluster.
+      security:
+      - oauth2Authentication: []
+      requestBody:
+        $ref: '#/components/requestBodies/createKubernetesClusterRequest'
+      responses:
+        '202':
+          $ref: '#/components/responses/kubernetesClusterResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '409':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/conflictResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v1/organizations/{organizationID}/projects/{projectID}/clusters/{clusterID}:
+    description: Cluster services.
+    parameters:
+    - $ref: '#/components/parameters/organizationIDParameter'
+    - $ref: '#/components/parameters/projectIDParameter'
+    - $ref: '#/components/parameters/clusterIDParameter'
+    put:
+      x-hidden: true
+      description: |-
+        Update a cluster.
+      security:
+      - oauth2Authentication: []
+      requestBody:
+        $ref: '#/components/requestBodies/createKubernetesClusterRequest'
+      responses:
+        '202':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/acceptedResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+    delete:
+      x-hidden: true
+      description: |-
+        Delete a cluster.
+      security:
+      - oauth2Authentication: []
+      responses:
+        '202':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/acceptedResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v1/organizations/{organizationID}/projects/{projectID}/clusters/{clusterID}/kubeconfig:
+    description: Cluster services.
+    parameters:
+    - $ref: '#/components/parameters/organizationIDParameter'
+    - $ref: '#/components/parameters/projectIDParameter'
+    - $ref: '#/components/parameters/clusterIDParameter'
+    get:
+      x-hidden: true
+      description: |-
+        Get a cluster's Kubernetes configuration.
+      security:
+      - oauth2Authentication: []
+      responses:
+        '200':
+          $ref: '#/components/responses/kubernetesClusterKubeconfigResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v1/organizations/{organizationID}/virtualclusters:
+    description: Virtual cluster services.
+    parameters:
+    - $ref: '#/components/parameters/organizationIDParameter'
+    - $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/parameters/tagSelectorParameter'
+    get:
+      x-hidden: true
+      description: |-
+        List all virtual clusters within the organization.
+      security:
+      - oauth2Authentication: []
+      responses:
+        '200':
+          $ref: '#/components/responses/virtualKubernetesClustersResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v1/organizations/{organizationID}/projects/{projectID}/virtualclusters:
+    description: Virtual cluster services.
+    parameters:
+    - $ref: '#/components/parameters/organizationIDParameter'
+    - $ref: '#/components/parameters/projectIDParameter'
+    post:
+      x-hidden: true
+      description: |-
+        Creates a new virtual cluster.
+      security:
+      - oauth2Authentication: []
+      requestBody:
+        $ref: '#/components/requestBodies/createVirtualKubernetesClusterRequest'
+      responses:
+        '202':
+          $ref: '#/components/responses/virtualKubernetesClusterResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '409':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/conflictResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v1/organizations/{organizationID}/projects/{projectID}/virtualclusters/{clusterID}:
+    description: Virtual cluster services.
+    parameters:
+    - $ref: '#/components/parameters/organizationIDParameter'
+    - $ref: '#/components/parameters/projectIDParameter'
+    - $ref: '#/components/parameters/clusterIDParameter'
+    put:
+      x-hidden: true
+      description: |-
+        Update a virtual cluster.
+      security:
+      - oauth2Authentication: []
+      requestBody:
+        $ref: '#/components/requestBodies/createVirtualKubernetesClusterRequest'
+      responses:
+        '202':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/acceptedResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+    delete:
+      x-hidden: true
+      description: |-
+        Delete a virtual cluster.
+      security:
+      - oauth2Authentication: []
+      responses:
+        '202':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/acceptedResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v1/organizations/{organizationID}/projects/{projectID}/virtualclusters/{clusterID}/kubeconfig:
+    description: Virtual cluster services.
+    parameters:
+    - $ref: '#/components/parameters/organizationIDParameter'
+    - $ref: '#/components/parameters/projectIDParameter'
+    - $ref: '#/components/parameters/clusterIDParameter'
+    get:
+      x-hidden: true
+      description: |-
+        Get a virtual cluster's Kubernetes configuration.
+      security:
+      - oauth2Authentication: []
+      responses:
+        '200':
+          $ref: '#/components/responses/kubernetesClusterKubeconfigResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+components:
+  parameters:
+    organizationIDParameter:
+      name: organizationID
+      in: path
+      description: |-
+        The organization ID.
+      required: true
+      schema:
+        $ref: '#/components/schemas/kubernetesNameParameter'
+    projectIDParameter:
+      name: projectID
+      in: path
+      description: |-
+        The project ID.
+      required: true
+      schema:
+        $ref: '#/components/schemas/kubernetesNameParameter'
+    regionIDParameter:
+      name: regionID
+      in: path
+      description: The region ID.
+      required: true
+      schema:
+        $ref: '#/components/schemas/kubernetesNameParameter'
+    clusterManagerIDParameter:
+      name: clusterManagerID
+      in: path
+      description: |-
+        The cluster manager ID.
+      required: true
+      schema:
+        $ref: '#/components/schemas/kubernetesNameParameter'
+    clusterIDParameter:
+      name: clusterID
+      in: path
+      description: |-
+        The cluster ID.
+      required: true
+      schema:
+        $ref: '#/components/schemas/kubernetesNameParameter'
+    regionTypeParameter:
+      name: regionType
+      in: query
+      description: |-
+        The type of region we are asking for.
+      required: true
+      schema:
+        $ref: '#/components/schemas/regionTypeParameter'
+  schemas:
+    kubernetesNameParameter:
+      description: A Kubernetes name. Must be a valid DNS containing only lower case characters, numbers or hyphens, start and end with a character or number, and be at most 63 characters in length.
+      type: string
+      minLength: 1
+      maxLength: 63
+    regionTypeParameter:
+      description: |-
+        The region type. "physical" means a full Kubernetes cluster deployment, "virtual" is a virtual
+        Kubernetes cluster hosted by another one.
+      type: string
+      enum:
+      - physical
+      - virtual
+    clusterManagerRead:
+      description: A cluster manager.
+      type: object
+      required:
+      - metadata
+      properties:
+        metadata:
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/schemas/projectScopedResourceReadMetadata'
+    clusterManagerWrite:
+      description: A cluster manager.
+      type: object
+      required:
+      - metadata
+      properties:
+        metadata:
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/schemas/resourceWriteMetadata'
+    clusterManagers:
+      description: A list of cluster managers.
+      type: array
+      items:
+        $ref: '#/components/schemas/clusterManagerRead'
+    kubernetesClusterAutoUpgradeWindow:
+      description: |-
+        Defines when in the day an upgrade is allowed to occur, specified as an
+        hour starting from 0 up to 23.  Upgrade windows can overflow into the next
+        day e.g. a start of 22 will begin upgrades from 10pm, and an end of 6 will
+        stop upgrades after 6am.
+      type: object
+      required:
+      - start
+      - end
+      properties:
+        start:
+          description: Hour to start upgrades.
+          type: integer
+          minimum: 0
+          maximum: 23
+        end:
+          description: Hour to end upgrades.
+          type: integer
+          minimum: 0
+          maximum: 23
+    kubernetesClusterAutoUpgradeDaysOfWeek:
+      description: |-
+        When defined allows explicit control of what days an auto upgrade can
+        occur on.
+      type: object
+      properties:
+        sunday:
+          $ref: '#/components/schemas/kubernetesClusterAutoUpgradeWindow'
+        monday:
+          $ref: '#/components/schemas/kubernetesClusterAutoUpgradeWindow'
+        tuesday:
+          $ref: '#/components/schemas/kubernetesClusterAutoUpgradeWindow'
+        wednesday:
+          $ref: '#/components/schemas/kubernetesClusterAutoUpgradeWindow'
+        thursday:
+          $ref: '#/components/schemas/kubernetesClusterAutoUpgradeWindow'
+        friday:
+          $ref: '#/components/schemas/kubernetesClusterAutoUpgradeWindow'
+        saturday:
+          $ref: '#/components/schemas/kubernetesClusterAutoUpgradeWindow'
+    kubernetesClusterAutoUpgrade:
+      description: |-
+        If set, enables auto-upgrade to a set schedule, or if not set, opts
+        out of upgrades entirely.  Upgrades still occur when the cluster's
+        application bundle reaches end of life irrespective of whether auto upgrades
+        are disabled. The absence of this object represents a default auto-upgrade policy of
+        the platform.
+      type: object
+      required:
+      - enabled
+      properties:
+        enabled:
+          description: Whether or not auto upgrades are enabled.
+          type: boolean
+        daysOfWeek:
+          $ref: '#/components/schemas/kubernetesClusterAutoUpgradeDaysOfWeek'
+    kubernetesClusterNetwork:
+      description: A Kubernetes cluster network settings.
+      type: object
+      properties:
+        nodePrefix:
+          description: Network prefix to provision nodes in. Must be a valid CIDR block.
+          type: string
+        servicePrefix:
+          description: Network prefix to provision services in. Must be a valid CIDR block.
+          type: string
+        podPrefix:
+          description: Network prefix to provision pods in. Must be a valid CIDR block.
+          type: string
+        dnsNameservers:
+          description: A list of DNS name server to use.
+          type: array
+          items:
+            description: A DNS name server IPv4 address.
+            type: string
+    kubernetesClusterAPI:
+      description: Kubernetes API settings.
+      type: object
+      properties:
+        subjectAlternativeNames:
+          description: Set of non-standard X.509 SANs to add to the API certificate.
+          type: array
+          minItems: 1
+          items:
+            description: An X.509 SAN.
+            type: string
+        allowedPrefixes:
+          description: Set of address prefixes to allow access to the Kubernetes API.
+          type: array
+          minItems: 1
+          items:
+            description: An IPv4 CIDR address prefix.
+            type: string
+    volume:
+      description: A volume.
+      type: object
+      required:
+      - size
+      properties:
+        size:
+          description: Disk size in GiB.
+          type: integer
+    machinePool:
+      description: A Kubernetes cluster machine.
+      type: object
+      properties:
+        replicas:
+          description: Number of machines for a statically sized pool or the maximum
+            for an auto-scaled pool.
+          type: integer
+        flavorId:
+          description: Flavor ID.
+          type: string
+          minLength: 1
+        disk:
+          $ref: '#/components/schemas/volume'
+    kubernetesClusterAutoscaling:
+      description: |-
+        A Kubernetes cluster workload pool autoscaling configuration. Cluster autoscaling
+        must also be enabled in the cluster features.
+      type: object
+      required:
+      - minimumReplicas
+      properties:
+        minimumReplicas:
+          description: |-
+            The minimum number of replicas to allow. Must be less than the maximum.
+          type: integer
+    kubernetesClusterWorkloadPool:
+      description: A Kubernetes cluster workload pool.
+      type: object
+      required:
+      - name
+      - machine
+      properties:
+        name:
+          description: Workload pool name.
+          type: string
+        machine:
+          $ref: '#/components/schemas/machinePool'
+        labels:
+          description: Workload pool key value labels to apply on node creation.
+          type: object
+          additionalProperties:
+            description: A string value.
+            type: string
+        autoscaling:
+          $ref: '#/components/schemas/kubernetesClusterAutoscaling'
+    kubernetesClusterWorkloadPools:
+      description: A list of Kubernetes cluster workload pools.
+      type: array
+      minItems: 1
+      items:
+        $ref: '#/components/schemas/kubernetesClusterWorkloadPool'
+    kubernetesClusterFeatures:
+      description: Cluster feature flags.
+      type: object
+      required:
+      - hardwareEnablement
+      properties:
+        hardwareEnablement:
+          description: |-
+            Enables and hardware operators and drivers for the cluster e.g.
+            GPU operator, network configuration, etc.
+          type: boolean
+          default: false
+    kubernetesClusterControlPlane:
+      description: |-
+        Defines explicit control plane topology. When not specified, the platform
+        will automatically select an appropriate flavor.
+      type: object
+      required:
+      - flavorId
+      properties:
+        flavorId:
+          description: Flavor ID for control plane nodes.
+          type: string
+          minLength: 1
+        replicas:
+          description: |-
+            Number of control plane replicas. Must be an odd number to
+            maintain quorum. Defaults to 3 if not specified.
+          type: integer
+          minimum: 1
+          default: 3
+    kubernetesClusterSpec:
+      description: Kubernetes cluster creation parameters.
+      type: object
+      required:
+      - regionId
+      - version
+      - workloadPools
+      properties:
+        regionId:
+          description: The region to provision the cluster in.
+          type: string
+        clusterManagerId:
+          description: |-
+            The name of the cluster manager to use, if one is not specified
+            the system will create one for you.
+          type: string
+        version:
+          description: The Kubernetes version.  This should be derived from
+            image metadata.
+          type: string
+        applicationBundleName:
+          description: An explicit set of applications to use for deploy.
+          type: string
+        autoUpgrade:
+          $ref: '#/components/schemas/kubernetesClusterAutoUpgrade'
+        features:
+          $ref: '#/components/schemas/kubernetesClusterFeatures'
+        controlPlane:
+          $ref: '#/components/schemas/kubernetesClusterControlPlane'
+        workloadPools:
+          $ref: '#/components/schemas/kubernetesClusterWorkloadPools'
+        api:
+          $ref: '#/components/schemas/kubernetesClusterAPI'
+        networking:
+          $ref: '#/components/schemas/kubernetesClusterNetwork'
+    kubernetesClusterRead:
+      description: Kubernetes cluster read.
+      type: object
+      required:
+      - metadata
+      - spec
+      properties:
+        metadata:
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/schemas/projectScopedResourceReadMetadata'
+        spec:
+          $ref: '#/components/schemas/kubernetesClusterSpec'
+    kubernetesClusterWrite:
+      description: Kubernetes cluster create or update.
+      type: object
+      required:
+      - metadata
+      - spec
+      properties:
+        metadata:
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/schemas/resourceWriteMetadata'
+        spec:
+          $ref: '#/components/schemas/kubernetesClusterSpec'
+    kubernetesClusters:
+      description: A list of Kubernetes clusters.
+      type: array
+      items:
+        $ref: '#/components/schemas/kubernetesClusterRead'
+    virtualKubernetesClusterSpec: 
+      description: Virtual Kubernetes cluster creation parameters.
+      type: object
+      required:
+      - regionId
+      - workloadPools
+      properties:
+        regionId:
+          description: The region to provision the cluster in.
+          type: string
+        workloadPools:
+          $ref: '#/components/schemas/virtualKubernetesClusterWorkloadPools'
+    virtualKubernetesClusterWorkloadPools:
+      description: A set of virtual workload pools.
+      type: array
+      items:
+        $ref: '#/components/schemas/virtualKubernetesClusterWorkloadPool'
+    virtualKubernetesClusterWorkloadPool:
+      description: A virtual workload pool.
+      type: object
+      required:
+      - name
+      - flavorId
+      - replicas
+      properties:
+        name:
+          description: The workload pool name.
+          type: string
+        flavorId:
+          description: The flavor's ID
+          type: string
+        replicas:
+          description: The number of nodes.
+          type: integer
+    virtualKubernetesClusterRead:
+      description: Virtual Kubernetes cluster read.
+      type: object
+      required:
+      - metadata
+      - spec
+      properties:
+        metadata:
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/schemas/projectScopedResourceReadMetadata'
+        spec:
+          $ref: '#/components/schemas/virtualKubernetesClusterSpec'
+    virtualKubernetesClusterWrite:
+      description: Virtual Kubernetes cluster create or update.
+      type: object
+      required:
+      - metadata
+      - spec
+      properties:
+        metadata:
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/schemas/resourceWriteMetadata'
+        spec:
+          $ref: '#/components/schemas/virtualKubernetesClusterSpec'
+    virtualKubernetesClusters:
+      description: A list of virtual Kubernetes clusters.
+      type: array
+      items:
+        $ref: '#/components/schemas/virtualKubernetesClusterRead'
+  requestBodies:
+    createControlPlaneRequest:
+      description: Control plane request parameters.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/clusterManagerWrite'
+          example:
+            metadata:
+              name: default
+    createKubernetesClusterRequest:
+      description: Kubernetes cluster request parameters.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/kubernetesClusterWrite'
+          example:
+            metadata:
+              name: cluster
+            spec:
+              regionId: b059b3e6-9ae5-42b7-94b4-f42fb7a6baee
+              version: v1.27.2
+              workloadPools:
+              - autoscaling:
+                  minimumReplicas: 0
+                machine:
+                  flavorId: c7568e2d-f9ab-453d-9a3a-51375f78426b
+                  replicas: 3
+                name: default
+    createVirtualKubernetesClusterRequest:
+      description: Virtual Kubernetes cluster request parameters.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/virtualKubernetesClusterWrite'
+          example:
+            metadata:
+              name: cluster
+            spec:
+              regionId: b059b3e6-9ae5-42b7-94b4-f42fb7a6baee
+              workloadPools:
+              - name: default
+                flavorId: c7568e2d-f9ab-453d-9a3a-51375f78426b
+                replicas: 3
+  responses:
+    clusterManagerResponse:
+      description: A cluster manager.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/clusterManagerRead'
+          example:
+            metadata:
+              id: c7568e2d-f9ab-453d-9a3a-51375f78426b
+              name: default 
+              organizationId: d4600d6e-e965-4b44-a808-84fb2fa36702
+              projectId: cae219d7-10e5-4601-8c2c-ee7e066b93ce
+              creationTime: 2023-07-31T10:45:45Z
+              provisioningStatus: provisioned
+              healthStatus: healthy
+    clusterManagersResponse:
+      description: A list of cluster managers.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/clusterManagers'
+          example:
+          - metadata:
+              id: c7568e2d-f9ab-453d-9a3a-51375f78426b
+              name: default
+              organizationId: d4600d6e-e965-4b44-a808-84fb2fa36702
+              projectId: cae219d7-10e5-4601-8c2c-ee7e066b93ce
+              creationTime: 2023-07-31T10:45:45Z
+              provisioningStatus: provisioned
+              healthStatus: healthy
+    kubernetesClusterKubeconfigResponse:
+      description: A Kubernetes cluster configuration.
+      content:
+        application/octet-stream: {}
+    kubernetesClusterResponse:
+      description: A Kubernetes cluster.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/kubernetesClusterRead'
+          example:
+            metadata:
+              id: c7568e2d-f9ab-453d-9a3a-51375f78426b
+              name: cluster
+              organizationId: d4600d6e-e965-4b44-a808-84fb2fa36702
+              projectId: cae219d7-10e5-4601-8c2c-ee7e066b93ce
+              creationTime: 2023-07-31T10:45:45Z
+              provisioningStatus: provisioned
+              healthStatus: healthy
+            spec:
+              regionId: b059b3e6-9ae5-42b7-94b4-f42fb7a6baee
+              version: v1.27.2
+              clusterManagerId: b85525fc-40ca-482b-ac07-eca8b01b09c2
+              workloadPools:
+              - name: default
+                machine:
+                  disk:
+                    size: 50
+                  flavorId: c7568e2d-f9ab-453d-9a3a-51375f78426b
+                  replicas: 3
+    kubernetesClustersResponse:
+      description: A list of Kubernetes clusters.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/kubernetesClusters'
+          example:
+          - metadata:
+              id: c7568e2d-f9ab-453d-9a3a-51375f78426b
+              name: cluster
+              organizationId: d4600d6e-e965-4b44-a808-84fb2fa36702
+              projectId: cae219d7-10e5-4601-8c2c-ee7e066b93ce
+              creationTime: 2023-07-31T10:45:45Z
+              provisioningStatus: provisioned
+              healthStatus: healthy
+            spec:
+              regionId: b059b3e6-9ae5-42b7-94b4-f42fb7a6baee
+              version: v1.27.2
+              clusterManagerId: b85525fc-40ca-482b-ac07-eca8b01b09c2
+              workloadPools:
+              - name: default
+                machine:
+                  disk:
+                    size: 50
+                  flavorId: c7568e2d-f9ab-453d-9a3a-51375f78426b
+                  replicas: 3
+    virtualKubernetesClusterResponse:
+      description: A virtual Kubernetes cluster.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/virtualKubernetesClusterRead'
+          example:
+            metadata:
+              id: c7568e2d-f9ab-453d-9a3a-51375f78426b
+              name: cluster
+              organizationId: d4600d6e-e965-4b44-a808-84fb2fa36702
+              projectId: cae219d7-10e5-4601-8c2c-ee7e066b93ce
+              creationTime: 2023-07-31T10:45:45Z
+              provisioningStatus: provisioned
+              healthStatus: healthy
+            spec:
+              regionId: b059b3e6-9ae5-42b7-94b4-f42fb7a6baee
+              workloadPools:
+              - name: default
+                flavorId: c7568e2d-f9ab-453d-9a3a-51375f78426b
+                replicas: 3
+    virtualKubernetesClustersResponse:
+      description: A list of virtual Kubernetes clusters.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/virtualKubernetesClusters'
+          example:
+          - metadata:
+              id: c7568e2d-f9ab-453d-9a3a-51375f78426b
+              name: cluster
+              organizationId: d4600d6e-e965-4b44-a808-84fb2fa36702
+              projectId: cae219d7-10e5-4601-8c2c-ee7e066b93ce
+              creationTime: 2023-07-31T10:45:45Z
+              provisioningStatus: provisioned
+              healthStatus: healthy
+            spec:
+              regionId: b059b3e6-9ae5-42b7-94b4-f42fb7a6baee
+              workloadPools:
+              - name: default
+                flavorId: c7568e2d-f9ab-453d-9a3a-51375f78426b
+                replicas: 3
+  securitySchemes:
+    oauth2Authentication:
+      description: Operation requires OAuth 2.0 bearer token authentication.
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://identity.nks.europe-west4.nscale.com/oauth2/v2/authorization
+          tokenUrl: https://identity.nks.europe-west4.nscale.com/oauth2/v2/token
+          scopes: {}
