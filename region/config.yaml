@@ -1,0 +1,11 @@
+package: region
+output: region.gen.go
+generate:
+  client: true
+  models: true
+output-options:
+  skip-prune: true
+compatibility:
+  always-prefix-enum-values: true
+import-mapping:
+  https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml: github.com/nscaledev/nscale-sdk-go/common

@@ -1,0 +1,847 @@
+openapi: 3.0.3
+info:
+  title: Compute Service API
+  description: |-
+    The Compute Service API provides services that allows provisioning and life cycle
+    management of Compute instances.
+  version: 1.13.0
+paths:
+  /.well-known/openid-protected-resource:
+    description: |-
+      Implements OIDC authorization service discovery.
+    get:
+      x-no-security-requirements: true
+      x-hidden: true
+      description: |-
+        Reads the OIDC discovery page identifying authorization servers.
+      responses:
+        '200':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/openidProtectedResourceResponse'
+  /api/v1/organizations/{organizationID}/regions:
+    description: |-
+      Accesses a filtered list of regions for use with compute resources.
+    parameters:
+    - $ref: '#/components/parameters/organizationIDParameter'
+    get:
+      description: |-
+        Lists compute service compatible regions.
+      summary: List regions
+      tags:
+      - Regions
+      security:
+      - oauth2Authentication: []
+      responses:
+        '200':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/region/main/pkg/openapi/server.spec.yaml#/components/responses/regionsResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v1/organizations/{organizationID}/regions/{regionID}/flavors:
+    description: |-
+      Compute flavor services.
+    parameters:
+    - $ref: '#/components/parameters/organizationIDParameter'
+    - $ref: '#/components/parameters/regionIDParameter'
+    get:
+      description: |-
+        Lists all compute compatible flavors that the user has access to.
+      summary: List flavors
+      tags:
+      - Flavors
+      security:
+      - oauth2Authentication: []
+      responses:
+        '200':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/region/main/pkg/openapi/server.spec.yaml#/components/responses/flavorsResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v1/organizations/{organizationID}/regions/{regionID}/images:
+    description: |-
+      Compute image services.
+    parameters:
+    - $ref: '#/components/parameters/organizationIDParameter'
+    - $ref: '#/components/parameters/regionIDParameter'
+    get:
+      description: |-
+        Lists all compute compatible images that the user has access to.
+      summary: List images
+      tags:
+      - Images
+      security:
+      - oauth2Authentication: []
+      responses:
+        '200':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/region/main/pkg/openapi/server.spec.yaml#/components/responses/imagesResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v2/instances:
+    description: Compute instance services.
+    get:
+      description: List compute instances.
+      summary: List instances
+      tags:
+      - Instances
+      security:
+      - oauth2Authentication: []
+      parameters:
+      - $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/parameters/tagSelectorParameter'
+      - $ref: '#/components/parameters/organizationIDQueryParameter'
+      - $ref: '#/components/parameters/projectIDQueryParameter'
+      - $ref: '#/components/parameters/regionIDQueryParameter'
+      - $ref: '#/components/parameters/networkIDQueryParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/instancesResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+    post:
+      description: Create an instance.
+      summary: Create instance
+      tags:
+      - Instances
+      security:
+      - oauth2Authentication: []
+      requestBody:
+        $ref: '#/components/requestBodies/instanceCreateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/instanceResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '409':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/conflictResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v2/instances/{instanceID}:
+    description: Compute instance services.
+    parameters:
+    - $ref: '#/components/parameters/instanceIDParameter'
+    get:
+      description: Get an instance.
+      summary: Get instance
+      tags:
+      - Instances
+      security:
+      - oauth2Authentication: []
+      responses:
+        '200':
+          $ref: '#/components/responses/instanceResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+    put:
+      description: Update an instance.
+      summary: Update instance
+      tags:
+      - Instances
+      security:
+      - oauth2Authentication: []
+      requestBody:
+        $ref: '#/components/requestBodies/instanceUpdateRequest'
+      responses:
+        '202':
+          $ref: '#/components/responses/instanceResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+    delete:
+      description: Delete an instance.
+      summary: Delete instance
+      tags:
+      - Instances
+      security:
+      - oauth2Authentication: []
+      responses:
+        '202':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/acceptedResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v2/instances/{instanceID}/reboot:
+    description: Compute instance services.
+    parameters:
+    - $ref: '#/components/parameters/instanceIDParameter'
+    - $ref: '#/components/parameters/hardRebootParameter'
+    post:
+      x-no-body: true
+      description: |-
+        Reboot an instance.  By default this will perform a software ACPI reboot.
+        You can specifiy a hard power cycle as a query parameter.
+      summary: Reboot instance
+      tags:
+      - Instances
+      security:
+      - oauth2Authentication: []
+      responses:
+        '202':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/acceptedResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v2/instances/{instanceID}/sshkey:
+    description: Compute instance services.
+    parameters:
+    - $ref: '#/components/parameters/instanceIDParameter'
+    get:
+      description: Retrieve the SSH key for an instance.
+      summary: Get instance SSH key
+      tags:
+      - Instances
+      security:
+      - oauth2Authentication: []
+      responses:
+        '200':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/region/main/pkg/openapi/server.spec.yaml#/components/responses/sshKeyResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v2/instances/{instanceID}/start:
+    description: Compute instance services.
+    parameters:
+    - $ref: '#/components/parameters/instanceIDParameter'
+    post: 
+      x-no-body: true
+      description: |-
+        Start a stopped instance.
+      summary: Start instance
+      tags:
+      - Instances
+      security:
+      - oauth2Authentication: []
+      responses:
+        '202':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/acceptedResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v2/instances/{instanceID}/stop:
+    description: Compute instance services.
+    parameters:
+    - $ref: '#/components/parameters/instanceIDParameter'
+    post: 
+      x-no-body: true
+      description: |-
+        Stop a running instnace.
+      summary: Stop instance
+      tags:
+      - Instances
+      security:
+      - oauth2Authentication: []
+      responses:
+        '202':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/acceptedResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v2/instances/{instanceID}/snapshot:
+    description: Create an image from a compute instance.
+    parameters:
+    - $ref: '#/components/parameters/instanceIDParameter'
+    post:
+      description: |-
+        Take a snapshot of an instance and create an image from it.
+      summary: Snapshot instance
+      tags:
+      - Instances
+      security:
+      - oauth2Authentication: []
+      requestBody:
+        $ref: '#/components/requestBodies/instanceSnapshotRequest'
+      responses:
+        '201':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/region/main/pkg/openapi/server.spec.yaml#/components/responses/imageResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v2/instances/{instanceID}/consolesession:
+    description: Compute instance services.
+    parameters:
+    - $ref: '#/components/parameters/instanceIDParameter'
+    get:
+      description: |-
+        Create a new console session for an instance.
+      summary: Get instance console VNC
+      tags:
+      - Instances
+      security:
+      - oauth2Authentication: []
+      responses:
+        '200':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/region/main/pkg/openapi/server.spec.yaml#/components/responses/consoleSessionResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+  /api/v2/instances/{instanceID}/consoleoutput:
+    description: Compute instance services.
+    parameters:
+    - $ref: '#/components/parameters/instanceIDParameter'
+    - $ref: '#/components/parameters/lengthParameter'
+    get:
+      description: |-
+        Get the console output for an instance.
+      summary: Get instance console output
+      tags:
+      - Instances
+      security:
+      - oauth2Authentication: []
+      responses:
+        '200':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/region/main/pkg/openapi/server.spec.yaml#/components/responses/consoleOutputResponse'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '404':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+components:
+  parameters:
+    organizationIDParameter:
+      name: organizationID
+      in: path
+      description: The organization ID.
+      required: true
+      schema:
+        $ref: '#/components/schemas/kubernetesNameParameter'
+    projectIDParameter:
+      name: projectID
+      in: path
+      description: The project ID.
+      required: true
+      schema:
+        $ref: '#/components/schemas/kubernetesNameParameter'
+    regionIDParameter:
+      name: regionID
+      in: path
+      description: The region ID.
+      required: true
+      schema:
+        $ref: '#/components/schemas/kubernetesNameParameter'
+    instanceIDParameter:
+      name: instanceID
+      in: path
+      description: The instance ID.
+      required: true
+      schema:
+        $ref: '#/components/schemas/kubernetesNameParameter'
+    lengthParameter:
+      name: length
+      in: query
+      description: The requested output length.
+      schema:
+        type: integer
+    hardRebootParameter:
+      name: hard
+      in: query
+      description: Whether the reboot is hard.
+      schema:
+        type: boolean
+    organizationIDQueryParameter:
+      name: organizationID
+      in: query
+      description: Allows resources to be filtered by organization.
+      schema:
+        type: array
+        items:
+          type: string
+    projectIDQueryParameter:
+      name: projectID
+      in: query
+      description: Allows resources to be filtered by project.
+      schema:
+        type: array
+        items:
+          type: string
+    regionIDQueryParameter:
+      name: regionID
+      in: query
+      description: Allows resources to be filtered by region.
+      schema:
+        type: array
+        items:
+          type: string
+    networkIDQueryParameter:
+      name: networkID
+      in: query
+      description: Allows resources to be filtered by network.
+      schema:
+        type: array
+        items:
+          type: string
+  schemas:
+    kubernetesNameParameter:
+      description: A Kubernetes name. Must be a valid DNS containing only lower case characters, numbers or hyphens, start and end with a character or number, and be at most 63 characters in length.
+      type: string
+      minLength: 1
+      maxLength: 63
+    volume:
+      description: A volume.  This is currently only valid for VM based flavors.
+      type: object
+      required:
+      - size
+      properties:
+        size:
+          description: Disk size in GiB.
+          type: integer
+    allowedSourceAddresses:
+      description: |-
+        A list of network prefixes that are allowed to egress from the server.
+        By default, only packets from the server's network interface's IP address
+        are allowed to enter the network.  Use of this option allows the server
+        to act as a router without SNAT rules.
+      type: array
+      items:
+        description: An allowed source address prefix.
+        type: string
+    securityGroupIDList:
+      description: A list of security group IDs.
+      type: array
+      items:
+        description: A security group ID.
+        type: string
+    instanceNetworking:
+      description: A compute instance's network  configuration.
+      type: object
+      properties:
+        securityGroups:
+          $ref: '#/components/schemas/securityGroupIDList'
+        publicIP:
+          description: Whether or not to provision a public IP.
+          type: boolean
+        allowedSourceAddresses:
+          $ref: '#/components/schemas/allowedSourceAddresses'
+    instanceSpec:
+      description: |-
+        A compute instance.
+        Some stored desired-state changes only take effect on the backing server when that server is
+        rebuilt or recreated. Currently, changing metadata.name, flavorId or imageId causes the
+        backing server to be rebuilt or recreated. In those cases, backing server IP addresses are
+        not preserved and may change when the replacement server is created.
+      type: object
+      required:
+      - flavorId
+      - imageId
+      properties:
+        flavorId:
+          description: The flavor CPU/RAM of a compute instance.
+          type: string
+        imageId:
+          description: The image of a compute instance.
+          type: string
+        networking:
+          $ref: '#/components/schemas/instanceNetworking'
+        sshCertificateAuthorityId:
+          description: |-
+            The SSH certificate authority used to bootstrap login trust when the backing server is
+            created.
+          type: string
+        userData:
+          description: |-
+            Contains base64-encoded configuration information or scripts to use upon launch.
+            The format of the data is governed by the cloud-init standard, and may be a script,
+            a MIME multipart archive, etc.
+          type: string
+          format: byte
+    instanceCreateSpec:
+      description: A compute instance.
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/instanceSpec'
+      - type: object
+        required:
+        - organizationId
+        - projectId
+        - networkId
+        properties:
+          organizationId:
+            description: The organization to provision the resource in.
+            type: string
+          projectId:
+            description: The project to provision the resource in.
+            type: string
+          networkId:
+            description: The network ID to attach the compute instance to.
+            type: string
+    instanceStatus:
+      description: Read only status information about a compute instance.
+      type: object
+      required:
+      - regionId
+      - networkId
+      properties:
+        regionId:
+          description: The region a security group belongs to.
+          type: string
+        networkId:
+          description: The network a security group belongs to.
+          type: string
+        powerState:
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/region/main/pkg/openapi/server.spec.yaml#/components/schemas/instanceLifecyclePhase'
+        privateIP:
+          description: The private IP address of the server.
+          type: string
+        publicIP:
+          description: The public IP address of the server.
+          type: string
+        macAddress:
+          description: The MAC address of the server.
+          type: string
+    instanceRead:
+      description: A compute instance.
+      type: object
+      required:
+      - metadata
+      - spec
+      - status
+      properties:
+        metadata:
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/schemas/projectScopedResourceReadMetadata'
+        spec:
+          $ref: '#/components/schemas/instanceSpec'
+        status:
+          $ref: '#/components/schemas/instanceStatus'
+    instancesRead:
+      description: A list of compute instances.
+      type: array
+      items:
+        $ref: '#/components/schemas/instanceRead'
+    instanceCreate:
+      description: A compute instance creation request.
+      type: object
+      required:
+      - metadata
+      - spec
+      properties:
+        metadata:
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/schemas/resourceWriteMetadata'
+        spec:
+          $ref: '#/components/schemas/instanceCreateSpec'
+    instanceUpdate:
+      description: A compute instance update request.
+      type: object
+      required:
+      - metadata
+      - spec
+      properties:
+        metadata:
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/schemas/resourceWriteMetadata'
+        spec:
+          $ref: '#/components/schemas/instanceSpec'
+    allowedAddressPairList:
+      description: A list of allowed address pairs.
+      type: array
+      items:
+        $ref: '#/components/schemas/allowedAddressPair'
+    allowedAddressPair:
+      description: |-
+        Allow multiple MAC/IP address (range) pairs to pass through this network port.
+        Typically required when the machine is operating as a router.
+      type: object
+      required:
+      - cidr
+      properties:
+        cidr:
+          description: The CIDR to allow.
+          type: string
+        macAddress:
+          description: The MAC address to allow.
+          type: string
+    firewallRules:
+      description: A list of firewall rules applied to a workload pool.
+      type: array
+      items:
+        $ref: '#/components/schemas/firewallRule'
+    firewallRule:
+      description: A firewall rule applied to a workload pool.
+      type: object
+      required:
+      - direction
+      - protocol
+      - port
+      - prefixes
+      properties:
+        direction:
+          description: The direction of network traffic to apply the rule to.
+          type: string
+          enum:
+          - ingress
+          - egress
+        protocol:
+          description: The protocol to allow.
+          type: string
+          enum:
+          - tcp
+          - udp
+        port:
+          description: The port to allow, or start of a port range.
+          type: integer
+        portMax:
+          description: The end of a port range, inclusive of this this port, if specified.
+          type: integer
+        prefixes:
+          description: A list of CIDR prefixes to allow, it might be any IPv4 or IPv6 in CIDR notation.
+          type: array
+          items:
+            type: string
+    publicIPAllocation:
+      description: A public IP allocation settings.
+      type: object
+      required:
+      - enabled
+      properties:
+        enabled:
+          description: Enable public IP allocation.
+          type: boolean
+    computeImage:
+      description: The image to use for a server.
+      type: object
+      properties:
+        id:
+          description: The image ID.
+          type: string
+        selector:
+          $ref: '#/components/schemas/imageSelector'
+      # TODO: in the Typescript generator this causes a use to be declared as
+      # 'ComputeImage | null', which is a) wrong and b) inconvenient, thus needs
+      # investigation.
+      oneOf:
+      - required:
+        - id
+      - required:
+        - selector
+    imageSelector:
+      description: A server image selector.
+      type: object
+      required:
+      - distro
+      - version
+      properties:
+        distro:
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/region/main/pkg/openapi/server.spec.yaml#/components/schemas/osDistro'
+        variant:
+          description: The operating system variant.
+          type: string
+        version:
+          description: The operating system version to use.
+          type: string
+    instanceSnapshotCreate:
+      description: A compute instance snapshot request.
+      type: object
+      required:
+      - metadata
+      properties:
+        metadata:
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/schemas/resourceWriteMetadata'
+  requestBodies:
+    instanceCreateRequest:
+      description: A compute instance creation request.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/instanceCreate'
+          example:
+            metadata:
+              name: my-host
+            spec:
+              organizationId: d4600d6e-e965-4b44-a808-84fb2fa36702
+              projectId: cae219d7-10e5-4601-8c2c-ee7e066b93ce          
+              networkId: b059b3e6-9ae5-42b7-94b4-f42fb7a6baee
+              flavorId: c7568e2d-f9ab-453d-9a3a-51375f78426b
+              imageId: a10e30e8-006a-48e6-a3c7-3c9416891f31
+              networking:
+                securityGroups:
+                - dd5954af-1d71-4abf-bb16-5729c7163886
+    instanceUpdateRequest:
+      description: A compute instance update request.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/instanceUpdate'
+          example:
+            metadata:
+              name: my-host
+            spec:
+              flavorId: c7568e2d-f9ab-453d-9a3a-51375f78426b
+              imageId: a10e30e8-006a-48e6-a3c7-3c9416891f31
+              networking:
+                securityGroups:
+                - dd5954af-1d71-4abf-bb16-5729c7163886
+    instanceSnapshotRequest:
+      description: A request to snapshot an instance.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/instanceSnapshotCreate'
+          example:
+            metadata:
+              name: my-instance-snapshot
+  responses:
+    instanceResponse:
+      description: A compute instance.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/instanceRead'
+          example:
+            metadata:
+              id: c7568e2d-f9ab-453d-9a3a-51375f78426b
+              name: my-host
+              organizationId: d4600d6e-e965-4b44-a808-84fb2fa36702
+              projectId: cae219d7-10e5-4601-8c2c-ee7e066b93ce
+              creationTime: 2023-07-31T10:45:45Z
+              provisioningStatus: provisioned
+              healthStatus: healthy
+            spec:
+              flavorId: c7568e2d-f9ab-453d-9a3a-51375f78426b
+              imageId: a10e30e8-006a-48e6-a3c7-3c9416891f31
+              networking:
+                publicIP: true
+                securityGroups:
+                - dd5954af-1d71-4abf-bb16-5729c7163886
+            status:
+              regionId: bb518c64-6856-4d67-a799-314ba668649f
+              networkId: b059b3e6-9ae5-42b7-94b4-f42fb7a6baee
+              privateIP: 192.168.0.3
+              publicIP: 183.45.68.162
+              macAddress: fa:16:3e:12:34:56
+              powerState: Running
+    instancesResponse:
+      description: A list of compute instances.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/instancesRead'
+          example:
+          - metadata: 
+              id: c7568e2d-f9ab-453d-9a3a-51375f78426b
+              name: my-host
+              organizationId: d4600d6e-e965-4b44-a808-84fb2fa36702
+              projectId: cae219d7-10e5-4601-8c2c-ee7e066b93ce
+              creationTime: 2023-07-31T10:45:45Z
+              provisioningStatus: provisioned
+              healthStatus: healthy
+            spec:
+              flavorId: c7568e2d-f9ab-453d-9a3a-51375f78426b
+              imageId: a10e30e8-006a-48e6-a3c7-3c9416891f31
+              networking:
+                publicIP: true
+                securityGroups:
+                - dd5954af-1d71-4abf-bb16-5729c7163886
+            status:
+              regionId: bb518c64-6856-4d67-a799-314ba668649f
+              networkId: b059b3e6-9ae5-42b7-94b4-f42fb7a6baee
+              privateIP: 192.168.0.3
+              publicIP: 183.45.68.162
+              macAddress: fa:16:3e:12:34:56
+              powerState: Running
+  securitySchemes:
+    oauth2Authentication:
+      description: Operation requires OAuth 2.0 bearer token authentication.
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://identity.nks.europe-west4.nscale.com/oauth2/v2/authorization
+          tokenUrl: https://identity.nks.europe-west4.nscale.com/oauth2/v2/token
+          scopes: {}

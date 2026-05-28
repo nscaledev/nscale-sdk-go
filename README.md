@@ -4,14 +4,16 @@ Generated Go clients for the [Nscale](https://nscale.com) public APIs.
 
 Each subdirectory is one service:
 
-| Package      | Import path                                     |
-| ------------ | ----------------------------------------------- |
-| Storage      | `github.com/nscaledev/nscale-sdk-go/storage`    |
-| Region       | `github.com/nscaledev/nscale-sdk-go/region`     |
-| Identity     | `github.com/nscaledev/nscale-sdk-go/identity`   |
-| Compute      | `github.com/nscaledev/nscale-sdk-go/compute`    |
-| Reservations | `github.com/nscaledev/nscale-sdk-go/reservations` |
-| Kubernetes   | `github.com/nscaledev/nscale-sdk-go/kubernetes` |
+| Package     | Import path                                     |
+| ----------- | ----------------------------------------------- |
+| Identity    | `github.com/nscaledev/nscale-sdk-go/identity`   |
+| Region      | `github.com/nscaledev/nscale-sdk-go/region`     |
+| Storage     | `github.com/nscaledev/nscale-sdk-go/storage`    |
+| Compute     | `github.com/nscaledev/nscale-sdk-go/compute`    |
+| Kubernetes  | `github.com/nscaledev/nscale-sdk-go/kubernetes` |
+| Reservation | `github.com/nscaledev/nscale-sdk-go/reservation` |
+
+The `common/` package holds shared OpenAPI types referenced by every service client.
 
 ## Install
 
@@ -25,7 +27,13 @@ Released automatically by [release-please](https://github.com/googleapis/release
 
 ## Contributing
 
-**Do not hand-edit the service directories.** They are synced from upstream OpenAPI repositories by automation; edits will be overwritten on the next sync. File issues or open PRs against the relevant upstream repo.
+**Do not hand-edit the `*.gen.go` files.** They are produced by [`oapi-codegen`](https://github.com/oapi-codegen/oapi-codegen) from the vendored `openapi.yaml` spec in each service directory.
+
+To refresh a client, update its `openapi.yaml` from the upstream service repo and run:
+
+    go generate ./...
+
+Bug reports for API behaviour belong in the relevant upstream service repo (`nscaledev/uni-*` or `nscaledev/reservation`). PRs against this repo should be limited to packaging, the codegen config, or the vendored specs.
 
 ## Licence
 
