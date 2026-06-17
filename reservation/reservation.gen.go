@@ -25,8 +25,9 @@ const (
 
 // Defines values for GpuVendorV2.
 const (
-	AMD    GpuVendorV2 = "AMD"
-	NVIDIA GpuVendorV2 = "NVIDIA"
+	AMD     GpuVendorV2 = "AMD"
+	NVIDIA  GpuVendorV2 = "NVIDIA"
+	UNKNOWN GpuVendorV2 = "UNKNOWN"
 )
 
 // Defines values for PlacementPolicyV2.
@@ -1753,6 +1754,7 @@ type RebootPlacementServerResponse struct {
 	JSON401      *externalRef0.UnauthorizedResponse
 	JSON403      *externalRef0.ForbiddenResponse
 	JSON404      *externalRef0.NotFoundResponse
+	JSON409      *externalRef0.ConflictResponse
 	JSON500      *externalRef0.InternalServerErrorResponse
 }
 
@@ -1779,6 +1781,7 @@ type StopPlacementServerResponse struct {
 	JSON401      *externalRef0.UnauthorizedResponse
 	JSON403      *externalRef0.ForbiddenResponse
 	JSON404      *externalRef0.NotFoundResponse
+	JSON409      *externalRef0.ConflictResponse
 	JSON500      *externalRef0.InternalServerErrorResponse
 }
 
@@ -2465,6 +2468,13 @@ func ParseRebootPlacementServerResponse(rsp *http.Response) (*RebootPlacementSer
 		}
 		response.JSON404 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest externalRef0.ConflictResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest externalRef0.InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -2518,6 +2528,13 @@ func ParseStopPlacementServerResponse(rsp *http.Response) (*StopPlacementServerR
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest externalRef0.ConflictResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest externalRef0.InternalServerErrorResponse
