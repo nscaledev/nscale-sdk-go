@@ -16,6 +16,7 @@ import (
 
 	externalRef0 "github.com/nscaledev/nscale-sdk-go/common"
 	"github.com/oapi-codegen/runtime"
+	identityids "github.com/unikorn-cloud/identity/pkg/ids"
 )
 
 const (
@@ -204,6 +205,9 @@ type AclProject struct {
 // AclProjectList A list of projects the subject is a member of.
 type AclProjectList = []AclProject
 
+// AllocationId A resource allocation ID.
+type AllocationId = identityids.AllocationID
+
 // AllocationRead An allocation of resources.
 type AllocationRead struct {
 	// Metadata Metadata required by project scoped resource reads.
@@ -307,6 +311,9 @@ type GrantType string
 // GroupIDs A list of group IDs.
 type GroupIDs = []string
 
+// GroupId A group ID.
+type GroupId = identityids.GroupID
+
 // GroupRead A group when read.
 type GroupRead struct {
 	// Metadata Metadata required by organization scoped resource reads.
@@ -375,6 +382,9 @@ type Oauth2Error struct {
 
 // Oauth2ErrorError A terse error string expanding on the HTTP error code. Errors are based on the OAuth 2.02 specification, but are expanded with proprietary status codes for APIs other than those specified by OAuth 2.02.
 type Oauth2ErrorError string
+
+// Oauth2ProviderId An OAuth2 provider ID.
+type Oauth2ProviderId = identityids.OAuth2ProviderID
 
 // Oauth2ProviderRead An OAuth 2.0 provider when read.
 type Oauth2ProviderRead struct {
@@ -466,6 +476,9 @@ type OpenidConfiguration struct {
 	UserinfoEndpoint string `json:"userinfo_endpoint"`
 }
 
+// OrganizationId An organization ID.
+type OrganizationId = identityids.OrganizationID
+
 // OrganizationRead An organization when read.
 type OrganizationRead struct {
 	// Metadata Metadata required by all resource reads.
@@ -519,6 +532,9 @@ type OrganizationWrite struct {
 
 // Organizations A list of organizations.
 type Organizations = []OrganizationRead
+
+// ProjectId A project ID.
+type ProjectId = identityids.ProjectID
 
 // ProjectRead A project when read.
 type ProjectRead struct {
@@ -658,6 +674,9 @@ type ServiceAccountCreate struct {
 	// Status A service account status.
 	Status ServiceAccountStatus `json:"status"`
 }
+
+// ServiceAccountId A service account ID.
+type ServiceAccountId = identityids.ServiceAccountID
 
 // ServiceAccountRead A service account.
 type ServiceAccountRead struct {
@@ -819,6 +838,9 @@ type TokenRequestOptions struct {
 	XProjectId *string `json:"x_project_id"`
 }
 
+// UserId A user ID.
+type UserId = identityids.UserID
+
 // UserRead A user read object.
 type UserRead struct {
 	// Metadata Metadata required by organization scoped resource reads.
@@ -928,32 +950,32 @@ type UserinfoRequestOptions struct {
 // Users A list of users.
 type Users = []UserRead
 
-// AllocationIDParameter defines model for allocationIDParameter.
-type AllocationIDParameter = string
+// AllocationIDParameter A resource allocation ID.
+type AllocationIDParameter = AllocationId
 
-// GroupidParameter defines model for groupidParameter.
-type GroupidParameter = string
+// GroupidParameter A group ID.
+type GroupidParameter = GroupId
 
-// Oauth2ProvderIDParameter defines model for oauth2ProvderIDParameter.
-type Oauth2ProvderIDParameter = string
+// Oauth2ProvderIDParameter An OAuth2 provider ID.
+type Oauth2ProvderIDParameter = Oauth2ProviderId
 
-// OrganizationIDParameter defines model for organizationIDParameter.
-type OrganizationIDParameter = string
+// OrganizationIDParameter An organization ID.
+type OrganizationIDParameter = OrganizationId
 
-// ProjectIDParameter defines model for projectIDParameter.
-type ProjectIDParameter = string
+// ProjectIDParameter A project ID.
+type ProjectIDParameter = ProjectId
 
 // ReferenceParameter defines model for referenceParameter.
 type ReferenceParameter = string
 
-// ServiceAccountIDParameter defines model for serviceAccountIDParameter.
-type ServiceAccountIDParameter = string
+// ServiceAccountIDParameter A service account ID.
+type ServiceAccountIDParameter = ServiceAccountId
 
 // UserEmailParameter defines model for userEmailParameter.
 type UserEmailParameter = string
 
-// UserIDParameter defines model for userIDParameter.
-type UserIDParameter = string
+// UserIDParameter A user ID.
+type UserIDParameter = UserId
 
 // AclResponse A list of access control scopes and permissions.
 type AclResponse = Acl
@@ -1355,6 +1377,9 @@ type ClientInterface interface {
 	PutApiV1OrganizationsOrganizationIDUsersUserIDWithBody(ctx context.Context, organizationID OrganizationIDParameter, userID UserIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	PutApiV1OrganizationsOrganizationIDUsersUserID(ctx context.Context, organizationID OrganizationIDParameter, userID UserIDParameter, body PutApiV1OrganizationsOrganizationIDUsersUserIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetApiVersion request
+	GetApiVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetOauth2V2Authorization request
 	GetOauth2V2Authorization(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2063,6 +2088,18 @@ func (c *Client) PutApiV1OrganizationsOrganizationIDUsersUserIDWithBody(ctx cont
 
 func (c *Client) PutApiV1OrganizationsOrganizationIDUsersUserID(ctx context.Context, organizationID OrganizationIDParameter, userID UserIDParameter, body PutApiV1OrganizationsOrganizationIDUsersUserIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPutApiV1OrganizationsOrganizationIDUsersUserIDRequest(c.Server, organizationID, userID, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetApiVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetApiVersionRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -3988,6 +4025,33 @@ func NewPutApiV1OrganizationsOrganizationIDUsersUserIDRequestWithBody(server str
 	return req, nil
 }
 
+// NewGetApiVersionRequest generates requests for GetApiVersion
+func NewGetApiVersionRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/version")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewGetOauth2V2AuthorizationRequest generates requests for GetOauth2V2Authorization
 func NewGetOauth2V2AuthorizationRequest(server string) (*http.Request, error) {
 	var err error
@@ -4454,6 +4518,9 @@ type ClientWithResponsesInterface interface {
 	PutApiV1OrganizationsOrganizationIDUsersUserIDWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, userID UserIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDUsersUserIDResponse, error)
 
 	PutApiV1OrganizationsOrganizationIDUsersUserIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, userID UserIDParameter, body PutApiV1OrganizationsOrganizationIDUsersUserIDJSONRequestBody, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDUsersUserIDResponse, error)
+
+	// GetApiVersionWithResponse request
+	GetApiVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetApiVersionResponse, error)
 
 	// GetOauth2V2AuthorizationWithResponse request
 	GetOauth2V2AuthorizationWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOauth2V2AuthorizationResponse, error)
@@ -5566,6 +5633,30 @@ func (r PutApiV1OrganizationsOrganizationIDUsersUserIDResponse) StatusCode() int
 	return 0
 }
 
+type GetApiVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *externalRef0.ServiceVersionResponse
+	JSON401      *externalRef0.UnauthorizedResponse
+	JSON500      *externalRef0.InternalServerErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetApiVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetApiVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type GetOauth2V2AuthorizationResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -6241,6 +6332,15 @@ func (c *ClientWithResponses) PutApiV1OrganizationsOrganizationIDUsersUserIDWith
 		return nil, err
 	}
 	return ParsePutApiV1OrganizationsOrganizationIDUsersUserIDResponse(rsp)
+}
+
+// GetApiVersionWithResponse request returning *GetApiVersionResponse
+func (c *ClientWithResponses) GetApiVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetApiVersionResponse, error) {
+	rsp, err := c.GetApiVersion(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetApiVersionResponse(rsp)
 }
 
 // GetOauth2V2AuthorizationWithResponse request returning *GetOauth2V2AuthorizationResponse
@@ -8504,6 +8604,46 @@ func ParsePutApiV1OrganizationsOrganizationIDUsersUserIDResponse(rsp *http.Respo
 			return nil, err
 		}
 		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest externalRef0.InternalServerErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetApiVersionResponse parses an HTTP response from a GetApiVersionWithResponse call
+func ParseGetApiVersionResponse(rsp *http.Response) (*GetApiVersionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetApiVersionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest externalRef0.ServiceVersionResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest externalRef0.UnauthorizedResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest externalRef0.InternalServerErrorResponse

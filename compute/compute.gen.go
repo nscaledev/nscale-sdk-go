@@ -217,7 +217,12 @@ type InstanceStatus struct {
 	// NetworkId The network a security group belongs to.
 	NetworkId string `json:"networkId"`
 
-	// PowerState The lifecycle phase of an instance.
+	// PowerState The lifecycle phase of an instance. Once provisioning_status reaches
+	// provisioned, this becomes the live readiness signal: API consumers
+	// should treat Running (not provisioned) as the "ready to use" state.
+	// Queued and Building are observed during create — Queued for
+	// baremetal servers waiting on hardware, Building for servers the
+	// provider is actively bringing up.
 	PowerState *externalRef1.InstanceLifecyclePhase `json:"powerState,omitempty"`
 
 	// PrivateIP The private IP address of the server.
