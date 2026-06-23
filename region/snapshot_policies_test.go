@@ -75,7 +75,69 @@ func TestFileStorageUpdateWithEmptySnapshotPolicySetEncodesEmptyArray(t *testing
 	}
 }
 
+func TestFileStorageCreateWithUnsetDefaultSnapshotProtectionOmitsField(t *testing.T) {
+	var body region.StorageV2Create
+	body.Spec.DefaultSnapshotProtectionEnabled = nil
+
+	_, ok := encodedSpecDefaultSnapshotProtectionEnabled(t, body, "File Storage create request")
+	if ok {
+		t.Fatal("encoded request spec included defaultSnapshotProtectionEnabled, want omitted")
+	}
+}
+
+func TestFileStorageCreateWithDisabledDefaultSnapshotProtectionEncodesFalse(t *testing.T) {
+	var body region.StorageV2Create
+	defaultSnapshotProtectionEnabled := false
+	body.Spec.DefaultSnapshotProtectionEnabled = &defaultSnapshotProtectionEnabled
+
+	encodedDefaultSnapshotProtectionEnabled, ok := encodedSpecDefaultSnapshotProtectionEnabled(t, body, "File Storage create request")
+	if !ok {
+		t.Fatal("encoded request spec omitted defaultSnapshotProtectionEnabled, want false")
+	}
+
+	if encodedDefaultSnapshotProtectionEnabled != false {
+		t.Fatalf("encoded request spec defaultSnapshotProtectionEnabled = %#v, want false", encodedDefaultSnapshotProtectionEnabled)
+	}
+}
+
+func TestFileStorageUpdateWithUnsetDefaultSnapshotProtectionOmitsField(t *testing.T) {
+	var body region.StorageV2Update
+	body.Spec.DefaultSnapshotProtectionEnabled = nil
+
+	_, ok := encodedSpecDefaultSnapshotProtectionEnabled(t, body, "File Storage update request")
+	if ok {
+		t.Fatal("encoded request spec included defaultSnapshotProtectionEnabled, want omitted")
+	}
+}
+
+func TestFileStorageUpdateWithEnabledDefaultSnapshotProtectionEncodesTrue(t *testing.T) {
+	var body region.StorageV2Update
+	defaultSnapshotProtectionEnabled := true
+	body.Spec.DefaultSnapshotProtectionEnabled = &defaultSnapshotProtectionEnabled
+
+	encodedDefaultSnapshotProtectionEnabled, ok := encodedSpecDefaultSnapshotProtectionEnabled(t, body, "File Storage update request")
+	if !ok {
+		t.Fatal("encoded request spec omitted defaultSnapshotProtectionEnabled, want true")
+	}
+
+	if encodedDefaultSnapshotProtectionEnabled != true {
+		t.Fatalf("encoded request spec defaultSnapshotProtectionEnabled = %#v, want true", encodedDefaultSnapshotProtectionEnabled)
+	}
+}
+
 func encodedSpecSnapshotPolicies(t *testing.T, body any, requestName string) (any, bool) {
+	t.Helper()
+
+	return encodedSpecField(t, body, requestName, "snapshotPolicies")
+}
+
+func encodedSpecDefaultSnapshotProtectionEnabled(t *testing.T, body any, requestName string) (any, bool) {
+	t.Helper()
+
+	return encodedSpecField(t, body, requestName, "defaultSnapshotProtectionEnabled")
+}
+
+func encodedSpecField(t *testing.T, body any, requestName string, field string) (any, bool) {
 	t.Helper()
 
 	encoded, err := json.Marshal(body)
@@ -93,6 +155,6 @@ func encodedSpecSnapshotPolicies(t *testing.T, body any, requestName string) (an
 		t.Fatalf("encoded request spec = %T, want object", request["spec"])
 	}
 
-	snapshotPolicies, ok := spec["snapshotPolicies"]
-	return snapshotPolicies, ok
+	value, ok := spec[field]
+	return value, ok
 }
