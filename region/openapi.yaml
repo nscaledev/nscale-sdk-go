@@ -3574,32 +3574,8 @@ components:
         message:
           description: Optional human-readable status detail for the snapshot policy.
           type: string
-    storageV2ReadSpec:
-      description: A storage's read specification. Reads always expose user-managed Snapshot Policies and the resolved Default Snapshot Protection setting.
-      type: object
-      required:
-      - defaultSnapshotProtectionEnabled
-      - sizeGiB
-      - storageType
-      - snapshotPolicies
-      properties:
-        sizeGiB:
-          description: size in GiB of the storage
-          type: integer
-          format: int64
-        storageType:
-          $ref: '#/components/schemas/storageTypeV2Spec'
-        attachments:
-          $ref: '#/components/schemas/storageAttachmentV2Spec'
-        defaultSnapshotProtectionEnabled:
-          description: Whether platform-managed Default Snapshot Protection is enabled for this File Storage volume.
-          type: boolean
-        snapshotPolicies:
-          description: Desired user-managed Snapshot Policies exposed on parent reads. The hidden platform-managed default protection backend object is never included.
-          allOf:
-          - $ref: '#/components/schemas/storageSnapshotPolicyListV2Spec'
-    storageV2WriteSpec:
-      description: A storage's parent writable specification. User-managed Snapshot Policies and Default Snapshot Protection are managed as separate inline parent File Storage desired-state controls.
+    storageV2Spec:
+      description: A storage's specification.
       type: object
       required:
       - sizeGiB
@@ -3614,10 +3590,10 @@ components:
         attachments:
           $ref: '#/components/schemas/storageAttachmentV2Spec'
         defaultSnapshotProtectionEnabled:
-          description: Whether platform-managed Default Snapshot Protection should be enabled. On create, omission resolves to enabled. On update, omission preserves the current setting. Explicit null is invalid.
+          description: Whether platform-managed Default Snapshot Protection is enabled. On create, omission resolves to enabled. On update, omission preserves the current setting. Reads return the resolved setting. Explicit null is invalid.
           type: boolean
         snapshotPolicies:
-          description: Desired user-managed Snapshot Policies. On create, omitted or null lists store no user-managed policies, empty lists store no policies, and non-empty lists are stored exactly. On update, omitted or null preserves existing policies, empty clears policies, and non-empty replaces the full list. The hidden platform-managed default protection backend object is never included.
+          description: Desired user-managed Snapshot Policies. On create, omitted or null lists store no user-managed policies, empty lists store no policies, and non-empty lists are stored exactly. On update, omitted or null preserves existing policies, empty clears policies, and non-empty replaces the full list. Reads return user-managed policies only; the hidden platform-managed default protection backend object is never included.
           nullable: true
           allOf:
           - $ref: '#/components/schemas/storageSnapshotPolicyListV2Spec'
@@ -3689,7 +3665,7 @@ components:
               projectId:
                 description: The project to provision the resource in.
                 type: string
-          - $ref: '#/components/schemas/storageV2WriteSpec'
+          - $ref: '#/components/schemas/storageV2Spec'
     storageV2Update:
       description: A storage update request. Omitted spec.defaultSnapshotProtectionEnabled preserves the current Default Snapshot Protection setting, and explicit null is invalid. Omitted or null spec.snapshotPolicies preserves existing desired user-managed Snapshot Policies, an empty list clears them, and a non-empty list replaces the full list.
       type: object
@@ -3700,7 +3676,7 @@ components:
         metadata:
           $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/v1.17.1/pkg/openapi/common.spec.yaml#/components/schemas/resourceWriteMetadata'
         spec:
-          $ref: '#/components/schemas/storageV2WriteSpec'
+          $ref: '#/components/schemas/storageV2Spec'
     storageV2Read:
       description: A storage read only group.
       type: object
@@ -3712,7 +3688,7 @@ components:
         metadata:
           $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/v1.17.1/pkg/openapi/common.spec.yaml#/components/schemas/projectScopedResourceReadMetadata'
         spec:
-          $ref: '#/components/schemas/storageV2ReadSpec'
+          $ref: '#/components/schemas/storageV2Spec'
         status:
           $ref: '#/components/schemas/storageV2Status'
     storageV2List:

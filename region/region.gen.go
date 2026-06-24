@@ -1434,7 +1434,7 @@ type StorageV2Create struct {
 		// Attachments Describes the network attachment for storage
 		Attachments *StorageAttachmentV2Spec `json:"attachments,omitempty"`
 
-		// DefaultSnapshotProtectionEnabled Whether platform-managed Default Snapshot Protection should be enabled. On create, omission resolves to enabled. On update, omission preserves the current setting. Explicit null is invalid.
+		// DefaultSnapshotProtectionEnabled Whether platform-managed Default Snapshot Protection is enabled. On create, omission resolves to enabled. On update, omission preserves the current setting. Reads return the resolved setting. Explicit null is invalid.
 		DefaultSnapshotProtectionEnabled *bool `json:"defaultSnapshotProtectionEnabled,omitempty"`
 
 		// OrganizationId The organization to provision the resource in.
@@ -1449,7 +1449,7 @@ type StorageV2Create struct {
 		// SizeGiB size in GiB of the storage
 		SizeGiB int64 `json:"sizeGiB"`
 
-		// SnapshotPolicies Desired user-managed Snapshot Policies. On create, omitted or null lists store no user-managed policies, empty lists store no policies, and non-empty lists are stored exactly. On update, omitted or null preserves existing policies, empty clears policies, and non-empty replaces the full list. The hidden platform-managed default protection backend object is never included.
+		// SnapshotPolicies Desired user-managed Snapshot Policies. On create, omitted or null lists store no user-managed policies, empty lists store no policies, and non-empty lists are stored exactly. On update, omitted or null preserves existing policies, empty clears policies, and non-empty replaces the full list. Reads return user-managed policies only; the hidden platform-managed default protection backend object is never included.
 		SnapshotPolicies *StorageSnapshotPolicyListV2Spec `json:"snapshotPolicies"`
 
 		// StorageClassId The storage class ID to provision the storage into.
@@ -1468,26 +1468,26 @@ type StorageV2Read struct {
 	// Metadata Metadata required by project scoped resource reads.
 	Metadata externalRef0.ProjectScopedResourceReadMetadata `json:"metadata"`
 
-	// Spec A storage's read specification. Reads always expose user-managed Snapshot Policies and the resolved Default Snapshot Protection setting.
-	Spec StorageV2ReadSpec `json:"spec"`
+	// Spec A storage's specification.
+	Spec StorageV2Spec `json:"spec"`
 
 	// Status Read only status about storage
 	Status StorageV2Status `json:"status"`
 }
 
-// StorageV2ReadSpec A storage's read specification. Reads always expose user-managed Snapshot Policies and the resolved Default Snapshot Protection setting.
-type StorageV2ReadSpec struct {
+// StorageV2Spec A storage's specification.
+type StorageV2Spec struct {
 	// Attachments Describes the network attachment for storage
 	Attachments *StorageAttachmentV2Spec `json:"attachments,omitempty"`
 
-	// DefaultSnapshotProtectionEnabled Whether platform-managed Default Snapshot Protection is enabled for this File Storage volume.
-	DefaultSnapshotProtectionEnabled bool `json:"defaultSnapshotProtectionEnabled"`
+	// DefaultSnapshotProtectionEnabled Whether platform-managed Default Snapshot Protection is enabled. On create, omission resolves to enabled. On update, omission preserves the current setting. Reads return the resolved setting. Explicit null is invalid.
+	DefaultSnapshotProtectionEnabled *bool `json:"defaultSnapshotProtectionEnabled,omitempty"`
 
 	// SizeGiB size in GiB of the storage
 	SizeGiB int64 `json:"sizeGiB"`
 
-	// SnapshotPolicies Desired user-managed Snapshot Policies exposed on parent reads. The hidden platform-managed default protection backend object is never included.
-	SnapshotPolicies StorageSnapshotPolicyListV2Spec `json:"snapshotPolicies"`
+	// SnapshotPolicies Desired user-managed Snapshot Policies. On create, omitted or null lists store no user-managed policies, empty lists store no policies, and non-empty lists are stored exactly. On update, omitted or null preserves existing policies, empty clears policies, and non-empty replaces the full list. Reads return user-managed policies only; the hidden platform-managed default protection backend object is never included.
+	SnapshotPolicies *StorageSnapshotPolicyListV2Spec `json:"snapshotPolicies"`
 
 	// StorageType A storage's type
 	StorageType StorageTypeV2Spec `json:"storageType"`
@@ -1516,26 +1516,8 @@ type StorageV2Update struct {
 	// Metadata Metadata required for all API resource reads and writes.
 	Metadata externalRef0.ResourceWriteMetadata `json:"metadata"`
 
-	// Spec A storage's parent writable specification. User-managed Snapshot Policies and Default Snapshot Protection are managed as separate inline parent File Storage desired-state controls.
-	Spec StorageV2WriteSpec `json:"spec"`
-}
-
-// StorageV2WriteSpec A storage's parent writable specification. User-managed Snapshot Policies and Default Snapshot Protection are managed as separate inline parent File Storage desired-state controls.
-type StorageV2WriteSpec struct {
-	// Attachments Describes the network attachment for storage
-	Attachments *StorageAttachmentV2Spec `json:"attachments,omitempty"`
-
-	// DefaultSnapshotProtectionEnabled Whether platform-managed Default Snapshot Protection should be enabled. On create, omission resolves to enabled. On update, omission preserves the current setting. Explicit null is invalid.
-	DefaultSnapshotProtectionEnabled *bool `json:"defaultSnapshotProtectionEnabled,omitempty"`
-
-	// SizeGiB size in GiB of the storage
-	SizeGiB int64 `json:"sizeGiB"`
-
-	// SnapshotPolicies Desired user-managed Snapshot Policies. On create, omitted or null lists store no user-managed policies, empty lists store no policies, and non-empty lists are stored exactly. On update, omitted or null preserves existing policies, empty clears policies, and non-empty replaces the full list. The hidden platform-managed default protection backend object is never included.
-	SnapshotPolicies *StorageSnapshotPolicyListV2Spec `json:"snapshotPolicies"`
-
-	// StorageType A storage's type
-	StorageType StorageTypeV2Spec `json:"storageType"`
+	// Spec A storage's specification.
+	Spec StorageV2Spec `json:"spec"`
 }
 
 // FilestorageIDParameter A file storage ID.
