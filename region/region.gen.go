@@ -1426,7 +1426,7 @@ type StorageUsageV2Status struct {
 	UsedBytes *int64 `json:"usedBytes,omitempty"`
 }
 
-// StorageV2Create A storage create request. When spec.defaultSnapshotProtectionEnabled is omitted, Default Snapshot Protection is enabled. Explicit null defaultSnapshotProtectionEnabled is invalid. When spec.snapshotPolicies is omitted, null, or empty, the API stores no user-managed Snapshot Policies. Non-empty policy lists are stored exactly as supplied.
+// StorageV2Create A storage create request. When spec.defaultSnapshotProtectionEnabled is omitted, Default Snapshot Protection is enabled. Explicit null defaultSnapshotProtectionEnabled is invalid. When spec.snapshotPolicies is omitted or empty, the API stores no user-managed Snapshot Policies. Non-empty policy lists are stored exactly as supplied.
 type StorageV2Create struct {
 	// Metadata Metadata required for all API resource reads and writes.
 	Metadata externalRef0.ResourceWriteMetadata `json:"metadata"`
@@ -1449,8 +1449,8 @@ type StorageV2Create struct {
 		// SizeGiB size in GiB of the storage
 		SizeGiB int64 `json:"sizeGiB"`
 
-		// SnapshotPolicies Desired user-managed Snapshot Policies. On create, omitted or null lists store no user-managed policies, empty lists store no policies, and non-empty lists are stored exactly. On update, omitted or null preserves existing policies, empty clears policies, and non-empty replaces the full list. Reads return user-managed policies only; the hidden platform-managed default protection backend object is never included.
-		SnapshotPolicies *StorageSnapshotPolicyListV2Spec `json:"snapshotPolicies"`
+		// SnapshotPolicies A list of named snapshot policies for storage.
+		SnapshotPolicies *StorageSnapshotPolicyListV2Spec `json:"snapshotPolicies,omitempty"`
 
 		// StorageClassId The storage class ID to provision the storage into.
 		StorageClassId string `json:"storageClassId"`
@@ -1486,8 +1486,8 @@ type StorageV2Spec struct {
 	// SizeGiB size in GiB of the storage
 	SizeGiB int64 `json:"sizeGiB"`
 
-	// SnapshotPolicies Desired user-managed Snapshot Policies. On create, omitted or null lists store no user-managed policies, empty lists store no policies, and non-empty lists are stored exactly. On update, omitted or null preserves existing policies, empty clears policies, and non-empty replaces the full list. Reads return user-managed policies only; the hidden platform-managed default protection backend object is never included.
-	SnapshotPolicies *StorageSnapshotPolicyListV2Spec `json:"snapshotPolicies"`
+	// SnapshotPolicies A list of named snapshot policies for storage.
+	SnapshotPolicies *StorageSnapshotPolicyListV2Spec `json:"snapshotPolicies,omitempty"`
 
 	// StorageType A storage's type
 	StorageType StorageTypeV2Spec `json:"storageType"`
@@ -1511,7 +1511,7 @@ type StorageV2Status struct {
 	Usage *StorageUsageV2Status `json:"usage,omitempty"`
 }
 
-// StorageV2Update A storage update request. Omitted spec.defaultSnapshotProtectionEnabled preserves the current Default Snapshot Protection setting, and explicit null is invalid. Omitted or null spec.snapshotPolicies preserves existing desired user-managed Snapshot Policies, an empty list clears them, and a non-empty list replaces the full list.
+// StorageV2Update A storage update request. Omitted spec.defaultSnapshotProtectionEnabled preserves the current Default Snapshot Protection setting, and explicit null is invalid. Omitted spec.snapshotPolicies preserves existing desired user-managed Snapshot Policies, an empty list clears them, and a non-empty list replaces the full list.
 type StorageV2Update struct {
 	// Metadata Metadata required for all API resource reads and writes.
 	Metadata externalRef0.ResourceWriteMetadata `json:"metadata"`
@@ -1712,10 +1712,10 @@ type SnapshotServerRequest = SnapshotCreate
 // SshCertificateAuthorityV2CreateRequest An SSH certificate authority creation request.
 type SshCertificateAuthorityV2CreateRequest = SshCertificateAuthorityV2Create
 
-// StorageV2CreateRequest A storage create request. When spec.defaultSnapshotProtectionEnabled is omitted, Default Snapshot Protection is enabled. Explicit null defaultSnapshotProtectionEnabled is invalid. When spec.snapshotPolicies is omitted, null, or empty, the API stores no user-managed Snapshot Policies. Non-empty policy lists are stored exactly as supplied.
+// StorageV2CreateRequest A storage create request. When spec.defaultSnapshotProtectionEnabled is omitted, Default Snapshot Protection is enabled. Explicit null defaultSnapshotProtectionEnabled is invalid. When spec.snapshotPolicies is omitted or empty, the API stores no user-managed Snapshot Policies. Non-empty policy lists are stored exactly as supplied.
 type StorageV2CreateRequest = StorageV2Create
 
-// StorageV2UpdateRequest A storage update request. Omitted spec.defaultSnapshotProtectionEnabled preserves the current Default Snapshot Protection setting, and explicit null is invalid. Omitted or null spec.snapshotPolicies preserves existing desired user-managed Snapshot Policies, an empty list clears them, and a non-empty list replaces the full list.
+// StorageV2UpdateRequest A storage update request. Omitted spec.defaultSnapshotProtectionEnabled preserves the current Default Snapshot Protection setting, and explicit null is invalid. Omitted spec.snapshotPolicies preserves existing desired user-managed Snapshot Policies, an empty list clears them, and a non-empty list replaces the full list.
 type StorageV2UpdateRequest = StorageV2Update
 
 // GetApiV1OrganizationsOrganizationIDProjectsProjectIDIdentitiesIdentityIDServersServerIDConsoleoutputParams defines parameters for GetApiV1OrganizationsOrganizationIDProjectsProjectIDIdentitiesIdentityIDServersServerIDConsoleoutput.

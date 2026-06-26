@@ -7,17 +7,13 @@ import (
 	"github.com/nscaledev/nscale-sdk-go/region"
 )
 
-func TestFileStorageCreateWithUnsetSnapshotPoliciesEncodesNull(t *testing.T) {
+func TestFileStorageCreateWithUnsetSnapshotPoliciesOmitsField(t *testing.T) {
 	var body region.StorageV2Create
 	body.Spec.SnapshotPolicies = nil
 
-	snapshotPolicies, ok := encodedSpecSnapshotPolicies(t, body, "File Storage create request")
-	if !ok {
-		t.Fatal("encoded request spec omitted snapshotPolicies, want explicit null")
-	}
-
-	if snapshotPolicies != nil {
-		t.Fatalf("encoded request spec snapshotPolicies = %#v, want nil", snapshotPolicies)
+	_, ok := encodedSpecSnapshotPolicies(t, body, "File Storage create request")
+	if ok {
+		t.Fatal("encoded request spec included snapshotPolicies, want omitted")
 	}
 }
 
@@ -41,17 +37,13 @@ func TestFileStorageCreateWithEmptySnapshotPolicySetEncodesEmptyArray(t *testing
 	}
 }
 
-func TestFileStorageUpdateWithUnsetSnapshotPoliciesEncodesNull(t *testing.T) {
+func TestFileStorageUpdateWithUnsetSnapshotPoliciesOmitsField(t *testing.T) {
 	var body region.StorageV2Update
 	body.Spec.SnapshotPolicies = nil
 
-	snapshotPolicies, ok := encodedSpecSnapshotPolicies(t, body, "File Storage update request")
-	if !ok {
-		t.Fatal("encoded request spec omitted snapshotPolicies, want explicit null")
-	}
-
-	if snapshotPolicies != nil {
-		t.Fatalf("encoded request spec snapshotPolicies = %#v, want nil", snapshotPolicies)
+	_, ok := encodedSpecSnapshotPolicies(t, body, "File Storage update request")
+	if ok {
+		t.Fatal("encoded request spec included snapshotPolicies, want omitted")
 	}
 }
 
