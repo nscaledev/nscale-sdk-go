@@ -336,6 +336,8 @@ paths:
           $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
         '404':
           $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '409':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/conflictResponse'
         '500':
           $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
 
@@ -365,6 +367,8 @@ paths:
           $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
         '404':
           $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
+        '409':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/conflictResponse'
         '500':
           $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
 
@@ -491,6 +495,7 @@ components:
       description: The GPU vendor.
       type: string
       enum:
+      - UNKNOWN
       - NVIDIA
       - AMD
 
@@ -734,6 +739,28 @@ components:
       - fail
       - bestEffort
 
+    placementReadinessModeV2:
+      description: |-
+        Require only selects hosts that pass current readiness preflight. Prefer
+        selects ready hosts first but may use structurally claimable hosts to
+        satisfy the request. Ignore does not use readiness when selecting hosts.
+      type: string
+      enum:
+      - Require
+      - Prefer
+      - Ignore
+
+    placementReadinessPolicyV2:
+      description: Controls how current host readiness affects Placement selection.
+      type: object
+      default:
+        mode: Prefer
+      required:
+      - mode
+      properties:
+        mode:
+          $ref: '#/components/schemas/placementReadinessModeV2'
+
     placementConstraintsV2:
       description: Scheduling policy applied when selecting hosts from the reservation.
       type: object
@@ -814,6 +841,8 @@ components:
           minimum: 1
         constraints:
           $ref: '#/components/schemas/placementConstraintsV2'
+        readinessPolicy:
+          $ref: '#/components/schemas/placementReadinessPolicyV2'
         serverSpec:
           $ref: '#/components/schemas/placementServerSpecV2'
 
@@ -985,6 +1014,7 @@ components:
               networkId: 61f0ad85-3001-41cb-824a-e6a047668dfe
               serverSpec:
                 imageId: ubuntu-24.04
+                sshCertificateAuthorityId: 00de8f3c-77d6-424a-93c3-baf9153c7f21
                 networking:
                   securityGroups:
                   - 7ddfdbf0-bdbf-4630-9220-f1e6876f2dd0
@@ -1133,6 +1163,7 @@ components:
               count: 8
               serverSpec:
                 imageId: ubuntu-24.04
+                sshCertificateAuthorityId: 00de8f3c-77d6-424a-93c3-baf9153c7f21
                 networking:
                   securityGroups:
                   - 7ddfdbf0-bdbf-4630-9220-f1e6876f2dd0
@@ -1170,6 +1201,7 @@ components:
               count: 8
               serverSpec:
                 imageId: ubuntu-24.04
+                sshCertificateAuthorityId: 00de8f3c-77d6-424a-93c3-baf9153c7f21
                 networking:
                   securityGroups:
                   - 7ddfdbf0-bdbf-4630-9220-f1e6876f2dd0
