@@ -25,14 +25,22 @@ const (
 
 // Defines values for GpuVendorV2.
 const (
-	AMD    GpuVendorV2 = "AMD"
-	NVIDIA GpuVendorV2 = "NVIDIA"
+	AMD     GpuVendorV2 = "AMD"
+	NVIDIA  GpuVendorV2 = "NVIDIA"
+	UNKNOWN GpuVendorV2 = "UNKNOWN"
 )
 
 // Defines values for PlacementPolicyV2.
 const (
 	Pack   PlacementPolicyV2 = "pack"
 	Spread PlacementPolicyV2 = "spread"
+)
+
+// Defines values for PlacementReadinessModeV2.
+const (
+	Ignore  PlacementReadinessModeV2 = "Ignore"
+	Prefer  PlacementReadinessModeV2 = "Prefer"
+	Require PlacementReadinessModeV2 = "Require"
 )
 
 // Defines values for WhenUnsatisfiableV2.
@@ -70,6 +78,19 @@ type PlacementConstraintsV2 struct {
 // PlacementPolicyV2 Pack fills domains sequentially, maximising locality. Spread
 // distributes hosts as evenly as possible across domains.
 type PlacementPolicyV2 string
+
+// PlacementReadinessModeV2 Require only selects hosts that pass current readiness preflight. Prefer
+// selects ready hosts first but may use structurally claimable hosts to
+// satisfy the request. Ignore does not use readiness when selecting hosts.
+type PlacementReadinessModeV2 string
+
+// PlacementReadinessPolicyV2 Controls how current host readiness affects Placement selection.
+type PlacementReadinessPolicyV2 struct {
+	// Mode Require only selects hosts that pass current readiness preflight. Prefer
+	// selects ready hosts first but may use structurally claimable hosts to
+	// satisfy the request. Ignore does not use readiness when selecting hosts.
+	Mode PlacementReadinessModeV2 `json:"mode"`
+}
 
 // PlacementServerIDParameter An opaque public Placement server ID.
 type PlacementServerIDParameter = string
@@ -170,6 +191,9 @@ type PlacementV2CreateSpec struct {
 	// partition key.
 	NetworkId string `json:"networkId"`
 
+	// ReadinessPolicy Controls how current host readiness affects Placement selection.
+	ReadinessPolicy *PlacementReadinessPolicyV2 `json:"readinessPolicy,omitempty"`
+
 	// ReservationId The reservation to allocate hosts from.
 	ReservationId string `json:"reservationId"`
 
@@ -196,6 +220,9 @@ type PlacementV2Spec struct {
 
 	// Count Number of hosts to allocate from the reservation.
 	Count int `json:"count"`
+
+	// ReadinessPolicy Controls how current host readiness affects Placement selection.
+	ReadinessPolicy *PlacementReadinessPolicyV2 `json:"readinessPolicy,omitempty"`
 
 	// ServerSpec Region server options applied to each pinned server.
 	ServerSpec PlacementServerSpecV2 `json:"serverSpec"`
@@ -1758,6 +1785,7 @@ type RebootPlacementServerResponse struct {
 	JSON401      *externalRef0.UnauthorizedResponse
 	JSON403      *externalRef0.ForbiddenResponse
 	JSON404      *externalRef0.NotFoundResponse
+	JSON409      *externalRef0.ConflictResponse
 	JSON500      *externalRef0.InternalServerErrorResponse
 }
 
@@ -1784,6 +1812,7 @@ type StopPlacementServerResponse struct {
 	JSON401      *externalRef0.UnauthorizedResponse
 	JSON403      *externalRef0.ForbiddenResponse
 	JSON404      *externalRef0.NotFoundResponse
+	JSON409      *externalRef0.ConflictResponse
 	JSON500      *externalRef0.InternalServerErrorResponse
 }
 
@@ -2470,6 +2499,13 @@ func ParseRebootPlacementServerResponse(rsp *http.Response) (*RebootPlacementSer
 		}
 		response.JSON404 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest externalRef0.ConflictResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest externalRef0.InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -2523,6 +2559,13 @@ func ParseStopPlacementServerResponse(rsp *http.Response) (*StopPlacementServerR
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest externalRef0.ConflictResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest externalRef0.InternalServerErrorResponse
