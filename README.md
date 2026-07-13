@@ -15,6 +15,9 @@ Each subdirectory is one service:
 
 The `common/` package holds shared OpenAPI types referenced by every service client.
 
+> [!WARNING]
+> **Alpha:** The Reservation organization topology API is in alpha. Its endpoints and types may change without notice, and you should expect bugs and breaking changes.
+
 ## Install
 
     go get github.com/nscaledev/nscale-sdk-go@latest
