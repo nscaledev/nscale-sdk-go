@@ -52,8 +52,8 @@ const (
 // GpuVendorV2 The GPU vendor.
 type GpuVendorV2 string
 
-// KubernetesNameParameter A Kubernetes name. Must be a valid DNS label containing only lower case characters, numbers or hyphens, start and end with a character or number, and be at most 63 characters in length.
-type KubernetesNameParameter = string
+// OrganizationTopologyV2Read Allocated topology visible to one organization.
+type OrganizationTopologyV2Read = []TopologyRegionV2
 
 // PlacementConstraintsV2 Scheduling policy applied when selecting hosts from the reservation.
 type PlacementConstraintsV2 struct {
@@ -117,7 +117,8 @@ type PlacementServerSpecV2 struct {
 	// Networking Region server networking options applied to each pinned server.
 	Networking *PlacementServerNetworkingV2 `json:"networking,omitempty"`
 
-	// SshCertificateAuthorityId The SSH certificate authority ID.
+	// SshCertificateAuthorityId The SSH certificate authority ID. Omit to create pinned Region
+	// servers with SSH injection disabled.
 	SshCertificateAuthorityId *string `json:"sshCertificateAuthorityId,omitempty"`
 
 	// UserData Contains base64-encoded configuration information or scripts to
@@ -136,6 +137,10 @@ type PlacementServerV2Read struct {
 
 // PlacementServerV2Status Read only runtime status information about a placement server.
 type PlacementServerV2Status struct {
+	// InfrastructureRef The normalized infrastructure reference Reservation used as the
+	// pinned Region Server boot target.
+	InfrastructureRef string `json:"infrastructureRef"`
+
 	// MacAddress The MAC address of the server.
 	MacAddress *string `json:"macAddress,omitempty"`
 
@@ -402,6 +407,72 @@ type ReservationV2Status struct {
 // ReservationsV2Read A list of reservations.
 type ReservationsV2Read = []ReservationV2Read
 
+// TopologyDomainV2 defines model for topologyDomainV2.
+type TopologyDomainV2 struct {
+	Hosts []TopologyHostV2 `json:"hosts"`
+
+	// Id Opaque identifier for this NVLink domain. Clients should compare it for equality only; it does not expose provider topology group IDs or facility-internal naming.
+	Id string `json:"id"`
+}
+
+// TopologyHostV2 defines model for topologyHostV2.
+type TopologyHostV2 struct {
+	// InfrastructureRef Ironic node UUID for this host.
+	InfrastructureRef string `json:"infrastructureRef"`
+
+	// Placement A placement.
+	Placement *PlacementV2Read `json:"placement,omitempty"`
+
+	// Reservation A reservation.
+	Reservation *ReservationV2Read `json:"reservation,omitempty"`
+
+	// Reserved Whether this host is claimed by any Reservation.
+	Reserved bool `json:"reserved"`
+
+	// Server A placement server.
+	Server *PlacementServerV2Read `json:"server,omitempty"`
+}
+
+// TopologyPodV2 defines model for topologyPodV2.
+type TopologyPodV2 struct {
+	Domains []TopologyDomainV2 `json:"domains"`
+
+	// Id Opaque identifier for this pod group. Clients should compare it for equality only; it does not expose provider topology group IDs or facility-internal naming.
+	Id string `json:"id"`
+}
+
+// TopologyProjectionV2 defines model for topologyProjectionV2.
+type TopologyProjectionV2 struct {
+	ReservationUnit TopologyReservationUnitV2 `json:"reservationUnit"`
+	Topology        []TopologyPodV2           `json:"topology"`
+}
+
+// TopologyRegionV2 defines model for topologyRegionV2.
+type TopologyRegionV2 struct {
+	Projections []TopologyProjectionV2 `json:"projections"`
+
+	// RegionId Region that owns this disjoint topology set.
+	RegionId string `json:"regionId"`
+}
+
+// TopologyReservationUnitV2 defines model for topologyReservationUnitV2.
+type TopologyReservationUnitV2 struct {
+	// Accelerator Public accelerator model or family for this projection.
+	Accelerator string `json:"accelerator"`
+
+	// DeviceTypeResourceClass Expected Fleet Manager device type resource class for this projection.
+	DeviceTypeResourceClass string `json:"deviceTypeResourceClass"`
+
+	// HostsPerUnit Number of hosts claimed by one reservation unit.
+	HostsPerUnit int `json:"hostsPerUnit"`
+
+	// MachineFlavorId Region machine flavor resolved for this projection.
+	MachineFlavorId string `json:"machineFlavorId"`
+
+	// Unit Public reservation granularity for this projection.
+	Unit string `json:"unit"`
+}
+
 // WhenUnsatisfiableV2 Fail returns an error if the constraint cannot be fully satisfied.
 // Best effort applies the constraint as closely as it can.
 type WhenUnsatisfiableV2 string
@@ -415,11 +486,14 @@ type HardRebootParameter = bool
 // NetworkIDQueryParameter defines model for networkIDQueryParameter.
 type NetworkIDQueryParameter = []string
 
+// OrganizationIDParameter defines model for organizationIDParameter.
+type OrganizationIDParameter = string
+
 // OrganizationIDQueryParameter defines model for organizationIDQueryParameter.
 type OrganizationIDQueryParameter = []string
 
-// PlacementIDParameter A Kubernetes name. Must be a valid DNS label containing only lower case characters, numbers or hyphens, start and end with a character or number, and be at most 63 characters in length.
-type PlacementIDParameter = KubernetesNameParameter
+// PlacementIDParameter defines model for placementIDParameter.
+type PlacementIDParameter = string
 
 // ProjectIDQueryParameter defines model for projectIDQueryParameter.
 type ProjectIDQueryParameter = []string
@@ -427,8 +501,8 @@ type ProjectIDQueryParameter = []string
 // RegionIDQueryParameter defines model for regionIDQueryParameter.
 type RegionIDQueryParameter = []string
 
-// ReservationIDParameter A Kubernetes name. Must be a valid DNS label containing only lower case characters, numbers or hyphens, start and end with a character or number, and be at most 63 characters in length.
-type ReservationIDParameter = KubernetesNameParameter
+// ReservationIDParameter defines model for reservationIDParameter.
+type ReservationIDParameter = string
 
 // ReservationIDQueryParameter defines model for reservationIDQueryParameter.
 type ReservationIDQueryParameter = []string
@@ -439,8 +513,26 @@ type ReservationUnitQueryParameter = []string
 // ServerIDParameter An opaque public Placement server ID.
 type ServerIDParameter = PlacementServerIDParameter
 
+// TopologyAcceleratorQueryParameter defines model for topologyAcceleratorQueryParameter.
+type TopologyAcceleratorQueryParameter = string
+
+// TopologyProjectIDQueryParameter defines model for topologyProjectIDQueryParameter.
+type TopologyProjectIDQueryParameter = string
+
+// TopologyRegionIDQueryParameter defines model for topologyRegionIDQueryParameter.
+type TopologyRegionIDQueryParameter = string
+
+// TopologyReservationIDQueryParameter defines model for topologyReservationIDQueryParameter.
+type TopologyReservationIDQueryParameter = string
+
+// TopologyUnitQueryParameter defines model for topologyUnitQueryParameter.
+type TopologyUnitQueryParameter = string
+
 // InsufficientCapacityResponse Generic error message, compatible with oauth2.
 type InsufficientCapacityResponse = externalRef0.Error
+
+// OrganizationTopologyV2Response Allocated topology visible to one organization.
+type OrganizationTopologyV2Response = OrganizationTopologyV2Read
 
 // PlacementServerV2Response A placement server.
 type PlacementServerV2Response = PlacementServerV2Read
@@ -468,6 +560,24 @@ type PlacementV2CreateRequest = PlacementV2Create
 
 // ReservationV2CreateRequest A reservation creation request.
 type ReservationV2CreateRequest = ReservationV2Create
+
+// GetOrganizationTopologyParams defines parameters for GetOrganizationTopology.
+type GetOrganizationTopologyParams struct {
+	// RegionID Limits topology to one region.
+	RegionID *TopologyRegionIDQueryParameter `form:"regionID,omitempty" json:"regionID,omitempty"`
+
+	// Accelerator Limits topology to one accelerator projection.
+	Accelerator *TopologyAcceleratorQueryParameter `form:"accelerator,omitempty" json:"accelerator,omitempty"`
+
+	// Unit Limits topology to one ReservationUnit projection.
+	Unit *TopologyUnitQueryParameter `form:"unit,omitempty" json:"unit,omitempty"`
+
+	// ProjectID Limits Reservation and Placement overlays to one project.
+	ProjectID *TopologyProjectIDQueryParameter `form:"projectID,omitempty" json:"projectID,omitempty"`
+
+	// ReservationID Limits Reservation and Placement overlays to one reservation.
+	ReservationID *TopologyReservationIDQueryParameter `form:"reservationID,omitempty" json:"reservationID,omitempty"`
+}
 
 // ListPlacementsParams defines parameters for ListPlacements.
 type ListPlacementsParams struct {
@@ -604,6 +714,9 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// GetOrganizationTopology request
+	GetOrganizationTopology(ctx context.Context, organizationID OrganizationIDParameter, params *GetOrganizationTopologyParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListPlacements request
 	ListPlacements(ctx context.Context, params *ListPlacementsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -646,6 +759,18 @@ type ClientInterface interface {
 
 	// GetReservation request
 	GetReservation(ctx context.Context, reservationID ReservationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) GetOrganizationTopology(ctx context.Context, organizationID OrganizationIDParameter, params *GetOrganizationTopologyParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetOrganizationTopologyRequest(c.Server, organizationID, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) ListPlacements(ctx context.Context, params *ListPlacementsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -826,6 +951,126 @@ func (c *Client) GetReservation(ctx context.Context, reservationID ReservationID
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewGetOrganizationTopologyRequest generates requests for GetOrganizationTopology
+func NewGetOrganizationTopologyRequest(server string, organizationID OrganizationIDParameter, params *GetOrganizationTopologyParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v2/organizations/%s/topology", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.RegionID != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "regionID", runtime.ParamLocationQuery, *params.RegionID); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Accelerator != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "accelerator", runtime.ParamLocationQuery, *params.Accelerator); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Unit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "unit", runtime.ParamLocationQuery, *params.Unit); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ProjectID != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "projectID", runtime.ParamLocationQuery, *params.ProjectID); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ReservationID != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "reservationID", runtime.ParamLocationQuery, *params.ReservationID); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
 }
 
 // NewListPlacementsRequest generates requests for ListPlacements
@@ -1573,6 +1818,9 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// GetOrganizationTopologyWithResponse request
+	GetOrganizationTopologyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, params *GetOrganizationTopologyParams, reqEditors ...RequestEditorFn) (*GetOrganizationTopologyResponse, error)
+
 	// ListPlacementsWithResponse request
 	ListPlacementsWithResponse(ctx context.Context, params *ListPlacementsParams, reqEditors ...RequestEditorFn) (*ListPlacementsResponse, error)
 
@@ -1617,6 +1865,32 @@ type ClientWithResponsesInterface interface {
 	GetReservationWithResponse(ctx context.Context, reservationID ReservationIDParameter, reqEditors ...RequestEditorFn) (*GetReservationResponse, error)
 }
 
+type GetOrganizationTopologyResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *OrganizationTopologyV2Response
+	JSON400      *externalRef0.BadRequestResponse
+	JSON401      *externalRef0.UnauthorizedResponse
+	JSON403      *externalRef0.ForbiddenResponse
+	JSON500      *externalRef0.InternalServerErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetOrganizationTopologyResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetOrganizationTopologyResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListPlacementsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -1652,6 +1926,7 @@ type CreatePlacementResponse struct {
 	JSON403      *externalRef0.ForbiddenResponse
 	JSON404      *externalRef0.NotFoundResponse
 	JSON409      *externalRef0.ConflictResponse
+	JSON422      *externalRef0.UnprocessableContentResponse
 	JSON500      *externalRef0.InternalServerErrorResponse
 }
 
@@ -1965,6 +2240,15 @@ func (r GetReservationResponse) StatusCode() int {
 	return 0
 }
 
+// GetOrganizationTopologyWithResponse request returning *GetOrganizationTopologyResponse
+func (c *ClientWithResponses) GetOrganizationTopologyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, params *GetOrganizationTopologyParams, reqEditors ...RequestEditorFn) (*GetOrganizationTopologyResponse, error) {
+	rsp, err := c.GetOrganizationTopology(ctx, organizationID, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetOrganizationTopologyResponse(rsp)
+}
+
 // ListPlacementsWithResponse request returning *ListPlacementsResponse
 func (c *ClientWithResponses) ListPlacementsWithResponse(ctx context.Context, params *ListPlacementsParams, reqEditors ...RequestEditorFn) (*ListPlacementsResponse, error) {
 	rsp, err := c.ListPlacements(ctx, params, reqEditors...)
@@ -2098,6 +2382,60 @@ func (c *ClientWithResponses) GetReservationWithResponse(ctx context.Context, re
 	return ParseGetReservationResponse(rsp)
 }
 
+// ParseGetOrganizationTopologyResponse parses an HTTP response from a GetOrganizationTopologyWithResponse call
+func ParseGetOrganizationTopologyResponse(rsp *http.Response) (*GetOrganizationTopologyResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetOrganizationTopologyResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest OrganizationTopologyV2Response
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest externalRef0.BadRequestResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest externalRef0.UnauthorizedResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest externalRef0.ForbiddenResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest externalRef0.InternalServerErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListPlacementsResponse parses an HTTP response from a ListPlacementsWithResponse call
 func ParseListPlacementsResponse(rsp *http.Response) (*ListPlacementsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -2207,6 +2545,13 @@ func ParseCreatePlacementResponse(rsp *http.Response) (*CreatePlacementResponse,
 			return nil, err
 		}
 		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest externalRef0.UnprocessableContentResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON422 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest externalRef0.InternalServerErrorResponse
