@@ -37,6 +37,38 @@ paths:
         '500':
           $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
 
+  /api/v2/organizations/{organizationID}/topology:
+    description: |-
+      Organization allocated topology with Reservation and Placement overlays
+      redacted according to project-scoped permissions.
+    parameters:
+    - $ref: '#/components/parameters/organizationIDParameter'
+    get:
+      operationId: getOrganizationTopology
+      description: Get organization topology.
+      summary: Get organization topology
+      tags:
+      - Topology
+      security:
+      - oauth2Authentication: []
+      parameters:
+      - $ref: '#/components/parameters/topologyRegionIDQueryParameter'
+      - $ref: '#/components/parameters/topologyAcceleratorQueryParameter'
+      - $ref: '#/components/parameters/topologyUnitQueryParameter'
+      - $ref: '#/components/parameters/topologyProjectIDQueryParameter'
+      - $ref: '#/components/parameters/topologyReservationIDQueryParameter'
+      responses:
+        '200':
+          $ref: '#/components/responses/organizationTopologyV2Response'
+        '400':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/badRequestResponse'
+        '401':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unauthorizedResponse'
+        '403':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/forbiddenResponse'
+        '500':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
+
   /api/v2/reservations:
     description: |-
       Manages project scoped reservations of one or more contiguous accelerator
@@ -195,6 +227,8 @@ paths:
           $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/notFoundResponse'
         '409':
           $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/conflictResponse'
+        '422':
+          $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/unprocessableContentResponse'
         '500':
           $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/responses/internalServerErrorResponse'
 
@@ -380,7 +414,9 @@ components:
       description: The reservation ID.
       required: true
       schema:
-        $ref: '#/components/schemas/kubernetesNameParameter'
+        type: string
+        minLength: 1
+        maxLength: 63
 
     placementIDParameter:
       name: placementID
@@ -388,7 +424,9 @@ components:
       description: The placement ID.
       required: true
       schema:
-        $ref: '#/components/schemas/kubernetesNameParameter'
+        type: string
+        minLength: 1
+        maxLength: 63
 
     serverIDParameter:
       name: serverID
@@ -405,6 +443,16 @@ components:
       schema:
         type: boolean
         default: false
+
+    organizationIDParameter:
+      name: organizationID
+      in: path
+      description: The organization ID.
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 63
 
     organizationIDQueryParameter:
       name: organizationID
@@ -460,6 +508,41 @@ components:
         items:
           type: string
 
+    topologyRegionIDQueryParameter:
+      name: regionID
+      in: query
+      description: Limits topology to one region.
+      schema:
+        type: string
+
+    topologyAcceleratorQueryParameter:
+      name: accelerator
+      in: query
+      description: Limits topology to one accelerator projection.
+      schema:
+        type: string
+
+    topologyUnitQueryParameter:
+      name: unit
+      in: query
+      description: Limits topology to one ReservationUnit projection.
+      schema:
+        type: string
+
+    topologyProjectIDQueryParameter:
+      name: projectID
+      in: query
+      description: Limits Reservation and Placement overlays to one project.
+      schema:
+        type: string
+
+    topologyReservationIDQueryParameter:
+      name: reservationID
+      in: query
+      description: Limits Reservation and Placement overlays to one reservation.
+      schema:
+        type: string
+
     networkIDQueryParameter:
       name: networkID
       in: query
@@ -479,12 +562,6 @@ components:
           scopes: {}
 
   schemas:
-    kubernetesNameParameter:
-      description: A Kubernetes name. Must be a valid DNS label containing only lower case characters, numbers or hyphens, start and end with a character or number, and be at most 63 characters in length.
-      type: string
-      minLength: 1
-      maxLength: 63
-
     placementServerIDParameter:
       description: An opaque public Placement server ID.
       type: string
@@ -818,7 +895,9 @@ components:
         networking:
           $ref: '#/components/schemas/placementServerNetworkingV2'
         sshCertificateAuthorityId:
-          description: The SSH certificate authority ID.
+          description: |-
+            The SSH certificate authority ID. Omit to create pinned Region
+            servers with SSH injection disabled.
           type: string
         userData:
           description: |-
@@ -929,6 +1008,7 @@ components:
       - reservationId
       - placementId
       - networkId
+      - infrastructureRef
       properties:
         regionId:
           description: The region the placement server belongs to.
@@ -941,6 +1021,11 @@ components:
           type: string
         networkId:
           description: The network the placement server belongs to.
+          type: string
+        infrastructureRef:
+          description: |-
+            The normalized infrastructure reference Reservation used as the
+            pinned Region Server boot target.
           type: string
         powerState:
           $ref: 'https://raw.githubusercontent.com/unikorn-cloud/region/main/pkg/openapi/server.spec.yaml#/components/schemas/instanceLifecyclePhase'
@@ -971,6 +1056,119 @@ components:
       type: array
       items:
         $ref: '#/components/schemas/placementServerV2Read'
+
+    topologyHostV2:
+      type: object
+      required: [infrastructureRef, reserved]
+      properties:
+        infrastructureRef:
+          description: Ironic node UUID for this host.
+          type: string
+        reserved:
+          description: Whether this host is claimed by any Reservation.
+          type: boolean
+        reservation:
+          description: >
+            Reservation overlay. Present only when this host is reserved and
+            the caller can read the owning Reservation.
+          $ref: '#/components/schemas/reservationV2Read'
+        placement:
+          description: >
+            Placement overlay. Present only when this host is placed and the
+            caller can read the owning Placement.
+          $ref: '#/components/schemas/placementV2Read'
+        server:
+          description: >
+            Placement server status. Present only when this host has been
+            placed and the caller can read Placement server state for the
+            owning Placement.
+          $ref: '#/components/schemas/placementServerV2Read'
+
+    topologyDomainV2:
+      type: object
+      required: [id, hosts]
+      properties:
+        id:
+          description: >
+            Opaque identifier for this NVLink domain. Clients should compare it
+            for equality only; it does not expose provider topology group IDs or
+            facility-internal naming.
+          type: string
+        hosts:
+          type: array
+          items:
+            $ref: '#/components/schemas/topologyHostV2'
+
+    topologyPodV2:
+      type: object
+      required: [id, domains]
+      properties:
+        id:
+          description: >
+            Opaque identifier for this pod group. Clients should compare it for
+            equality only; it does not expose provider topology group IDs or
+            facility-internal naming.
+          type: string
+        domains:
+          type: array
+          items:
+            $ref: '#/components/schemas/topologyDomainV2'
+
+    topologyReservationUnitV2:
+      type: object
+      required:
+      - accelerator
+      - unit
+      - machineFlavorId
+      - deviceTypeResourceClass
+      - hostsPerUnit
+      properties:
+        accelerator:
+          description: Public accelerator model or family for this projection.
+          type: string
+        unit:
+          description: Public reservation granularity for this projection.
+          type: string
+        machineFlavorId:
+          description: Region machine flavor resolved for this projection.
+          type: string
+        deviceTypeResourceClass:
+          description: Expected Fleet Manager device type resource class for this projection.
+          type: string
+        hostsPerUnit:
+          description: Number of hosts claimed by one reservation unit.
+          type: integer
+          minimum: 1
+
+    topologyProjectionV2:
+      type: object
+      required: [reservationUnit, topology]
+      properties:
+        reservationUnit:
+          description: Public ReservationUnit offer represented by this topology.
+          $ref: '#/components/schemas/topologyReservationUnitV2'
+        topology:
+          type: array
+          items:
+            $ref: '#/components/schemas/topologyPodV2'
+
+    topologyRegionV2:
+      type: object
+      required: [regionId, projections]
+      properties:
+        regionId:
+          description: Region that owns this disjoint topology set.
+          type: string
+        projections:
+          type: array
+          items:
+            $ref: '#/components/schemas/topologyProjectionV2'
+
+    organizationTopologyV2Read:
+      description: Allocated topology visible to one organization.
+      type: array
+      items:
+        $ref: '#/components/schemas/topologyRegionV2'
 
   requestBodies:
     reservationV2CreateRequest:
@@ -1237,6 +1435,7 @@ components:
               reservationId: a64f9269-36e0-4312-b8d1-52d93d569b7b
               placementId: b8ce034e-fccb-4d6c-a0e0-af3e3f346715
               networkId: 61f0ad85-3001-41cb-824a-e6a047668dfe
+              infrastructureRef: 00000000-0000-0000-0000-000000000002
               powerState: Running
               privateIP: 10.0.0.12
               publicIP: 203.0.113.12
@@ -1263,6 +1462,7 @@ components:
               reservationId: a64f9269-36e0-4312-b8d1-52d93d569b7b
               placementId: b8ce034e-fccb-4d6c-a0e0-af3e3f346715
               networkId: 61f0ad85-3001-41cb-824a-e6a047668dfe
+              infrastructureRef: 00000000-0000-0000-0000-000000000002
               powerState: Running
               privateIP: 10.0.0.12
               publicIP: 203.0.113.12
@@ -1281,6 +1481,7 @@ components:
               reservationId: a64f9269-36e0-4312-b8d1-52d93d569b7b
               placementId: b8ce034e-fccb-4d6c-a0e0-af3e3f346715
               networkId: 61f0ad85-3001-41cb-824a-e6a047668dfe
+              infrastructureRef: 00000000-0000-0000-0000-000000000003
               powerState: Running
               privateIP: 10.0.0.13
               macAddress: fa:16:3e:11:70:2f
@@ -1293,3 +1494,10 @@ components:
         application/json:
           schema:
             $ref: 'https://raw.githubusercontent.com/unikorn-cloud/core/main/pkg/openapi/common.spec.yaml#/components/schemas/error'
+
+    organizationTopologyV2Response:
+      description: Organization topology view.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/organizationTopologyV2Read'
