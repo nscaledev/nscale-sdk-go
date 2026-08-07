@@ -12,9 +12,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
-	externalRef0 "github.com/nscaledev/nscale-sdk-go/common"
-	externalRef1 "github.com/nscaledev/nscale-sdk-go/region"
 	"github.com/oapi-codegen/runtime"
 )
 
@@ -22,376 +21,984 @@ const (
 	Oauth2AuthenticationScopes = "oauth2Authentication.Scopes"
 )
 
-// Defines values for RegionTypeParameter.
+// Defines values for ClusterAddonComponentStatusV1.
 const (
-	Physical RegionTypeParameter = "physical"
-	Virtual  RegionTypeParameter = "virtual"
+	ClusterAddonComponentStatusV1Degraded   ClusterAddonComponentStatusV1 = "degraded"
+	ClusterAddonComponentStatusV1Installing ClusterAddonComponentStatusV1 = "installing"
+	ClusterAddonComponentStatusV1Pending    ClusterAddonComponentStatusV1 = "pending"
+	ClusterAddonComponentStatusV1Ready      ClusterAddonComponentStatusV1 = "ready"
+	ClusterAddonComponentStatusV1Removing   ClusterAddonComponentStatusV1 = "removing"
+	ClusterAddonComponentStatusV1Upgrading  ClusterAddonComponentStatusV1 = "upgrading"
 )
 
-// ClusterManagerRead A cluster manager.
-type ClusterManagerRead struct {
-	// Metadata Metadata required by project scoped resource reads.
-	Metadata externalRef0.ProjectScopedResourceReadMetadata `json:"metadata"`
-}
+// Defines values for ErrorError.
+const (
+	AccessDenied          ErrorError = "access_denied"
+	Conflict              ErrorError = "conflict"
+	Forbidden             ErrorError = "forbidden"
+	InvalidRequest        ErrorError = "invalid_request"
+	MethodNotAllowed      ErrorError = "method_not_allowed"
+	NotFound              ErrorError = "not_found"
+	RequestEntityTooLarge ErrorError = "request_entity_too_large"
+	ServerError           ErrorError = "server_error"
+	UnprocessableContent  ErrorError = "unprocessable_content"
+	UnsupportedMediaType  ErrorError = "unsupported_media_type"
+)
 
-// ClusterManagerWrite A cluster manager.
-type ClusterManagerWrite struct {
-	// Metadata Metadata required for all API resource reads and writes.
-	Metadata externalRef0.ResourceWriteMetadata `json:"metadata"`
-}
+// Defines values for HealthStatusReason.
+const (
+	HealthStatusReasonDegraded HealthStatusReason = "Degraded"
+	HealthStatusReasonHealthy  HealthStatusReason = "Healthy"
+	HealthStatusReasonUnknown  HealthStatusReason = "Unknown"
+)
 
-// ClusterManagers A list of cluster managers.
-type ClusterManagers = []ClusterManagerRead
+// Defines values for NodePoolProvisioningModeV1.
+const (
+	Compute     NodePoolProvisioningModeV1 = "compute"
+	Reservation NodePoolProvisioningModeV1 = "reservation"
+)
 
-// KubernetesClusterAPI Kubernetes API settings.
-type KubernetesClusterAPI struct {
-	// AllowedPrefixes Set of address prefixes to allow access to the Kubernetes API.
-	AllowedPrefixes *[]string `json:"allowedPrefixes,omitempty"`
+// Defines values for NodePoolTaintV1Effect.
+const (
+	NoExecute        NodePoolTaintV1Effect = "NoExecute"
+	NoSchedule       NodePoolTaintV1Effect = "NoSchedule"
+	PreferNoSchedule NodePoolTaintV1Effect = "PreferNoSchedule"
+)
 
-	// SubjectAlternativeNames Set of non-standard X.509 SANs to add to the API certificate.
-	SubjectAlternativeNames *[]string `json:"subjectAlternativeNames,omitempty"`
-}
+// Defines values for NodePoolTaintV1Propagation.
+const (
+	Always           NodePoolTaintV1Propagation = "Always"
+	OnInitialization NodePoolTaintV1Propagation = "OnInitialization"
+)
 
-// KubernetesClusterAutoUpgrade If set, enables auto-upgrade to a set schedule, or if not set, opts
-// out of upgrades entirely.  Upgrades still occur when the cluster's
-// application bundle reaches end of life irrespective of whether auto upgrades
-// are disabled. The absence of this object represents a default auto-upgrade policy of
-// the platform.
-type KubernetesClusterAutoUpgrade struct {
-	// DaysOfWeek When defined allows explicit control of what days an auto upgrade can
-	// occur on.
-	DaysOfWeek *KubernetesClusterAutoUpgradeDaysOfWeek `json:"daysOfWeek,omitempty"`
+// Defines values for PlatformReleaseArchitectureV1.
+const (
+	Aarch64 PlatformReleaseArchitectureV1 = "aarch64"
+	X8664   PlatformReleaseArchitectureV1 = "x86_64"
+)
 
-	// Enabled Whether or not auto upgrades are enabled.
-	Enabled bool `json:"enabled"`
-}
+// Defines values for PlatformReleaseWithdrawalReasonV1.
+const (
+	CompatibilityIssue   PlatformReleaseWithdrawalReasonV1 = "CompatibilityIssue"
+	ComplianceIssue      PlatformReleaseWithdrawalReasonV1 = "ComplianceIssue"
+	FunctionalRegression PlatformReleaseWithdrawalReasonV1 = "FunctionalRegression"
+	OperationalIssue     PlatformReleaseWithdrawalReasonV1 = "OperationalIssue"
+	Other                PlatformReleaseWithdrawalReasonV1 = "Other"
+	SecurityIssue        PlatformReleaseWithdrawalReasonV1 = "SecurityIssue"
+)
 
-// KubernetesClusterAutoUpgradeDaysOfWeek When defined allows explicit control of what days an auto upgrade can
-// occur on.
-type KubernetesClusterAutoUpgradeDaysOfWeek struct {
-	// Friday Defines when in the day an upgrade is allowed to occur, specified as an
-	// hour starting from 0 up to 23.  Upgrade windows can overflow into the next
-	// day e.g. a start of 22 will begin upgrades from 10pm, and an end of 6 will
-	// stop upgrades after 6am.
-	Friday *KubernetesClusterAutoUpgradeWindow `json:"friday,omitempty"`
+// Defines values for ProvisioningStatusReason.
+const (
+	ProvisioningStatusReasonDependencyFailed   ProvisioningStatusReason = "DependencyFailed"
+	ProvisioningStatusReasonDependencyNotFound ProvisioningStatusReason = "DependencyNotFound"
+	ProvisioningStatusReasonDependencyNotReady ProvisioningStatusReason = "DependencyNotReady"
+	ProvisioningStatusReasonDeprovisioned      ProvisioningStatusReason = "Deprovisioned"
+	ProvisioningStatusReasonDeprovisioning     ProvisioningStatusReason = "Deprovisioning"
+	ProvisioningStatusReasonErrored            ProvisioningStatusReason = "Errored"
+	ProvisioningStatusReasonProvisioned        ProvisioningStatusReason = "Provisioned"
+	ProvisioningStatusReasonProvisioning       ProvisioningStatusReason = "Provisioning"
+)
 
-	// Monday Defines when in the day an upgrade is allowed to occur, specified as an
-	// hour starting from 0 up to 23.  Upgrade windows can overflow into the next
-	// day e.g. a start of 22 will begin upgrades from 10pm, and an end of 6 will
-	// stop upgrades after 6am.
-	Monday *KubernetesClusterAutoUpgradeWindow `json:"monday,omitempty"`
+// Defines values for ResourceHealthStatus.
+const (
+	ResourceHealthStatusDegraded ResourceHealthStatus = "degraded"
+	ResourceHealthStatusError    ResourceHealthStatus = "error"
+	ResourceHealthStatusHealthy  ResourceHealthStatus = "healthy"
+	ResourceHealthStatusUnknown  ResourceHealthStatus = "unknown"
+)
 
-	// Saturday Defines when in the day an upgrade is allowed to occur, specified as an
-	// hour starting from 0 up to 23.  Upgrade windows can overflow into the next
-	// day e.g. a start of 22 will begin upgrades from 10pm, and an end of 6 will
-	// stop upgrades after 6am.
-	Saturday *KubernetesClusterAutoUpgradeWindow `json:"saturday,omitempty"`
+// Defines values for ResourceProvisioningStatus.
+const (
+	ResourceProvisioningStatusDeprovisioning ResourceProvisioningStatus = "deprovisioning"
+	ResourceProvisioningStatusError          ResourceProvisioningStatus = "error"
+	ResourceProvisioningStatusPending        ResourceProvisioningStatus = "pending"
+	ResourceProvisioningStatusProvisioned    ResourceProvisioningStatus = "provisioned"
+	ResourceProvisioningStatusProvisioning   ResourceProvisioningStatus = "provisioning"
+)
 
-	// Sunday Defines when in the day an upgrade is allowed to occur, specified as an
-	// hour starting from 0 up to 23.  Upgrade windows can overflow into the next
-	// day e.g. a start of 22 will begin upgrades from 10pm, and an end of 6 will
-	// stop upgrades after 6am.
-	Sunday *KubernetesClusterAutoUpgradeWindow `json:"sunday,omitempty"`
+// ClusterAddonComponentStatusV1 Observed addon component rollout status.
+type ClusterAddonComponentStatusV1 string
 
-	// Thursday Defines when in the day an upgrade is allowed to occur, specified as an
-	// hour starting from 0 up to 23.  Upgrade windows can overflow into the next
-	// day e.g. a start of 22 will begin upgrades from 10pm, and an end of 6 will
-	// stop upgrades after 6am.
-	Thursday *KubernetesClusterAutoUpgradeWindow `json:"thursday,omitempty"`
+// ClusterAddonComponentV1 Observed addon component rollout state.
+type ClusterAddonComponentV1 struct {
+	// Message Human-readable customer-safe message for the component state.
+	Message *string `json:"message,omitempty"`
 
-	// Tuesday Defines when in the day an upgrade is allowed to occur, specified as an
-	// hour starting from 0 up to 23.  Upgrade windows can overflow into the next
-	// day e.g. a start of 22 will begin upgrades from 10pm, and an end of 6 will
-	// stop upgrades after 6am.
-	Tuesday *KubernetesClusterAutoUpgradeWindow `json:"tuesday,omitempty"`
+	// Name Component name.
+	Name string `json:"name"`
 
-	// Wednesday Defines when in the day an upgrade is allowed to occur, specified as an
-	// hour starting from 0 up to 23.  Upgrade windows can overflow into the next
-	// day e.g. a start of 22 will begin upgrades from 10pm, and an end of 6 will
-	// stop upgrades after 6am.
-	Wednesday *KubernetesClusterAutoUpgradeWindow `json:"wednesday,omitempty"`
-}
+	// Reason Stable machine-readable reason for the component state.
+	Reason *string `json:"reason,omitempty"`
 
-// KubernetesClusterAutoUpgradeWindow Defines when in the day an upgrade is allowed to occur, specified as an
-// hour starting from 0 up to 23.  Upgrade windows can overflow into the next
-// day e.g. a start of 22 will begin upgrades from 10pm, and an end of 6 will
-// stop upgrades after 6am.
-type KubernetesClusterAutoUpgradeWindow struct {
-	// End Hour to end upgrades.
-	End int `json:"end"`
+	// Status Observed addon component rollout status.
+	Status ClusterAddonComponentStatusV1 `json:"status"`
 
-	// Start Hour to start upgrades.
-	Start int `json:"start"`
-}
-
-// KubernetesClusterAutoscaling A Kubernetes cluster workload pool autoscaling configuration. Cluster autoscaling
-// must also be enabled in the cluster features.
-type KubernetesClusterAutoscaling struct {
-	// MinimumReplicas The minimum number of replicas to allow. Must be less than the maximum.
-	MinimumReplicas int `json:"minimumReplicas"`
-}
-
-// KubernetesClusterControlPlane Defines explicit control plane topology. When not specified, the platform
-// will automatically select an appropriate flavor.
-type KubernetesClusterControlPlane struct {
-	// FlavorId Flavor ID for control plane nodes.
-	FlavorId string `json:"flavorId"`
-
-	// Replicas Number of control plane replicas. Must be an odd number to
-	// maintain quorum. Defaults to 3 if not specified.
-	Replicas *int `json:"replicas,omitempty"`
-}
-
-// KubernetesClusterFeatures Cluster feature flags.
-type KubernetesClusterFeatures struct {
-	// HardwareEnablement Enables and hardware operators and drivers for the cluster e.g.
-	// GPU operator, network configuration, etc.
-	HardwareEnablement bool `json:"hardwareEnablement"`
-}
-
-// KubernetesClusterNetwork A Kubernetes cluster network settings.
-type KubernetesClusterNetwork struct {
-	// DnsNameservers A list of DNS name server to use.
-	DnsNameservers *[]string `json:"dnsNameservers,omitempty"`
-
-	// NodePrefix Network prefix to provision nodes in. Must be a valid CIDR block.
-	NodePrefix *string `json:"nodePrefix,omitempty"`
-
-	// PodPrefix Network prefix to provision pods in. Must be a valid CIDR block.
-	PodPrefix *string `json:"podPrefix,omitempty"`
-
-	// ServicePrefix Network prefix to provision services in. Must be a valid CIDR block.
-	ServicePrefix *string `json:"servicePrefix,omitempty"`
-}
-
-// KubernetesClusterRead Kubernetes cluster read.
-type KubernetesClusterRead struct {
-	// Metadata Metadata required by project scoped resource reads.
-	Metadata externalRef0.ProjectScopedResourceReadMetadata `json:"metadata"`
-
-	// Spec Kubernetes cluster creation parameters.
-	Spec KubernetesClusterSpec `json:"spec"`
-}
-
-// KubernetesClusterSpec Kubernetes cluster creation parameters.
-type KubernetesClusterSpec struct {
-	// Api Kubernetes API settings.
-	Api *KubernetesClusterAPI `json:"api,omitempty"`
-
-	// ApplicationBundleName An explicit set of applications to use for deploy.
-	ApplicationBundleName *string `json:"applicationBundleName,omitempty"`
-
-	// AutoUpgrade If set, enables auto-upgrade to a set schedule, or if not set, opts
-	// out of upgrades entirely.  Upgrades still occur when the cluster's
-	// application bundle reaches end of life irrespective of whether auto upgrades
-	// are disabled. The absence of this object represents a default auto-upgrade policy of
-	// the platform.
-	AutoUpgrade *KubernetesClusterAutoUpgrade `json:"autoUpgrade,omitempty"`
-
-	// ClusterManagerId The name of the cluster manager to use, if one is not specified
-	// the system will create one for you.
-	ClusterManagerId *string `json:"clusterManagerId,omitempty"`
-
-	// ControlPlane Defines explicit control plane topology. When not specified, the platform
-	// will automatically select an appropriate flavor.
-	ControlPlane *KubernetesClusterControlPlane `json:"controlPlane,omitempty"`
-
-	// Features Cluster feature flags.
-	Features *KubernetesClusterFeatures `json:"features,omitempty"`
-
-	// Networking A Kubernetes cluster network settings.
-	Networking *KubernetesClusterNetwork `json:"networking,omitempty"`
-
-	// RegionId The region to provision the cluster in.
-	RegionId string `json:"regionId"`
-
-	// Version The Kubernetes version.  This should be derived from image metadata.
+	// Version Component version selected for this cluster.
 	Version string `json:"version"`
-
-	// WorkloadPools A list of Kubernetes cluster workload pools.
-	WorkloadPools KubernetesClusterWorkloadPools `json:"workloadPools"`
 }
 
-// KubernetesClusterWorkloadPool A Kubernetes cluster workload pool.
-type KubernetesClusterWorkloadPool struct {
-	// Autoscaling A Kubernetes cluster workload pool autoscaling configuration. Cluster autoscaling
-	// must also be enabled in the cluster features.
-	Autoscaling *KubernetesClusterAutoscaling `json:"autoscaling,omitempty"`
+// ClusterAddonProfileStatusV1 Observed addon profile rollout state.
+type ClusterAddonProfileStatusV1 struct {
+	// Components Observed addon component rollout states.
+	Components []ClusterAddonComponentV1 `json:"components"`
 
-	// Labels Workload pool key value labels to apply on node creation.
-	Labels *map[string]string `json:"labels,omitempty"`
+	// Message Human-readable customer-safe message for the profile state.
+	Message *string `json:"message,omitempty"`
 
-	// Machine A Kubernetes cluster machine.
-	Machine MachinePool `json:"machine"`
+	// Reason Stable machine-readable reason for the profile state.
+	Reason *string `json:"reason,omitempty"`
 
-	// Name Workload pool name.
-	Name string `json:"name"`
+	// Status Observed addon component rollout status.
+	Status ClusterAddonComponentStatusV1 `json:"status"`
 }
 
-// KubernetesClusterWorkloadPools A list of Kubernetes cluster workload pools.
-type KubernetesClusterWorkloadPools = []KubernetesClusterWorkloadPool
-
-// KubernetesClusterWrite Kubernetes cluster create or update.
-type KubernetesClusterWrite struct {
-	// Metadata Metadata required for all API resource reads and writes.
-	Metadata externalRef0.ResourceWriteMetadata `json:"metadata"`
-
-	// Spec Kubernetes cluster creation parameters.
-	Spec KubernetesClusterSpec `json:"spec"`
+// ClusterAddonsCreateV1 Addon profiles requested during cluster creation.
+type ClusterAddonsCreateV1 struct {
+	// Hardware Whether the optional hardware addon profile is enabled. Defaults to true when omitted during cluster creation.
+	Hardware *bool `json:"hardware,omitempty"`
 }
 
-// KubernetesClusters A list of Kubernetes clusters.
-type KubernetesClusters = []KubernetesClusterRead
+// ClusterAddonsStatusV1 Observed addon rollout state grouped by profile. Hardware remains visible while a previous installation is being removed and is omitted only after removal is confirmed.
+type ClusterAddonsStatusV1 struct {
+	// Core Observed addon profile rollout state.
+	Core ClusterAddonProfileStatusV1 `json:"core"`
 
-// KubernetesNameParameter A Kubernetes name. Must be a valid DNS containing only lower case characters, numbers or hyphens, start and end with a character or number, and be at most 63 characters in length.
-type KubernetesNameParameter = string
-
-// MachinePool A Kubernetes cluster machine.
-type MachinePool struct {
-	// Disk A volume.
-	Disk *Volume `json:"disk,omitempty"`
-
-	// FlavorId Flavor ID.
-	FlavorId *string `json:"flavorId,omitempty"`
-
-	// Replicas Number of machines for a statically sized pool or the maximum for an auto-scaled pool.
-	Replicas *int `json:"replicas,omitempty"`
+	// Hardware Observed addon profile rollout state.
+	Hardware *ClusterAddonProfileStatusV1 `json:"hardware,omitempty"`
 }
 
-// RegionTypeParameter The region type. "physical" means a full Kubernetes cluster deployment, "virtual" is a virtual
-// Kubernetes cluster hosted by another one.
-type RegionTypeParameter string
-
-// VirtualKubernetesClusterRead Virtual Kubernetes cluster read.
-type VirtualKubernetesClusterRead struct {
-	// Metadata Metadata required by project scoped resource reads.
-	Metadata externalRef0.ProjectScopedResourceReadMetadata `json:"metadata"`
-
-	// Spec Virtual Kubernetes cluster creation parameters.
-	Spec VirtualKubernetesClusterSpec `json:"spec"`
+// ClusterAddonsV1 Addon profiles configured for a cluster.
+type ClusterAddonsV1 struct {
+	// Hardware Whether the optional hardware addon profile is enabled.
+	Hardware *bool `json:"hardware,omitempty"`
 }
 
-// VirtualKubernetesClusterSpec Virtual Kubernetes cluster creation parameters.
-type VirtualKubernetesClusterSpec struct {
-	// RegionId The region to provision the cluster in.
+// ClusterApiServerAccessV1 API server network exposure requested for a cluster.
+type ClusterApiServerAccessV1 struct {
+	// AllowedCidrs Source IPv4 CIDR allowlist for the cluster API endpoint, including private endpoints. If publicIP is true and this field is omitted, the API server is reachable from 0.0.0.0/0.
+	AllowedCidrs *[]string `json:"allowedCidrs,omitempty"`
+
+	// PublicIP Whether to expose the API server through a public endpoint.
+	PublicIP *bool `json:"publicIP,omitempty"`
+}
+
+// ClusterApiServerEndpointStatusV1 Customer-facing Kubernetes API server endpoint.
+type ClusterApiServerEndpointStatusV1 struct {
+	// Address IPv4, IPv6, or DNS address clients dial.
+	Address string `json:"address"`
+
+	// Port TCP port clients dial.
+	Port int32 `json:"port"`
+}
+
+// ClusterApiServerEndpointsStatusV1 Customer-facing Kubernetes API server endpoints.
+type ClusterApiServerEndpointsStatusV1 struct {
+	// Private Customer-facing Kubernetes API server endpoint.
+	Private ClusterApiServerEndpointStatusV1 `json:"private"`
+
+	// Public Customer-facing Kubernetes API server endpoint.
+	Public *ClusterApiServerEndpointStatusV1 `json:"public,omitempty"`
+}
+
+// ClusterApiServerStatusV1 Credential-free Kubernetes API server connection data.
+type ClusterApiServerStatusV1 struct {
+	// CertificateAuthorityData Complete Kubernetes API server CA bundle encoded as one base64 string.
+	CertificateAuthorityData string `json:"certificateAuthorityData"`
+
+	// Endpoints Customer-facing Kubernetes API server endpoints.
+	Endpoints ClusterApiServerEndpointsStatusV1 `json:"endpoints"`
+}
+
+// ClusterControlPlaneSummaryV1 Observed control plane summary.
+type ClusterControlPlaneSummaryV1 struct {
+	// DesiredReplicas Desired number of control plane replicas.
+	DesiredReplicas *int `json:"desiredReplicas,omitempty"`
+
+	// ReadyReplicas Number of ready control plane replicas.
+	ReadyReplicas *int `json:"readyReplicas,omitempty"`
+}
+
+// ClusterCreateSpecV1 Desired cluster state for creation.
+type ClusterCreateSpecV1 struct {
+	// Addons Addon profiles requested during cluster creation.
+	Addons *ClusterAddonsCreateV1 `json:"addons,omitempty"`
+
+	// ApiServer API server network exposure requested for a cluster.
+	ApiServer *ClusterApiServerAccessV1 `json:"apiServer,omitempty"`
+
+	// ClusterNetwork Kubernetes cluster pod and service network configuration.
+	ClusterNetwork *ClusterNetworkV1 `json:"clusterNetwork,omitempty"`
+
+	// NetworkId Region network ID attached to the cluster.
+	NetworkId string `json:"networkId"`
+
+	// PlatformReleaseId Platform release selected for the cluster.
+	PlatformReleaseId string `json:"platformReleaseId"`
+}
+
+// ClusterKubernetesVersionStatusV1 Kubernetes versions in the applied control-plane template and observed managed control plane.
+type ClusterKubernetesVersionStatusV1 struct {
+	// Observed Kubernetes version reported by the managed control plane.
+	Observed *string `json:"observed,omitempty"`
+
+	// Target Kubernetes version in the applied remote ManagedControlPlane template.
+	Target *string `json:"target,omitempty"`
+}
+
+// ClusterNetworkV1 Kubernetes cluster pod and service network configuration.
+type ClusterNetworkV1 struct {
+	// PodCidr IPv4 network CIDR used for Kubernetes pod addresses.
+	PodCidr *string `json:"podCidr,omitempty"`
+
+	// ServiceCidr IPv4 network CIDR used for Kubernetes service addresses.
+	ServiceCidr *string `json:"serviceCidr,omitempty"`
+}
+
+// ClusterNodePoolSummaryV1 Last-observed node pool summary. Replica totals retain values from each child NodePool's latest status while a new child generation is being projected.
+type ClusterNodePoolSummaryV1 struct {
+	// Count Number of node pools attached to the cluster.
+	Count *int `json:"count,omitempty"`
+
+	// TotalCurrentReplicas Sum of current worker replicas from each child NodePool's latest status; omitted if any child has no observed value.
+	TotalCurrentReplicas *int `json:"totalCurrentReplicas,omitempty"`
+
+	// TotalDesiredReplicas Sum of desired worker replicas from each child NodePool's latest status; omitted if any child has no observed value.
+	TotalDesiredReplicas *int `json:"totalDesiredReplicas,omitempty"`
+
+	// TotalReadyReplicas Sum of ready worker replicas from each child NodePool's latest status; omitted if any child has no observed value.
+	TotalReadyReplicas *int `json:"totalReadyReplicas,omitempty"`
+}
+
+// ClusterReleaseStatusV1 Applied platform release and observed upgrade eligibility.
+type ClusterReleaseStatusV1 struct {
+	// AppliedId Platform release last observed as applied to the remote cluster.
+	AppliedId string `json:"appliedId"`
+
+	// Deprecated Whether the applied platform release is currently deprecated.
+	Deprecated *bool `json:"deprecated,omitempty"`
+
+	// EligibleTargets Eligible platform release IDs in upgrade order. Present as an empty array when eligibility was observed and no upgrade is available.
+	EligibleTargets *[]string `json:"eligibleTargets,omitempty"`
+
+	// UpgradeAvailable Whether at least one eligible target was observed.
+	UpgradeAvailable *bool `json:"upgradeAvailable,omitempty"`
+
+	// WithdrawalMessage Customer-safe explanation of why operators withdrew the applied platform release.
+	WithdrawalMessage *string `json:"withdrawalMessage,omitempty"`
+
+	// WithdrawalReason Stable machine-readable reason operators withdrew a platform release.
+	WithdrawalReason *PlatformReleaseWithdrawalReasonV1 `json:"withdrawalReason,omitempty"`
+
+	// Withdrawn Whether operators have withdrawn the applied platform release. Deprecation is derived from the release catalog, whereas withdrawal is an explicit operator decision and is reversible.
+	Withdrawn *bool `json:"withdrawn,omitempty"`
+}
+
+// ClusterSpecV1 Desired cluster state.
+type ClusterSpecV1 struct {
+	// Addons Addon profiles configured for a cluster.
+	Addons *ClusterAddonsV1 `json:"addons,omitempty"`
+
+	// ApiServer API server network exposure requested for a cluster.
+	ApiServer *ClusterApiServerAccessV1 `json:"apiServer,omitempty"`
+
+	// ClusterNetwork Kubernetes cluster pod and service network configuration.
+	ClusterNetwork *ClusterNetworkV1 `json:"clusterNetwork,omitempty"`
+
+	// NetworkId Region network ID attached to the cluster.
+	NetworkId string `json:"networkId"`
+
+	// PlatformReleaseId Platform release selected for the cluster.
+	PlatformReleaseId string `json:"platformReleaseId"`
+}
+
+// ClusterStatusV1 Product-specific observed cluster state.
+type ClusterStatusV1 struct {
+	// Addons Observed addon rollout state grouped by profile. Hardware remains visible while a previous installation is being removed and is omitted only after removal is confirmed.
+	Addons *ClusterAddonsStatusV1 `json:"addons,omitempty"`
+
+	// ApiServer Credential-free Kubernetes API server connection data.
+	ApiServer *ClusterApiServerStatusV1 `json:"apiServer,omitempty"`
+
+	// ControlPlane Observed control plane summary.
+	ControlPlane *ClusterControlPlaneSummaryV1 `json:"controlPlane,omitempty"`
+
+	// KubernetesVersion Kubernetes versions in the applied control-plane template and observed managed control plane.
+	KubernetesVersion *ClusterKubernetesVersionStatusV1 `json:"kubernetesVersion,omitempty"`
+
+	// NodePools Last-observed node pool summary. Replica totals retain values from each child NodePool's latest status while a new child generation is being projected.
+	NodePools *ClusterNodePoolSummaryV1 `json:"nodePools,omitempty"`
+
+	// ObservedGeneration Most recent resource generation coherently projected into status. Omitted until a status projection completes.
+	ObservedGeneration *int64 `json:"observedGeneration,omitempty"`
+
+	// RegionId Resolved region inherited from the attached network.
 	RegionId string `json:"regionId"`
 
-	// WorkloadPools A set of virtual workload pools.
-	WorkloadPools VirtualKubernetesClusterWorkloadPools `json:"workloadPools"`
+	// Release Applied platform release and observed upgrade eligibility.
+	Release *ClusterReleaseStatusV1 `json:"release,omitempty"`
 }
 
-// VirtualKubernetesClusterWorkloadPool A virtual workload pool.
-type VirtualKubernetesClusterWorkloadPool struct {
-	// FlavorId The flavor's ID
-	FlavorId string `json:"flavorId"`
+// ClusterUpdateSpecV1 Desired cluster replacement state.
+type ClusterUpdateSpecV1 struct {
+	// Addons Addon profiles requested during cluster creation.
+	Addons *ClusterAddonsCreateV1 `json:"addons,omitempty"`
 
-	// Name The workload pool name.
+	// ApiServer API server network exposure requested for a cluster.
+	ApiServer *ClusterApiServerAccessV1 `json:"apiServer,omitempty"`
+
+	// ClusterNetwork Kubernetes cluster pod and service network configuration.
+	ClusterNetwork *ClusterNetworkV1 `json:"clusterNetwork,omitempty"`
+
+	// NetworkId Region network ID attached to the cluster. Immutable after creation.
+	NetworkId string `json:"networkId"`
+
+	// PlatformReleaseId Platform release selected for the cluster.
+	PlatformReleaseId string `json:"platformReleaseId"`
+}
+
+// ClusterV1Create A cluster creation request.
+type ClusterV1Create struct {
+	// Metadata Metadata required for all API resource reads and writes.
+	Metadata ResourceMetadata `json:"metadata"`
+
+	// Spec Desired cluster state for creation.
+	Spec ClusterCreateSpecV1 `json:"spec"`
+}
+
+// ClusterV1Read A Kubernetes cluster.
+type ClusterV1Read struct {
+	// Metadata Project-scoped resource read metadata with Kubernetes generation freshness.
+	Metadata ProjectScopedResourceReadMetadataV1 `json:"metadata"`
+
+	// Spec Desired cluster state.
+	Spec ClusterSpecV1 `json:"spec"`
+
+	// Status Product-specific observed cluster state.
+	Status ClusterStatusV1 `json:"status"`
+}
+
+// ClusterV1Update A cluster update request.
+type ClusterV1Update struct {
+	// Metadata Metadata required for all API resource reads and writes.
+	Metadata ResourceMetadata `json:"metadata"`
+
+	// Spec Desired cluster replacement state.
+	Spec ClusterUpdateSpecV1 `json:"spec"`
+}
+
+// ClustersV1Read A list of clusters.
+type ClustersV1Read = []ClusterV1Read
+
+// Error Generic error message, compatible with oauth2.
+type Error struct {
+	// Error A terse error string expanding on the HTTP error code. Errors are based on the OAuth 2.02 specification, but are expanded with proprietary status codes for APIs other than those specified by OAuth 2.02.
+	Error ErrorError `json:"error"`
+
+	// ErrorDescription Verbose message describing the error.
+	ErrorDescription string `json:"error_description"`
+
+	// TraceId Unique trace identifier for the request.
+	TraceId *string `json:"trace_id,omitempty"`
+}
+
+// ErrorError A terse error string expanding on the HTTP error code. Errors are based on the OAuth 2.02 specification, but are expanded with proprietary status codes for APIs other than those specified by OAuth 2.02.
+type ErrorError string
+
+// HealthStatusDetail Human-facing detail about the current health state: a machine-classifiable
+// reason drawn from a closed vocabulary, and a user-safe human-readable
+// message (e.g. "2/12 nodes are down"). Derived from the resource's status and
+// supplements the coarse healthStatus; never stored.
+type HealthStatusDetail struct {
+	// Message A user-safe, human-readable description of the health state.
+	Message string `json:"message"`
+
+	// Reason A closed, generic classification of a resource's health — the raw health
+	// condition reason, finer-grained than the coarse healthStatus. Owned by the
+	// platform and the same across all resources.
+	Reason HealthStatusReason `json:"reason"`
+}
+
+// HealthStatusReason A closed, generic classification of a resource's health — the raw health
+// condition reason, finer-grained than the coarse healthStatus. Owned by the
+// platform and the same across all resources.
+type HealthStatusReason string
+
+// KubernetesLabelValue A valid Kubernetes label value, typically used for resource names that can be
+// indexed in the database.
+type KubernetesLabelValue = string
+
+// NodePoolComputeV1 Compute-backed worker capacity selector.
+type NodePoolComputeV1 struct {
+	// FlavorId Compute flavor ID. Required when provisioningMode is compute.
+	FlavorId *string `json:"flavorId,omitempty"`
+}
+
+// NodePoolCreateSpecV1 Desired node pool state for write requests.
+type NodePoolCreateSpecV1 = NodePoolRequestSpecV1
+
+// NodePoolProvisioningModeV1 Capacity source used to provision node pool workers.
+type NodePoolProvisioningModeV1 string
+
+// NodePoolRequestSpecV1 Desired node pool state for write requests.
+type NodePoolRequestSpecV1 struct {
+	// ClusterId Cluster this node pool belongs to.
+	ClusterId string `json:"clusterId"`
+
+	// Compute Compute-backed worker capacity selector.
+	Compute *NodePoolComputeV1 `json:"compute,omitempty"`
+
+	// ProvisioningMode Capacity source used to provision node pool workers.
+	ProvisioningMode NodePoolProvisioningModeV1 `json:"provisioningMode"`
+
+	// Replicas Desired worker replica count.
+	Replicas int `json:"replicas"`
+
+	// Reservation Reservation-backed worker capacity selector.
+	Reservation *NodePoolReservationV1 `json:"reservation,omitempty"`
+
+	// Taints Kubernetes taints applied to node pool workers.
+	Taints *[]NodePoolTaintV1 `json:"taints,omitempty"`
+}
+
+// NodePoolReservationStatusV1 Observed reservation-backed worker capacity.
+type NodePoolReservationStatusV1 struct {
+	// PlacementId Node-pool-managed Reservation placement ID.
+	PlacementId *string `json:"placementId,omitempty"`
+
+	// ReservationId Selected Reservation ID.
+	ReservationId *string `json:"reservationId,omitempty"`
+}
+
+// NodePoolReservationV1 Reservation-backed worker capacity selector.
+type NodePoolReservationV1 struct {
+	// ReservationId Reservation ID to consume capacity from. Required when provisioningMode is reservation.
+	ReservationId *string `json:"reservationId,omitempty"`
+}
+
+// NodePoolSpecV1 Desired node pool state.
+type NodePoolSpecV1 struct {
+	// ClusterId Cluster this node pool belongs to.
+	ClusterId string `json:"clusterId"`
+
+	// Compute Compute-backed worker capacity selector.
+	Compute *NodePoolComputeV1 `json:"compute,omitempty"`
+
+	// ProvisioningMode Capacity source used to provision node pool workers.
+	ProvisioningMode NodePoolProvisioningModeV1 `json:"provisioningMode"`
+
+	// Replicas Desired worker replica count.
+	Replicas int `json:"replicas"`
+
+	// Reservation Reservation-backed worker capacity selector.
+	Reservation *NodePoolReservationV1 `json:"reservation,omitempty"`
+
+	// Taints Kubernetes taints applied to node pool workers.
+	Taints *[]NodePoolTaintV1 `json:"taints,omitempty"`
+}
+
+// NodePoolStatusV1 Product-specific resolved placement and observed node pool state.
+type NodePoolStatusV1 struct {
+	// CurrentReplicas Current worker replica count.
+	CurrentReplicas *int `json:"currentReplicas,omitempty"`
+
+	// DesiredReplicas Desired worker replica count observed in the applied remote MachineDeployment.
+	DesiredReplicas *int `json:"desiredReplicas,omitempty"`
+
+	// KubernetesVersion Kubernetes version in the applied remote MachineDeployment template.
+	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
+
+	// ObservedGeneration Most recent resource generation coherently projected into status. Omitted until a status projection completes.
+	ObservedGeneration *int64 `json:"observedGeneration,omitempty"`
+
+	// ReadyReplicas Ready worker replica count.
+	ReadyReplicas *int `json:"readyReplicas,omitempty"`
+
+	// RegionId Resolved region inherited from the parent cluster.
+	RegionId string `json:"regionId"`
+
+	// Reservation Observed reservation-backed worker capacity.
+	Reservation *NodePoolReservationStatusV1 `json:"reservation,omitempty"`
+
+	// UpToDateReplicas Worker replica count using the current MachineDeployment template.
+	UpToDateReplicas *int `json:"upToDateReplicas,omitempty"`
+}
+
+// NodePoolTaintV1 Kubernetes taint applied to node pool workers.
+type NodePoolTaintV1 struct {
+	// Effect Taint effect.
+	Effect NodePoolTaintV1Effect `json:"effect"`
+
+	// Key Taint key.
+	Key string `json:"key"`
+
+	// Propagation Taint propagation behavior.
+	Propagation NodePoolTaintV1Propagation `json:"propagation"`
+
+	// Value Taint value.
+	Value *string `json:"value,omitempty"`
+}
+
+// NodePoolTaintV1Effect Taint effect.
+type NodePoolTaintV1Effect string
+
+// NodePoolTaintV1Propagation Taint propagation behavior.
+type NodePoolTaintV1Propagation string
+
+// NodePoolUpdateSpecV1 Desired node pool state for write requests.
+type NodePoolUpdateSpecV1 = NodePoolRequestSpecV1
+
+// NodePoolV1Create A node pool creation request.
+type NodePoolV1Create struct {
+	// Metadata Metadata required for all API resource reads and writes.
+	Metadata ResourceMetadata `json:"metadata"`
+
+	// Spec Desired node pool state for creation.
+	Spec NodePoolCreateSpecV1 `json:"spec"`
+}
+
+// NodePoolV1Read A cluster node pool.
+type NodePoolV1Read struct {
+	// Metadata Project-scoped resource read metadata with Kubernetes generation freshness.
+	Metadata ProjectScopedResourceReadMetadataV1 `json:"metadata"`
+
+	// Spec Desired node pool state.
+	Spec NodePoolSpecV1 `json:"spec"`
+
+	// Status Product-specific resolved placement and observed node pool state.
+	Status NodePoolStatusV1 `json:"status"`
+}
+
+// NodePoolV1Update A node pool update request.
+type NodePoolV1Update struct {
+	// Metadata Metadata required for all API resource reads and writes.
+	Metadata ResourceMetadata `json:"metadata"`
+
+	// Spec Desired node pool replacement state.
+	Spec NodePoolUpdateSpecV1 `json:"spec"`
+}
+
+// NodePoolsV1Read A list of node pools.
+type NodePoolsV1Read = []NodePoolV1Read
+
+// PlatformReleaseAddonProfileV1 Component versions included in one platform release profile.
+type PlatformReleaseAddonProfileV1 struct {
+	// Components Component versions installed by this profile.
+	Components []PlatformReleaseComponentV1 `json:"components"`
+}
+
+// PlatformReleaseAddonsV1 Component versions grouped by platform release addon profile.
+type PlatformReleaseAddonsV1 struct {
+	// Core Component versions included in one platform release profile.
+	Core PlatformReleaseAddonProfileV1 `json:"core"`
+
+	// Hardware Component versions included in one platform release profile.
+	Hardware PlatformReleaseAddonProfileV1 `json:"hardware"`
+}
+
+// PlatformReleaseArchitectureV1 CPU architecture supported by a platform release.
+type PlatformReleaseArchitectureV1 string
+
+// PlatformReleaseComponentV1 Component version included in a platform release profile.
+type PlatformReleaseComponentV1 struct {
+	// Name Component name.
 	Name string `json:"name"`
 
-	// Replicas The number of nodes.
-	Replicas int `json:"replicas"`
+	// Version Component version.
+	Version string `json:"version"`
 }
 
-// VirtualKubernetesClusterWorkloadPools A set of virtual workload pools.
-type VirtualKubernetesClusterWorkloadPools = []VirtualKubernetesClusterWorkloadPool
+// PlatformReleaseStatusV1 Product-specific observed platform release state. A release is selectable in a region when that region is present in availableRegionIds and deprecated and withdrawn are both false.
+type PlatformReleaseStatusV1 struct {
+	// Addons Component versions grouped by platform release addon profile.
+	Addons PlatformReleaseAddonsV1 `json:"addons"`
 
-// VirtualKubernetesClusterWrite Virtual Kubernetes cluster create or update.
-type VirtualKubernetesClusterWrite struct {
-	// Metadata Metadata required for all API resource reads and writes.
-	Metadata externalRef0.ResourceWriteMetadata `json:"metadata"`
+	// AvailableRegionIds Region IDs where this release is available.
+	AvailableRegionIds []string `json:"availableRegionIds"`
 
-	// Spec Virtual Kubernetes cluster creation parameters.
-	Spec VirtualKubernetesClusterSpec `json:"spec"`
+	// Deprecated Whether existing clusters should upgrade away from this release. Once true, this remains true for the lifetime of the release resource.
+	Deprecated bool `json:"deprecated"`
+
+	// KubernetesVersion Kubernetes version provided by the release.
+	KubernetesVersion string `json:"kubernetesVersion"`
+
+	// Prerelease Whether the release Kubernetes version is a semver prerelease, such as v1.37.0-beta.0. Prerelease releases are selectable and are offered as upgrade targets, but they do not occupy a slot in the supported Kubernetes minor version window, and they are deprecated as soon as a newer prerelease or an actual release supersedes them.
+	Prerelease bool `json:"prerelease"`
+
+	// SupportedArchitectures CPU architectures supported by the release compute images.
+	SupportedArchitectures []PlatformReleaseArchitectureV1 `json:"supportedArchitectures"`
+
+	// WithdrawalMessage Customer-safe explanation of why operators withdrew the release.
+	WithdrawalMessage *string `json:"withdrawalMessage,omitempty"`
+
+	// WithdrawalReason Stable machine-readable reason operators withdrew a platform release.
+	WithdrawalReason *PlatformReleaseWithdrawalReasonV1 `json:"withdrawalReason,omitempty"`
+
+	// Withdrawn Whether operators have withdrawn the release from selection.
+	Withdrawn bool `json:"withdrawn"`
 }
 
-// VirtualKubernetesClusters A list of virtual Kubernetes clusters.
-type VirtualKubernetesClusters = []VirtualKubernetesClusterRead
+// PlatformReleaseV1Read An NKS platform release.
+type PlatformReleaseV1Read struct {
+	// Metadata This metadata is for resources that just exist, and don't require
+	// any provisioning and health status, but benefit from a standardized
+	// metadata format.
+	Metadata StaticResourceMetadata `json:"metadata"`
 
-// Volume A volume.
-type Volume struct {
-	// Size Disk size in GiB.
-	Size int `json:"size"`
+	// Status Product-specific observed platform release state. A release is selectable in a region when that region is present in availableRegionIds and deprecated and withdrawn are both false.
+	Status PlatformReleaseStatusV1 `json:"status"`
 }
 
-// ClusterIDParameter A Kubernetes name. Must be a valid DNS containing only lower case characters, numbers or hyphens, start and end with a character or number, and be at most 63 characters in length.
-type ClusterIDParameter = KubernetesNameParameter
+// PlatformReleaseWithdrawalReasonV1 Stable machine-readable reason operators withdrew a platform release.
+type PlatformReleaseWithdrawalReasonV1 string
 
-// ClusterManagerIDParameter A Kubernetes name. Must be a valid DNS containing only lower case characters, numbers or hyphens, start and end with a character or number, and be at most 63 characters in length.
-type ClusterManagerIDParameter = KubernetesNameParameter
+// PlatformReleasesV1Read A list of platform releases.
+type PlatformReleasesV1Read = []PlatformReleaseV1Read
 
-// OrganizationIDParameter A Kubernetes name. Must be a valid DNS containing only lower case characters, numbers or hyphens, start and end with a character or number, and be at most 63 characters in length.
-type OrganizationIDParameter = KubernetesNameParameter
+// ProjectScopedResourceReadMetadataV1 Project-scoped resource read metadata with Kubernetes generation freshness.
+type ProjectScopedResourceReadMetadataV1 struct {
+	// CreatedBy User who created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
 
-// ProjectIDParameter A Kubernetes name. Must be a valid DNS containing only lower case characters, numbers or hyphens, start and end with a character or number, and be at most 63 characters in length.
-type ProjectIDParameter = KubernetesNameParameter
+	// CreationTime Time the resource was created.
+	CreationTime time.Time `json:"creationTime"`
 
-// RegionIDParameter A Kubernetes name. Must be a valid DNS containing only lower case characters, numbers or hyphens, start and end with a character or number, and be at most 63 characters in length.
-type RegionIDParameter = KubernetesNameParameter
+	// DeletionTime Time deletion was requested.
+	DeletionTime *time.Time `json:"deletionTime,omitempty"`
 
-// ClusterManagerResponse A cluster manager.
-type ClusterManagerResponse = ClusterManagerRead
+	// Description Optional human-readable resource description.
+	Description *string `json:"description,omitempty"`
 
-// ClusterManagersResponse A list of cluster managers.
-type ClusterManagersResponse = ClusterManagers
+	// Generation Current desired-state generation of the resource.
+	Generation int64 `json:"generation"`
 
-// KubernetesClusterResponse Kubernetes cluster read.
-type KubernetesClusterResponse = KubernetesClusterRead
+	// HealthStatus The health state of a resource.
+	HealthStatus ResourceHealthStatus `json:"healthStatus"`
 
-// KubernetesClustersResponse A list of Kubernetes clusters.
-type KubernetesClustersResponse = KubernetesClusters
+	// HealthStatusDetail Human-facing detail about the current health state: a machine-classifiable
+	// reason drawn from a closed vocabulary, and a user-safe human-readable
+	// message (e.g. "2/12 nodes are down"). Derived from the resource's status and
+	// supplements the coarse healthStatus; never stored.
+	HealthStatusDetail *HealthStatusDetail `json:"healthStatusDetail,omitempty"`
 
-// VirtualKubernetesClusterResponse Virtual Kubernetes cluster read.
-type VirtualKubernetesClusterResponse = VirtualKubernetesClusterRead
+	// Id Unique resource ID.
+	Id string `json:"id"`
 
-// VirtualKubernetesClustersResponse A list of virtual Kubernetes clusters.
-type VirtualKubernetesClustersResponse = VirtualKubernetesClusters
+	// ModifiedBy User who updated the resource.
+	ModifiedBy *string `json:"modifiedBy,omitempty"`
 
-// CreateControlPlaneRequest A cluster manager.
-type CreateControlPlaneRequest = ClusterManagerWrite
+	// ModifiedTime Time the resource was updated.
+	ModifiedTime *time.Time `json:"modifiedTime,omitempty"`
 
-// CreateKubernetesClusterRequest Kubernetes cluster create or update.
-type CreateKubernetesClusterRequest = KubernetesClusterWrite
+	// Name A valid Kubernetes label value, typically used for resource names that can be
+	// indexed in the database.
+	Name KubernetesLabelValue `json:"name"`
 
-// CreateVirtualKubernetesClusterRequest Virtual Kubernetes cluster create or update.
-type CreateVirtualKubernetesClusterRequest = VirtualKubernetesClusterWrite
+	// OrganizationId Organization identifier the resource belongs to.
+	OrganizationId string `json:"organizationId"`
 
-// GetApiV1OrganizationsOrganizationIDClustersParams defines parameters for GetApiV1OrganizationsOrganizationIDClusters.
-type GetApiV1OrganizationsOrganizationIDClustersParams struct {
+	// ProjectId Project identifier the resource belongs to.
+	ProjectId string `json:"projectId"`
+
+	// ProvisioningStatus The provisioning state of a resource.
+	ProvisioningStatus ResourceProvisioningStatus `json:"provisioningStatus"`
+
+	// ProvisioningStatusDetail Human-facing detail about the current provisioning state: a
+	// machine-classifiable reason drawn from a closed vocabulary, and a
+	// user-safe human-readable message. Derived from the resource's status and
+	// supplements the coarse provisioningStatus; never stored.
+	ProvisioningStatusDetail *ProvisioningStatusDetail `json:"provisioningStatusDetail,omitempty"`
+
+	// Tags A list of tags.
+	Tags *TagList `json:"tags,omitempty"`
+}
+
+// ProvisioningStatusDetail Human-facing detail about the current provisioning state: a
+// machine-classifiable reason drawn from a closed vocabulary, and a
+// user-safe human-readable message. Derived from the resource's status and
+// supplements the coarse provisioningStatus; never stored.
+type ProvisioningStatusDetail struct {
+	// Message A user-safe, human-readable description of the provisioning state.
+	Message string `json:"message"`
+
+	// Reason A closed, generic classification of a resource's provisioning state,
+	// finer-grained than provisioningStatus. This vocabulary is owned by the
+	// platform and is the same across all resources; domain-specific state
+	// (e.g. an instance's lifecycle phase) is carried on other mechanisms and
+	// never appears here.
+	Reason ProvisioningStatusReason `json:"reason"`
+}
+
+// ProvisioningStatusReason A closed, generic classification of a resource's provisioning state,
+// finer-grained than provisioningStatus. This vocabulary is owned by the
+// platform and is the same across all resources; domain-specific state
+// (e.g. an instance's lifecycle phase) is carried on other mechanisms and
+// never appears here.
+type ProvisioningStatusReason string
+
+// ResourceHealthStatus The health state of a resource.
+type ResourceHealthStatus string
+
+// ResourceID Opaque public resource ID.
+type ResourceID = string
+
+// ResourceMetadata Metadata required for all API resource reads and writes.
+type ResourceMetadata struct {
+	// Description The resource description, this optionally augments the name with more context.
+	Description *string `json:"description,omitempty"`
+
+	// Name A valid Kubernetes label value, typically used for resource names that can be
+	// indexed in the database.
+	Name KubernetesLabelValue `json:"name"`
+
+	// Tags A list of tags.
+	Tags *TagList `json:"tags,omitempty"`
+}
+
+// ResourceProvisioningStatus The provisioning state of a resource.
+type ResourceProvisioningStatus string
+
+// StaticResourceMetadata defines model for staticResourceMetadata.
+type StaticResourceMetadata struct {
+	// CreatedBy The user who created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+
+	// CreationTime The time the resource was created.
+	CreationTime time.Time `json:"creationTime"`
+
+	// Description The resource description, this optionally augments the name with more context.
+	Description *string `json:"description,omitempty"`
+
+	// Id The unique resource ID.
+	Id string `json:"id"`
+
+	// ModifiedBy The user who updated the resource.
+	ModifiedBy *string `json:"modifiedBy,omitempty"`
+
+	// ModifiedTime The time a resource was updated.
+	ModifiedTime *time.Time `json:"modifiedTime,omitempty"`
+
+	// Name A valid Kubernetes label value, typically used for resource names that can be
+	// indexed in the database.
+	Name KubernetesLabelValue `json:"name"`
+
+	// Tags A list of tags.
+	Tags *TagList `json:"tags,omitempty"`
+}
+
+// Tag A tag mapping arbitrary names to values.  These have no special meaning
+// for any component are are intended for use by end users to add additional
+// context to a resource, for example to categorize it.
+type Tag struct {
+	// Name A unique tag name.
+	Name string `json:"name"`
+
+	// Value The value of the tag.
+	Value string `json:"value"`
+}
+
+// TagList A list of tags.
+type TagList = []Tag
+
+// ClusterIDParameter Opaque public resource ID.
+type ClusterIDParameter = ResourceID
+
+// ClusterIDQueryParameter defines model for clusterIDQueryParameter.
+type ClusterIDQueryParameter = []string
+
+// DeletingQueryParameter defines model for deletingQueryParameter.
+type DeletingQueryParameter = bool
+
+// DeprecatedQueryParameter defines model for deprecatedQueryParameter.
+type DeprecatedQueryParameter = bool
+
+// HealthStatusQueryParameter defines model for healthStatusQueryParameter.
+type HealthStatusQueryParameter = []ResourceHealthStatus
+
+// NameQueryParameter A valid Kubernetes label value, typically used for resource names that can be
+// indexed in the database.
+type NameQueryParameter = KubernetesLabelValue
+
+// NetworkIDQueryParameter defines model for networkIDQueryParameter.
+type NetworkIDQueryParameter = []string
+
+// NodePoolIDParameter Opaque public resource ID.
+type NodePoolIDParameter = ResourceID
+
+// OrganizationIDQueryParameter defines model for organizationIDQueryParameter.
+type OrganizationIDQueryParameter = []string
+
+// PlatformReleaseArchitectureQueryParameter defines model for platformReleaseArchitectureQueryParameter.
+type PlatformReleaseArchitectureQueryParameter = []PlatformReleaseArchitectureV1
+
+// PrereleaseQueryParameter defines model for prereleaseQueryParameter.
+type PrereleaseQueryParameter = bool
+
+// ProjectIDQueryParameter defines model for projectIDQueryParameter.
+type ProjectIDQueryParameter = []string
+
+// ProvisioningStatusQueryParameter defines model for provisioningStatusQueryParameter.
+type ProvisioningStatusQueryParameter = []ResourceProvisioningStatus
+
+// RegionIDQueryParameter defines model for regionIDQueryParameter.
+type RegionIDQueryParameter = []string
+
+// ReleaseIDParameter Opaque public resource ID.
+type ReleaseIDParameter = ResourceID
+
+// TagSelectorParameter defines model for tagSelectorParameter.
+type TagSelectorParameter = []string
+
+// WithdrawnQueryParameter defines model for withdrawnQueryParameter.
+type WithdrawnQueryParameter = bool
+
+// BadRequestResponse Generic error message, compatible with oauth2.
+type BadRequestResponse = Error
+
+// ClusterV1Created A Kubernetes cluster.
+type ClusterV1Created = ClusterV1Read
+
+// ClusterV1Response A Kubernetes cluster.
+type ClusterV1Response = ClusterV1Read
+
+// ClustersV1Response A list of clusters.
+type ClustersV1Response = ClustersV1Read
+
+// ConflictResponse Generic error message, compatible with oauth2.
+type ConflictResponse = Error
+
+// ForbiddenResponse Generic error message, compatible with oauth2.
+type ForbiddenResponse = Error
+
+// InternalServerErrorResponse Generic error message, compatible with oauth2.
+type InternalServerErrorResponse = Error
+
+// NodePoolV1Created A cluster node pool.
+type NodePoolV1Created = NodePoolV1Read
+
+// NodePoolV1Response A cluster node pool.
+type NodePoolV1Response = NodePoolV1Read
+
+// NodePoolsV1Response A list of node pools.
+type NodePoolsV1Response = NodePoolsV1Read
+
+// NotFoundResponse Generic error message, compatible with oauth2.
+type NotFoundResponse = Error
+
+// PlatformReleaseV1Response An NKS platform release.
+type PlatformReleaseV1Response = PlatformReleaseV1Read
+
+// PlatformReleasesV1Response A list of platform releases.
+type PlatformReleasesV1Response = PlatformReleasesV1Read
+
+// UnauthorizedResponse Generic error message, compatible with oauth2.
+type UnauthorizedResponse = Error
+
+// UnprocessableContentResponse Generic error message, compatible with oauth2.
+type UnprocessableContentResponse = Error
+
+// ClusterV1CreateRequest A cluster creation request.
+type ClusterV1CreateRequest = ClusterV1Create
+
+// ClusterV1UpdateRequest A cluster update request.
+type ClusterV1UpdateRequest = ClusterV1Update
+
+// NodePoolV1CreateRequest A node pool creation request.
+type NodePoolV1CreateRequest = NodePoolV1Create
+
+// NodePoolV1UpdateRequest A node pool update request.
+type NodePoolV1UpdateRequest = NodePoolV1Update
+
+// ListClustersParams defines parameters for ListClusters.
+type ListClustersParams struct {
 	// Tag A set of tags to match against resources in the form "name=value",
 	// thus when encoded you get "?tag=foo%3Dcat&tag=bar%3Ddog".
-	Tag *externalRef0.TagSelectorParameter `form:"tag,omitempty" json:"tag,omitempty"`
+	Tag *TagSelectorParameter `form:"tag,omitempty" json:"tag,omitempty"`
+
+	// OrganizationID Allows resources to be filtered by organization.
+	OrganizationID *OrganizationIDQueryParameter `form:"organizationID,omitempty" json:"organizationID,omitempty"`
+
+	// ProjectID Allows resources to be filtered by project.
+	ProjectID *ProjectIDQueryParameter `form:"projectID,omitempty" json:"projectID,omitempty"`
+
+	// RegionID Allows resources to be filtered by region. For platform releases, matches releases available in any supplied region.
+	RegionID *RegionIDQueryParameter `form:"regionID,omitempty" json:"regionID,omitempty"`
+
+	// NetworkID Allows resources to be filtered by network.
+	NetworkID *NetworkIDQueryParameter `form:"networkID,omitempty" json:"networkID,omitempty"`
+
+	// Name Filters resources by exact, case-sensitive display name. Every matching resource is returned because display names are not unique.
+	Name *NameQueryParameter `form:"name,omitempty" json:"name,omitempty"`
+
+	// ProvisioningStatus Filters resources by UNI provisioning status. Repeat the parameter to match any supplied value.
+	ProvisioningStatus *ProvisioningStatusQueryParameter `form:"provisioningStatus,omitempty" json:"provisioningStatus,omitempty"`
+
+	// HealthStatus Filters resources by UNI health status. Repeat the parameter to match any supplied value.
+	HealthStatus *HealthStatusQueryParameter `form:"healthStatus,omitempty" json:"healthStatus,omitempty"`
+
+	// Deleting Filters by deletion state. True returns terminating resources, false returns non-terminating resources, and omission returns both.
+	Deleting *DeletingQueryParameter `form:"deleting,omitempty" json:"deleting,omitempty"`
 }
 
-// GetApiV1OrganizationsOrganizationIDRegionsParams defines parameters for GetApiV1OrganizationsOrganizationIDRegions.
-type GetApiV1OrganizationsOrganizationIDRegionsParams struct {
-	// RegionType The type of region we are asking for.
-	RegionType RegionTypeParameter `form:"regionType" json:"regionType"`
-}
-
-// GetApiV1OrganizationsOrganizationIDVirtualclustersParams defines parameters for GetApiV1OrganizationsOrganizationIDVirtualclusters.
-type GetApiV1OrganizationsOrganizationIDVirtualclustersParams struct {
+// ListNodePoolsParams defines parameters for ListNodePools.
+type ListNodePoolsParams struct {
 	// Tag A set of tags to match against resources in the form "name=value",
 	// thus when encoded you get "?tag=foo%3Dcat&tag=bar%3Ddog".
-	Tag *externalRef0.TagSelectorParameter `form:"tag,omitempty" json:"tag,omitempty"`
+	Tag *TagSelectorParameter `form:"tag,omitempty" json:"tag,omitempty"`
+
+	// OrganizationID Allows resources to be filtered by organization.
+	OrganizationID *OrganizationIDQueryParameter `form:"organizationID,omitempty" json:"organizationID,omitempty"`
+
+	// ProjectID Allows resources to be filtered by project.
+	ProjectID *ProjectIDQueryParameter `form:"projectID,omitempty" json:"projectID,omitempty"`
+
+	// ClusterID Allows node pools to be filtered by cluster.
+	ClusterID *ClusterIDQueryParameter `form:"clusterID,omitempty" json:"clusterID,omitempty"`
+
+	// RegionID Allows resources to be filtered by region. For platform releases, matches releases available in any supplied region.
+	RegionID *RegionIDQueryParameter `form:"regionID,omitempty" json:"regionID,omitempty"`
+
+	// Name Filters resources by exact, case-sensitive display name. Every matching resource is returned because display names are not unique.
+	Name *NameQueryParameter `form:"name,omitempty" json:"name,omitempty"`
+
+	// ProvisioningStatus Filters resources by UNI provisioning status. Repeat the parameter to match any supplied value.
+	ProvisioningStatus *ProvisioningStatusQueryParameter `form:"provisioningStatus,omitempty" json:"provisioningStatus,omitempty"`
+
+	// HealthStatus Filters resources by UNI health status. Repeat the parameter to match any supplied value.
+	HealthStatus *HealthStatusQueryParameter `form:"healthStatus,omitempty" json:"healthStatus,omitempty"`
+
+	// Deleting Filters by deletion state. True returns terminating resources, false returns non-terminating resources, and omission returns both.
+	Deleting *DeletingQueryParameter `form:"deleting,omitempty" json:"deleting,omitempty"`
 }
 
-// PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersJSONRequestBody defines body for PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagers for application/json ContentType.
-type PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersJSONRequestBody = ClusterManagerWrite
+// ListPlatformReleasesParams defines parameters for ListPlatformReleases.
+type ListPlatformReleasesParams struct {
+	// RegionID Allows resources to be filtered by region. For platform releases, matches releases available in any supplied region.
+	RegionID *RegionIDQueryParameter `form:"regionID,omitempty" json:"regionID,omitempty"`
 
-// PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDJSONRequestBody defines body for PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerID for application/json ContentType.
-type PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDJSONRequestBody = ClusterManagerWrite
+	// Architecture Allows platform releases to be filtered by supported architecture.
+	Architecture *PlatformReleaseArchitectureQueryParameter `form:"architecture,omitempty" json:"architecture,omitempty"`
 
-// PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersJSONRequestBody defines body for PostApiV1OrganizationsOrganizationIDProjectsProjectIDClusters for application/json ContentType.
-type PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersJSONRequestBody = KubernetesClusterWrite
+	// Prerelease Allows platform releases to be filtered by prerelease state.
+	Prerelease *PrereleaseQueryParameter `form:"prerelease,omitempty" json:"prerelease,omitempty"`
 
-// PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDJSONRequestBody defines body for PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterID for application/json ContentType.
-type PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDJSONRequestBody = KubernetesClusterWrite
+	// Deprecated Allows platform releases to be filtered by deprecation state.
+	Deprecated *DeprecatedQueryParameter `form:"deprecated,omitempty" json:"deprecated,omitempty"`
 
-// PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersJSONRequestBody defines body for PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclusters for application/json ContentType.
-type PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersJSONRequestBody = VirtualKubernetesClusterWrite
+	// Withdrawn Allows platform releases to be filtered by withdrawn state.
+	Withdrawn *WithdrawnQueryParameter `form:"withdrawn,omitempty" json:"withdrawn,omitempty"`
+}
 
-// PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDJSONRequestBody defines body for PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterID for application/json ContentType.
-type PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDJSONRequestBody = VirtualKubernetesClusterWrite
+// CreateClusterJSONRequestBody defines body for CreateCluster for application/json ContentType.
+type CreateClusterJSONRequestBody = ClusterV1Create
+
+// UpdateClusterJSONRequestBody defines body for UpdateCluster for application/json ContentType.
+type UpdateClusterJSONRequestBody = ClusterV1Update
+
+// CreateNodePoolJSONRequestBody defines body for CreateNodePool for application/json ContentType.
+type CreateNodePoolJSONRequestBody = NodePoolV1Create
+
+// UpdateNodePoolJSONRequestBody defines body for UpdateNodePool for application/json ContentType.
+type UpdateNodePoolJSONRequestBody = NodePoolV1Update
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -466,75 +1073,53 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// GetWellKnownOpenidProtectedResource request
-	GetWellKnownOpenidProtectedResource(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListClusters request
+	ListClusters(ctx context.Context, params *ListClustersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetApiV1OrganizationsOrganizationIDClustermanagers request
-	GetApiV1OrganizationsOrganizationIDClustermanagers(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// CreateClusterWithBody request with any body
+	CreateClusterWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetApiV1OrganizationsOrganizationIDClusters request
-	GetApiV1OrganizationsOrganizationIDClusters(ctx context.Context, organizationID OrganizationIDParameter, params *GetApiV1OrganizationsOrganizationIDClustersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateCluster(ctx context.Context, body CreateClusterJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersWithBody request with any body
-	PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersWithBody(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// DeleteCluster request
+	DeleteCluster(ctx context.Context, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagers(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, body PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetCluster request
+	GetCluster(ctx context.Context, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerID request
-	DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerID(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterManagerID ClusterManagerIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// UpdateClusterWithBody request with any body
+	UpdateClusterWithBody(ctx context.Context, clusterID ClusterIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDWithBody request with any body
-	PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDWithBody(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterManagerID ClusterManagerIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	UpdateCluster(ctx context.Context, clusterID ClusterIDParameter, body UpdateClusterJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerID(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterManagerID ClusterManagerIDParameter, body PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListNodePools request
+	ListNodePools(ctx context.Context, params *ListNodePoolsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersWithBody request with any body
-	PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersWithBody(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// CreateNodePoolWithBody request with any body
+	CreateNodePoolWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostApiV1OrganizationsOrganizationIDProjectsProjectIDClusters(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, body PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	CreateNodePool(ctx context.Context, body CreateNodePoolJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterID request
-	DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterID(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// DeleteNodePool request
+	DeleteNodePool(ctx context.Context, nodePoolID NodePoolIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDWithBody request with any body
-	PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDWithBody(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetNodePool request
+	GetNodePool(ctx context.Context, nodePoolID NodePoolIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterID(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, body PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// UpdateNodePoolWithBody request with any body
+	UpdateNodePoolWithBody(ctx context.Context, nodePoolID NodePoolIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfig request
-	GetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfig(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
+	UpdateNodePool(ctx context.Context, nodePoolID NodePoolIDParameter, body UpdateNodePoolJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersWithBody request with any body
-	PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersWithBody(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// ListPlatformReleases request
+	ListPlatformReleases(ctx context.Context, params *ListPlatformReleasesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclusters(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, body PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterID request
-	DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterID(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDWithBody request with any body
-	PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDWithBody(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterID(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, body PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfig request
-	GetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfig(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetApiV1OrganizationsOrganizationIDRegions request
-	GetApiV1OrganizationsOrganizationIDRegions(ctx context.Context, organizationID OrganizationIDParameter, params *GetApiV1OrganizationsOrganizationIDRegionsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavors request
-	GetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavors(ctx context.Context, organizationID OrganizationIDParameter, regionID RegionIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetApiV1OrganizationsOrganizationIDRegionsRegionIDImages request
-	GetApiV1OrganizationsOrganizationIDRegionsRegionIDImages(ctx context.Context, organizationID OrganizationIDParameter, regionID RegionIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetApiV1OrganizationsOrganizationIDVirtualclusters request
-	GetApiV1OrganizationsOrganizationIDVirtualclusters(ctx context.Context, organizationID OrganizationIDParameter, params *GetApiV1OrganizationsOrganizationIDVirtualclustersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetPlatformRelease request
+	GetPlatformRelease(ctx context.Context, releaseID ReleaseIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
-func (c *Client) GetWellKnownOpenidProtectedResource(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetWellKnownOpenidProtectedResourceRequest(c.Server)
+func (c *Client) ListClusters(ctx context.Context, params *ListClustersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListClustersRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -545,8 +1130,8 @@ func (c *Client) GetWellKnownOpenidProtectedResource(ctx context.Context, reqEdi
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetApiV1OrganizationsOrganizationIDClustermanagers(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetApiV1OrganizationsOrganizationIDClustermanagersRequest(c.Server, organizationID)
+func (c *Client) CreateClusterWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateClusterRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -557,8 +1142,8 @@ func (c *Client) GetApiV1OrganizationsOrganizationIDClustermanagers(ctx context.
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetApiV1OrganizationsOrganizationIDClusters(ctx context.Context, organizationID OrganizationIDParameter, params *GetApiV1OrganizationsOrganizationIDClustersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetApiV1OrganizationsOrganizationIDClustersRequest(c.Server, organizationID, params)
+func (c *Client) CreateCluster(ctx context.Context, body CreateClusterJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateClusterRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -569,8 +1154,8 @@ func (c *Client) GetApiV1OrganizationsOrganizationIDClusters(ctx context.Context
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersWithBody(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersRequestWithBody(c.Server, organizationID, projectID, contentType, body)
+func (c *Client) DeleteCluster(ctx context.Context, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteClusterRequest(c.Server, clusterID)
 	if err != nil {
 		return nil, err
 	}
@@ -581,8 +1166,8 @@ func (c *Client) PostApiV1OrganizationsOrganizationIDProjectsProjectIDClusterman
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagers(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, body PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersRequest(c.Server, organizationID, projectID, body)
+func (c *Client) GetCluster(ctx context.Context, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetClusterRequest(c.Server, clusterID)
 	if err != nil {
 		return nil, err
 	}
@@ -593,8 +1178,8 @@ func (c *Client) PostApiV1OrganizationsOrganizationIDProjectsProjectIDClusterman
 	return c.Client.Do(req)
 }
 
-func (c *Client) DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerID(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterManagerID ClusterManagerIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDRequest(c.Server, organizationID, projectID, clusterManagerID)
+func (c *Client) UpdateClusterWithBody(ctx context.Context, clusterID ClusterIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateClusterRequestWithBody(c.Server, clusterID, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -605,8 +1190,8 @@ func (c *Client) DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClusterm
 	return c.Client.Do(req)
 }
 
-func (c *Client) PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDWithBody(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterManagerID ClusterManagerIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDRequestWithBody(c.Server, organizationID, projectID, clusterManagerID, contentType, body)
+func (c *Client) UpdateCluster(ctx context.Context, clusterID ClusterIDParameter, body UpdateClusterJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateClusterRequest(c.Server, clusterID, body)
 	if err != nil {
 		return nil, err
 	}
@@ -617,8 +1202,8 @@ func (c *Client) PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermana
 	return c.Client.Do(req)
 }
 
-func (c *Client) PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerID(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterManagerID ClusterManagerIDParameter, body PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDRequest(c.Server, organizationID, projectID, clusterManagerID, body)
+func (c *Client) ListNodePools(ctx context.Context, params *ListNodePoolsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListNodePoolsRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -629,8 +1214,8 @@ func (c *Client) PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermana
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersWithBody(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersRequestWithBody(c.Server, organizationID, projectID, contentType, body)
+func (c *Client) CreateNodePoolWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateNodePoolRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -641,8 +1226,8 @@ func (c *Client) PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersWi
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostApiV1OrganizationsOrganizationIDProjectsProjectIDClusters(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, body PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersRequest(c.Server, organizationID, projectID, body)
+func (c *Client) CreateNodePool(ctx context.Context, body CreateNodePoolJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateNodePoolRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -653,8 +1238,8 @@ func (c *Client) PostApiV1OrganizationsOrganizationIDProjectsProjectIDClusters(c
 	return c.Client.Do(req)
 }
 
-func (c *Client) DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterID(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDRequest(c.Server, organizationID, projectID, clusterID)
+func (c *Client) DeleteNodePool(ctx context.Context, nodePoolID NodePoolIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteNodePoolRequest(c.Server, nodePoolID)
 	if err != nil {
 		return nil, err
 	}
@@ -665,8 +1250,8 @@ func (c *Client) DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClusters
 	return c.Client.Do(req)
 }
 
-func (c *Client) PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDWithBody(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDRequestWithBody(c.Server, organizationID, projectID, clusterID, contentType, body)
+func (c *Client) GetNodePool(ctx context.Context, nodePoolID NodePoolIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetNodePoolRequest(c.Server, nodePoolID)
 	if err != nil {
 		return nil, err
 	}
@@ -677,8 +1262,8 @@ func (c *Client) PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClu
 	return c.Client.Do(req)
 }
 
-func (c *Client) PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterID(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, body PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDRequest(c.Server, organizationID, projectID, clusterID, body)
+func (c *Client) UpdateNodePoolWithBody(ctx context.Context, nodePoolID NodePoolIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateNodePoolRequestWithBody(c.Server, nodePoolID, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -689,8 +1274,8 @@ func (c *Client) PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClu
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfig(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfigRequest(c.Server, organizationID, projectID, clusterID)
+func (c *Client) UpdateNodePool(ctx context.Context, nodePoolID NodePoolIDParameter, body UpdateNodePoolJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdateNodePoolRequest(c.Server, nodePoolID, body)
 	if err != nil {
 		return nil, err
 	}
@@ -701,8 +1286,8 @@ func (c *Client) GetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClu
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersWithBody(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersRequestWithBody(c.Server, organizationID, projectID, contentType, body)
+func (c *Client) ListPlatformReleases(ctx context.Context, params *ListPlatformReleasesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListPlatformReleasesRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -713,8 +1298,8 @@ func (c *Client) PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclu
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclusters(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, body PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersRequest(c.Server, organizationID, projectID, body)
+func (c *Client) GetPlatformRelease(ctx context.Context, releaseID ReleaseIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPlatformReleaseRequest(c.Server, releaseID)
 	if err != nil {
 		return nil, err
 	}
@@ -725,104 +1310,8 @@ func (c *Client) PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclu
 	return c.Client.Do(req)
 }
 
-func (c *Client) DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterID(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDRequest(c.Server, organizationID, projectID, clusterID)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDWithBody(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDRequestWithBody(c.Server, organizationID, projectID, clusterID, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterID(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, body PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDRequest(c.Server, organizationID, projectID, clusterID, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfig(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfigRequest(c.Server, organizationID, projectID, clusterID)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetApiV1OrganizationsOrganizationIDRegions(ctx context.Context, organizationID OrganizationIDParameter, params *GetApiV1OrganizationsOrganizationIDRegionsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetApiV1OrganizationsOrganizationIDRegionsRequest(c.Server, organizationID, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavors(ctx context.Context, organizationID OrganizationIDParameter, regionID RegionIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsRequest(c.Server, organizationID, regionID)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetApiV1OrganizationsOrganizationIDRegionsRegionIDImages(ctx context.Context, organizationID OrganizationIDParameter, regionID RegionIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetApiV1OrganizationsOrganizationIDRegionsRegionIDImagesRequest(c.Server, organizationID, regionID)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetApiV1OrganizationsOrganizationIDVirtualclusters(ctx context.Context, organizationID OrganizationIDParameter, params *GetApiV1OrganizationsOrganizationIDVirtualclustersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetApiV1OrganizationsOrganizationIDVirtualclustersRequest(c.Server, organizationID, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-// NewGetWellKnownOpenidProtectedResourceRequest generates requests for GetWellKnownOpenidProtectedResource
-func NewGetWellKnownOpenidProtectedResourceRequest(server string) (*http.Request, error) {
+// NewListClustersRequest generates requests for ListClusters
+func NewListClustersRequest(server string, params *ListClustersParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -830,75 +1319,7 @@ func NewGetWellKnownOpenidProtectedResourceRequest(server string) (*http.Request
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/.well-known/openid-protected-resource")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewGetApiV1OrganizationsOrganizationIDClustermanagersRequest generates requests for GetApiV1OrganizationsOrganizationIDClustermanagers
-func NewGetApiV1OrganizationsOrganizationIDClustermanagersRequest(server string, organizationID OrganizationIDParameter) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/clustermanagers", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewGetApiV1OrganizationsOrganizationIDClustersRequest generates requests for GetApiV1OrganizationsOrganizationIDClusters
-func NewGetApiV1OrganizationsOrganizationIDClustersRequest(server string, organizationID OrganizationIDParameter, params *GetApiV1OrganizationsOrganizationIDClustersParams) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/clusters", pathParam0)
+	operationPath := fmt.Sprintf("/api/v1/clusters")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -927,641 +1348,132 @@ func NewGetApiV1OrganizationsOrganizationIDClustersRequest(server string, organi
 
 		}
 
-		queryURL.RawQuery = queryValues.Encode()
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersRequest calls the generic PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagers builder with application/json body
-func NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersRequest(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, body PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersRequestWithBody(server, organizationID, projectID, "application/json", bodyReader)
-}
-
-// NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersRequestWithBody generates requests for PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagers with any type of body
-func NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersRequestWithBody(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "projectID", runtime.ParamLocationPath, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/projects/%s/clustermanagers", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDRequest generates requests for DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerID
-func NewDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDRequest(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterManagerID ClusterManagerIDParameter) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "projectID", runtime.ParamLocationPath, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "clusterManagerID", runtime.ParamLocationPath, clusterManagerID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/projects/%s/clustermanagers/%s", pathParam0, pathParam1, pathParam2)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDRequest calls the generic PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerID builder with application/json body
-func NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDRequest(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterManagerID ClusterManagerIDParameter, body PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDRequestWithBody(server, organizationID, projectID, clusterManagerID, "application/json", bodyReader)
-}
-
-// NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDRequestWithBody generates requests for PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerID with any type of body
-func NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDRequestWithBody(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterManagerID ClusterManagerIDParameter, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "projectID", runtime.ParamLocationPath, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "clusterManagerID", runtime.ParamLocationPath, clusterManagerID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/projects/%s/clustermanagers/%s", pathParam0, pathParam1, pathParam2)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("PUT", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersRequest calls the generic PostApiV1OrganizationsOrganizationIDProjectsProjectIDClusters builder with application/json body
-func NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersRequest(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, body PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersRequestWithBody(server, organizationID, projectID, "application/json", bodyReader)
-}
-
-// NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersRequestWithBody generates requests for PostApiV1OrganizationsOrganizationIDProjectsProjectIDClusters with any type of body
-func NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersRequestWithBody(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "projectID", runtime.ParamLocationPath, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/projects/%s/clusters", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDRequest generates requests for DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterID
-func NewDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDRequest(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "projectID", runtime.ParamLocationPath, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "clusterID", runtime.ParamLocationPath, clusterID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/projects/%s/clusters/%s", pathParam0, pathParam1, pathParam2)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDRequest calls the generic PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterID builder with application/json body
-func NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDRequest(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, body PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDRequestWithBody(server, organizationID, projectID, clusterID, "application/json", bodyReader)
-}
-
-// NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDRequestWithBody generates requests for PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterID with any type of body
-func NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDRequestWithBody(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "projectID", runtime.ParamLocationPath, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "clusterID", runtime.ParamLocationPath, clusterID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/projects/%s/clusters/%s", pathParam0, pathParam1, pathParam2)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("PUT", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewGetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfigRequest generates requests for GetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfig
-func NewGetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfigRequest(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "projectID", runtime.ParamLocationPath, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "clusterID", runtime.ParamLocationPath, clusterID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/projects/%s/clusters/%s/kubeconfig", pathParam0, pathParam1, pathParam2)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersRequest calls the generic PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclusters builder with application/json body
-func NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersRequest(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, body PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersRequestWithBody(server, organizationID, projectID, "application/json", bodyReader)
-}
-
-// NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersRequestWithBody generates requests for PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclusters with any type of body
-func NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersRequestWithBody(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "projectID", runtime.ParamLocationPath, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/projects/%s/virtualclusters", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDRequest generates requests for DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterID
-func NewDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDRequest(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "projectID", runtime.ParamLocationPath, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "clusterID", runtime.ParamLocationPath, clusterID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/projects/%s/virtualclusters/%s", pathParam0, pathParam1, pathParam2)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDRequest calls the generic PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterID builder with application/json body
-func NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDRequest(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, body PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDRequestWithBody(server, organizationID, projectID, clusterID, "application/json", bodyReader)
-}
-
-// NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDRequestWithBody generates requests for PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterID with any type of body
-func NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDRequestWithBody(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "projectID", runtime.ParamLocationPath, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "clusterID", runtime.ParamLocationPath, clusterID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/projects/%s/virtualclusters/%s", pathParam0, pathParam1, pathParam2)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("PUT", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewGetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfigRequest generates requests for GetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfig
-func NewGetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfigRequest(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "projectID", runtime.ParamLocationPath, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "clusterID", runtime.ParamLocationPath, clusterID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/projects/%s/virtualclusters/%s/kubeconfig", pathParam0, pathParam1, pathParam2)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewGetApiV1OrganizationsOrganizationIDRegionsRequest generates requests for GetApiV1OrganizationsOrganizationIDRegions
-func NewGetApiV1OrganizationsOrganizationIDRegionsRequest(server string, organizationID OrganizationIDParameter, params *GetApiV1OrganizationsOrganizationIDRegionsParams) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/regions", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "regionType", runtime.ParamLocationQuery, params.RegionType); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
+		if params.OrganizationID != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "organizationID", runtime.ParamLocationQuery, *params.OrganizationID); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
 				}
 			}
+
+		}
+
+		if params.ProjectID != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "projectID", runtime.ParamLocationQuery, *params.ProjectID); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.RegionID != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "regionID", runtime.ParamLocationQuery, *params.RegionID); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.NetworkID != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "networkID", runtime.ParamLocationQuery, *params.NetworkID); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Name != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "name", runtime.ParamLocationQuery, *params.Name); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ProvisioningStatus != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "provisioningStatus", runtime.ParamLocationQuery, *params.ProvisioningStatus); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.HealthStatus != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "healthStatus", runtime.ParamLocationQuery, *params.HealthStatus); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Deleting != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "deleting", runtime.ParamLocationQuery, *params.Deleting); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
@@ -1575,20 +1487,53 @@ func NewGetApiV1OrganizationsOrganizationIDRegionsRequest(server string, organiz
 	return req, nil
 }
 
-// NewGetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsRequest generates requests for GetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavors
-func NewGetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsRequest(server string, organizationID OrganizationIDParameter, regionID RegionIDParameter) (*http.Request, error) {
+// NewCreateClusterRequest calls the generic CreateCluster builder with application/json body
+func NewCreateClusterRequest(server string, body CreateClusterJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateClusterRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewCreateClusterRequestWithBody generates requests for CreateCluster with any type of body
+func NewCreateClusterRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
+	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	var pathParam1 string
+	operationPath := fmt.Sprintf("/api/v1/clusters")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
 
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "regionID", runtime.ParamLocationPath, regionID)
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteClusterRequest generates requests for DeleteCluster
+func NewDeleteClusterRequest(server string, clusterID ClusterIDParameter) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "clusterID", runtime.ParamLocationPath, clusterID)
 	if err != nil {
 		return nil, err
 	}
@@ -1598,7 +1543,41 @@ func NewGetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsRequest(server 
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/regions/%s/flavors", pathParam0, pathParam1)
+	operationPath := fmt.Sprintf("/api/v1/clusters/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetClusterRequest generates requests for GetCluster
+func NewGetClusterRequest(server string, clusterID ClusterIDParameter) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "clusterID", runtime.ParamLocationPath, clusterID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/clusters/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -1616,20 +1595,24 @@ func NewGetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsRequest(server 
 	return req, nil
 }
 
-// NewGetApiV1OrganizationsOrganizationIDRegionsRegionIDImagesRequest generates requests for GetApiV1OrganizationsOrganizationIDRegionsRegionIDImages
-func NewGetApiV1OrganizationsOrganizationIDRegionsRegionIDImagesRequest(server string, organizationID OrganizationIDParameter, regionID RegionIDParameter) (*http.Request, error) {
+// NewUpdateClusterRequest calls the generic UpdateCluster builder with application/json body
+func NewUpdateClusterRequest(server string, clusterID ClusterIDParameter, body UpdateClusterJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateClusterRequestWithBody(server, clusterID, "application/json", bodyReader)
+}
+
+// NewUpdateClusterRequestWithBody generates requests for UpdateCluster with any type of body
+func NewUpdateClusterRequestWithBody(server string, clusterID ClusterIDParameter, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "regionID", runtime.ParamLocationPath, regionID)
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "clusterID", runtime.ParamLocationPath, clusterID)
 	if err != nil {
 		return nil, err
 	}
@@ -1639,7 +1622,7 @@ func NewGetApiV1OrganizationsOrganizationIDRegionsRegionIDImagesRequest(server s
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/regions/%s/images", pathParam0, pathParam1)
+	operationPath := fmt.Sprintf("/api/v1/clusters/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -1649,31 +1632,26 @@ func NewGetApiV1OrganizationsOrganizationIDRegionsRegionIDImagesRequest(server s
 		return nil, err
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
 
-// NewGetApiV1OrganizationsOrganizationIDVirtualclustersRequest generates requests for GetApiV1OrganizationsOrganizationIDVirtualclusters
-func NewGetApiV1OrganizationsOrganizationIDVirtualclustersRequest(server string, organizationID OrganizationIDParameter, params *GetApiV1OrganizationsOrganizationIDVirtualclustersParams) (*http.Request, error) {
+// NewListNodePoolsRequest generates requests for ListNodePools
+func NewListNodePoolsRequest(server string, params *ListNodePoolsParams) (*http.Request, error) {
 	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
 
 	serverURL, err := url.Parse(server)
 	if err != nil {
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/virtualclusters", pathParam0)
+	operationPath := fmt.Sprintf("/api/v1/nodepools")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -1702,7 +1680,437 @@ func NewGetApiV1OrganizationsOrganizationIDVirtualclustersRequest(server string,
 
 		}
 
+		if params.OrganizationID != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "organizationID", runtime.ParamLocationQuery, *params.OrganizationID); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ProjectID != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "projectID", runtime.ParamLocationQuery, *params.ProjectID); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ClusterID != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "clusterID", runtime.ParamLocationQuery, *params.ClusterID); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.RegionID != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "regionID", runtime.ParamLocationQuery, *params.RegionID); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Name != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "name", runtime.ParamLocationQuery, *params.Name); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ProvisioningStatus != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "provisioningStatus", runtime.ParamLocationQuery, *params.ProvisioningStatus); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.HealthStatus != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "healthStatus", runtime.ParamLocationQuery, *params.HealthStatus); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Deleting != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "deleting", runtime.ParamLocationQuery, *params.Deleting); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewCreateNodePoolRequest calls the generic CreateNodePool builder with application/json body
+func NewCreateNodePoolRequest(server string, body CreateNodePoolJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewCreateNodePoolRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewCreateNodePoolRequestWithBody generates requests for CreateNodePool with any type of body
+func NewCreateNodePoolRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/nodepools")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewDeleteNodePoolRequest generates requests for DeleteNodePool
+func NewDeleteNodePoolRequest(server string, nodePoolID NodePoolIDParameter) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "nodePoolID", runtime.ParamLocationPath, nodePoolID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/nodepools/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetNodePoolRequest generates requests for GetNodePool
+func NewGetNodePoolRequest(server string, nodePoolID NodePoolIDParameter) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "nodePoolID", runtime.ParamLocationPath, nodePoolID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/nodepools/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewUpdateNodePoolRequest calls the generic UpdateNodePool builder with application/json body
+func NewUpdateNodePoolRequest(server string, nodePoolID NodePoolIDParameter, body UpdateNodePoolJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdateNodePoolRequestWithBody(server, nodePoolID, "application/json", bodyReader)
+}
+
+// NewUpdateNodePoolRequestWithBody generates requests for UpdateNodePool with any type of body
+func NewUpdateNodePoolRequestWithBody(server string, nodePoolID NodePoolIDParameter, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "nodePoolID", runtime.ParamLocationPath, nodePoolID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/nodepools/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListPlatformReleasesRequest generates requests for ListPlatformReleases
+func NewListPlatformReleasesRequest(server string, params *ListPlatformReleasesParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/platformreleases")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.RegionID != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "regionID", runtime.ParamLocationQuery, *params.RegionID); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Architecture != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "architecture", runtime.ParamLocationQuery, *params.Architecture); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Prerelease != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "prerelease", runtime.ParamLocationQuery, *params.Prerelease); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Deprecated != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "deprecated", runtime.ParamLocationQuery, *params.Deprecated); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Withdrawn != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "withdrawn", runtime.ParamLocationQuery, *params.Withdrawn); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetPlatformReleaseRequest generates requests for GetPlatformRelease
+func NewGetPlatformReleaseRequest(server string, releaseID ReleaseIDParameter) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "releaseID", runtime.ParamLocationPath, releaseID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/platformreleases/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
@@ -1756,81 +2164,63 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// GetWellKnownOpenidProtectedResourceWithResponse request
-	GetWellKnownOpenidProtectedResourceWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetWellKnownOpenidProtectedResourceResponse, error)
+	// ListClustersWithResponse request
+	ListClustersWithResponse(ctx context.Context, params *ListClustersParams, reqEditors ...RequestEditorFn) (*ListClustersResponse, error)
 
-	// GetApiV1OrganizationsOrganizationIDClustermanagersWithResponse request
-	GetApiV1OrganizationsOrganizationIDClustermanagersWithResponse(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDClustermanagersResponse, error)
+	// CreateClusterWithBodyWithResponse request with any body
+	CreateClusterWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateClusterResponse, error)
 
-	// GetApiV1OrganizationsOrganizationIDClustersWithResponse request
-	GetApiV1OrganizationsOrganizationIDClustersWithResponse(ctx context.Context, organizationID OrganizationIDParameter, params *GetApiV1OrganizationsOrganizationIDClustersParams, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDClustersResponse, error)
+	CreateClusterWithResponse(ctx context.Context, body CreateClusterJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateClusterResponse, error)
 
-	// PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersWithBodyWithResponse request with any body
-	PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersResponse, error)
+	// DeleteClusterWithResponse request
+	DeleteClusterWithResponse(ctx context.Context, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*DeleteClusterResponse, error)
 
-	PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, body PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersJSONRequestBody, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersResponse, error)
+	// GetClusterWithResponse request
+	GetClusterWithResponse(ctx context.Context, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*GetClusterResponse, error)
 
-	// DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDWithResponse request
-	DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterManagerID ClusterManagerIDParameter, reqEditors ...RequestEditorFn) (*DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse, error)
+	// UpdateClusterWithBodyWithResponse request with any body
+	UpdateClusterWithBodyWithResponse(ctx context.Context, clusterID ClusterIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateClusterResponse, error)
 
-	// PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDWithBodyWithResponse request with any body
-	PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterManagerID ClusterManagerIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse, error)
+	UpdateClusterWithResponse(ctx context.Context, clusterID ClusterIDParameter, body UpdateClusterJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateClusterResponse, error)
 
-	PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterManagerID ClusterManagerIDParameter, body PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDJSONRequestBody, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse, error)
+	// ListNodePoolsWithResponse request
+	ListNodePoolsWithResponse(ctx context.Context, params *ListNodePoolsParams, reqEditors ...RequestEditorFn) (*ListNodePoolsResponse, error)
 
-	// PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersWithBodyWithResponse request with any body
-	PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersResponse, error)
+	// CreateNodePoolWithBodyWithResponse request with any body
+	CreateNodePoolWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateNodePoolResponse, error)
 
-	PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, body PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersJSONRequestBody, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersResponse, error)
+	CreateNodePoolWithResponse(ctx context.Context, body CreateNodePoolJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateNodePoolResponse, error)
 
-	// DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDWithResponse request
-	DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse, error)
+	// DeleteNodePoolWithResponse request
+	DeleteNodePoolWithResponse(ctx context.Context, nodePoolID NodePoolIDParameter, reqEditors ...RequestEditorFn) (*DeleteNodePoolResponse, error)
 
-	// PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDWithBodyWithResponse request with any body
-	PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse, error)
+	// GetNodePoolWithResponse request
+	GetNodePoolWithResponse(ctx context.Context, nodePoolID NodePoolIDParameter, reqEditors ...RequestEditorFn) (*GetNodePoolResponse, error)
 
-	PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, body PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDJSONRequestBody, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse, error)
+	// UpdateNodePoolWithBodyWithResponse request with any body
+	UpdateNodePoolWithBodyWithResponse(ctx context.Context, nodePoolID NodePoolIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateNodePoolResponse, error)
 
-	// GetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfigWithResponse request
-	GetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfigWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfigResponse, error)
+	UpdateNodePoolWithResponse(ctx context.Context, nodePoolID NodePoolIDParameter, body UpdateNodePoolJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateNodePoolResponse, error)
 
-	// PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersWithBodyWithResponse request with any body
-	PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersResponse, error)
+	// ListPlatformReleasesWithResponse request
+	ListPlatformReleasesWithResponse(ctx context.Context, params *ListPlatformReleasesParams, reqEditors ...RequestEditorFn) (*ListPlatformReleasesResponse, error)
 
-	PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, body PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersJSONRequestBody, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersResponse, error)
-
-	// DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDWithResponse request
-	DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse, error)
-
-	// PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDWithBodyWithResponse request with any body
-	PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse, error)
-
-	PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, body PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDJSONRequestBody, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse, error)
-
-	// GetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfigWithResponse request
-	GetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfigWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfigResponse, error)
-
-	// GetApiV1OrganizationsOrganizationIDRegionsWithResponse request
-	GetApiV1OrganizationsOrganizationIDRegionsWithResponse(ctx context.Context, organizationID OrganizationIDParameter, params *GetApiV1OrganizationsOrganizationIDRegionsParams, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDRegionsResponse, error)
-
-	// GetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsWithResponse request
-	GetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsWithResponse(ctx context.Context, organizationID OrganizationIDParameter, regionID RegionIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsResponse, error)
-
-	// GetApiV1OrganizationsOrganizationIDRegionsRegionIDImagesWithResponse request
-	GetApiV1OrganizationsOrganizationIDRegionsRegionIDImagesWithResponse(ctx context.Context, organizationID OrganizationIDParameter, regionID RegionIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDRegionsRegionIDImagesResponse, error)
-
-	// GetApiV1OrganizationsOrganizationIDVirtualclustersWithResponse request
-	GetApiV1OrganizationsOrganizationIDVirtualclustersWithResponse(ctx context.Context, organizationID OrganizationIDParameter, params *GetApiV1OrganizationsOrganizationIDVirtualclustersParams, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDVirtualclustersResponse, error)
+	// GetPlatformReleaseWithResponse request
+	GetPlatformReleaseWithResponse(ctx context.Context, releaseID ReleaseIDParameter, reqEditors ...RequestEditorFn) (*GetPlatformReleaseResponse, error)
 }
 
-type GetWellKnownOpenidProtectedResourceResponse struct {
+type ListClustersResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef0.OpenidProtectedResourceResponse
+	JSON200      *ClustersV1Response
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
-func (r GetWellKnownOpenidProtectedResourceResponse) Status() string {
+func (r ListClustersResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1838,26 +2228,26 @@ func (r GetWellKnownOpenidProtectedResourceResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetWellKnownOpenidProtectedResourceResponse) StatusCode() int {
+func (r ListClustersResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type GetApiV1OrganizationsOrganizationIDClustermanagersResponse struct {
+type CreateClusterResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *ClusterManagersResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON201      *ClusterV1Created
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON422      *UnprocessableContentResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
-func (r GetApiV1OrganizationsOrganizationIDClustermanagersResponse) Status() string {
+func (r CreateClusterResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1865,26 +2255,25 @@ func (r GetApiV1OrganizationsOrganizationIDClustermanagersResponse) Status() str
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetApiV1OrganizationsOrganizationIDClustermanagersResponse) StatusCode() int {
+func (r CreateClusterResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type GetApiV1OrganizationsOrganizationIDClustersResponse struct {
+type DeleteClusterResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *KubernetesClustersResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
-func (r GetApiV1OrganizationsOrganizationIDClustersResponse) Status() string {
+func (r DeleteClusterResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1892,26 +2281,26 @@ func (r GetApiV1OrganizationsOrganizationIDClustersResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetApiV1OrganizationsOrganizationIDClustersResponse) StatusCode() int {
+func (r DeleteClusterResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersResponse struct {
+type GetClusterResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON202      *ClusterManagerResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON409      *externalRef0.ConflictResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON200      *ClusterV1Response
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
-func (r PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersResponse) Status() string {
+func (r GetClusterResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1919,25 +2308,28 @@ func (r PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersResp
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersResponse) StatusCode() int {
+func (r GetClusterResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse struct {
+type UpdateClusterResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON200      *ClusterV1Response
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON409      *ConflictResponse
+	JSON422      *UnprocessableContentResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
-func (r DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse) Status() string {
+func (r UpdateClusterResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1945,25 +2337,25 @@ func (r DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersCl
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse) StatusCode() int {
+func (r UpdateClusterResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse struct {
+type ListNodePoolsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON200      *NodePoolsV1Response
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
-func (r PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse) Status() string {
+func (r ListNodePoolsResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1971,26 +2363,26 @@ func (r PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClust
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse) StatusCode() int {
+func (r ListNodePoolsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersResponse struct {
+type CreateNodePoolResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON202      *KubernetesClusterResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON409      *externalRef0.ConflictResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON201      *NodePoolV1Created
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON422      *UnprocessableContentResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
-func (r PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersResponse) Status() string {
+func (r CreateNodePoolResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1998,25 +2390,25 @@ func (r PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersResponse) S
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersResponse) StatusCode() int {
+func (r CreateNodePoolResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse struct {
+type DeleteNodePoolResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
-func (r DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse) Status() string {
+func (r DeleteNodePoolResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -2024,25 +2416,26 @@ func (r DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterID
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse) StatusCode() int {
+func (r DeleteNodePoolResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse struct {
+type GetNodePoolResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON200      *NodePoolV1Response
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
-func (r PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse) Status() string {
+func (r GetNodePoolResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -2050,25 +2443,28 @@ func (r PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDRes
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse) StatusCode() int {
+func (r GetNodePoolResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type GetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfigResponse struct {
+type UpdateNodePoolResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON200      *NodePoolV1Response
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON409      *ConflictResponse
+	JSON422      *UnprocessableContentResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
-func (r GetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfigResponse) Status() string {
+func (r UpdateNodePoolResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -2076,26 +2472,25 @@ func (r GetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKub
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfigResponse) StatusCode() int {
+func (r UpdateNodePoolResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersResponse struct {
+type ListPlatformReleasesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON202      *VirtualKubernetesClusterResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON409      *externalRef0.ConflictResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON200      *PlatformReleasesV1Response
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
-func (r PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersResponse) Status() string {
+func (r ListPlatformReleasesResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -2103,25 +2498,26 @@ func (r PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersResp
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersResponse) StatusCode() int {
+func (r ListPlatformReleasesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse struct {
+type GetPlatformReleaseResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON200      *PlatformReleaseV1Response
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
-func (r DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse) Status() string {
+func (r GetPlatformReleaseResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -2129,459 +2525,197 @@ func (r DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersCl
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse) StatusCode() int {
+func (r GetPlatformReleaseResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfigResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfigResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfigResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetApiV1OrganizationsOrganizationIDRegionsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *externalRef1.RegionsResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetApiV1OrganizationsOrganizationIDRegionsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetApiV1OrganizationsOrganizationIDRegionsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *externalRef1.FlavorsResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetApiV1OrganizationsOrganizationIDRegionsRegionIDImagesResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *externalRef1.ImagesResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetApiV1OrganizationsOrganizationIDRegionsRegionIDImagesResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetApiV1OrganizationsOrganizationIDRegionsRegionIDImagesResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetApiV1OrganizationsOrganizationIDVirtualclustersResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *VirtualKubernetesClustersResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetApiV1OrganizationsOrganizationIDVirtualclustersResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetApiV1OrganizationsOrganizationIDVirtualclustersResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-// GetWellKnownOpenidProtectedResourceWithResponse request returning *GetWellKnownOpenidProtectedResourceResponse
-func (c *ClientWithResponses) GetWellKnownOpenidProtectedResourceWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetWellKnownOpenidProtectedResourceResponse, error) {
-	rsp, err := c.GetWellKnownOpenidProtectedResource(ctx, reqEditors...)
+// ListClustersWithResponse request returning *ListClustersResponse
+func (c *ClientWithResponses) ListClustersWithResponse(ctx context.Context, params *ListClustersParams, reqEditors ...RequestEditorFn) (*ListClustersResponse, error) {
+	rsp, err := c.ListClusters(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetWellKnownOpenidProtectedResourceResponse(rsp)
+	return ParseListClustersResponse(rsp)
 }
 
-// GetApiV1OrganizationsOrganizationIDClustermanagersWithResponse request returning *GetApiV1OrganizationsOrganizationIDClustermanagersResponse
-func (c *ClientWithResponses) GetApiV1OrganizationsOrganizationIDClustermanagersWithResponse(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDClustermanagersResponse, error) {
-	rsp, err := c.GetApiV1OrganizationsOrganizationIDClustermanagers(ctx, organizationID, reqEditors...)
+// CreateClusterWithBodyWithResponse request with arbitrary body returning *CreateClusterResponse
+func (c *ClientWithResponses) CreateClusterWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateClusterResponse, error) {
+	rsp, err := c.CreateClusterWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetApiV1OrganizationsOrganizationIDClustermanagersResponse(rsp)
+	return ParseCreateClusterResponse(rsp)
 }
 
-// GetApiV1OrganizationsOrganizationIDClustersWithResponse request returning *GetApiV1OrganizationsOrganizationIDClustersResponse
-func (c *ClientWithResponses) GetApiV1OrganizationsOrganizationIDClustersWithResponse(ctx context.Context, organizationID OrganizationIDParameter, params *GetApiV1OrganizationsOrganizationIDClustersParams, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDClustersResponse, error) {
-	rsp, err := c.GetApiV1OrganizationsOrganizationIDClusters(ctx, organizationID, params, reqEditors...)
+func (c *ClientWithResponses) CreateClusterWithResponse(ctx context.Context, body CreateClusterJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateClusterResponse, error) {
+	rsp, err := c.CreateCluster(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetApiV1OrganizationsOrganizationIDClustersResponse(rsp)
+	return ParseCreateClusterResponse(rsp)
 }
 
-// PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersWithBodyWithResponse request with arbitrary body returning *PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersResponse
-func (c *ClientWithResponses) PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersResponse, error) {
-	rsp, err := c.PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersWithBody(ctx, organizationID, projectID, contentType, body, reqEditors...)
+// DeleteClusterWithResponse request returning *DeleteClusterResponse
+func (c *ClientWithResponses) DeleteClusterWithResponse(ctx context.Context, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*DeleteClusterResponse, error) {
+	rsp, err := c.DeleteCluster(ctx, clusterID, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersResponse(rsp)
+	return ParseDeleteClusterResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, body PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersJSONRequestBody, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersResponse, error) {
-	rsp, err := c.PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagers(ctx, organizationID, projectID, body, reqEditors...)
+// GetClusterWithResponse request returning *GetClusterResponse
+func (c *ClientWithResponses) GetClusterWithResponse(ctx context.Context, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*GetClusterResponse, error) {
+	rsp, err := c.GetCluster(ctx, clusterID, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersResponse(rsp)
+	return ParseGetClusterResponse(rsp)
 }
 
-// DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDWithResponse request returning *DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse
-func (c *ClientWithResponses) DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterManagerID ClusterManagerIDParameter, reqEditors ...RequestEditorFn) (*DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse, error) {
-	rsp, err := c.DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerID(ctx, organizationID, projectID, clusterManagerID, reqEditors...)
+// UpdateClusterWithBodyWithResponse request with arbitrary body returning *UpdateClusterResponse
+func (c *ClientWithResponses) UpdateClusterWithBodyWithResponse(ctx context.Context, clusterID ClusterIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateClusterResponse, error) {
+	rsp, err := c.UpdateClusterWithBody(ctx, clusterID, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse(rsp)
+	return ParseUpdateClusterResponse(rsp)
 }
 
-// PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDWithBodyWithResponse request with arbitrary body returning *PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse
-func (c *ClientWithResponses) PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterManagerID ClusterManagerIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse, error) {
-	rsp, err := c.PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDWithBody(ctx, organizationID, projectID, clusterManagerID, contentType, body, reqEditors...)
+func (c *ClientWithResponses) UpdateClusterWithResponse(ctx context.Context, clusterID ClusterIDParameter, body UpdateClusterJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateClusterResponse, error) {
+	rsp, err := c.UpdateCluster(ctx, clusterID, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse(rsp)
+	return ParseUpdateClusterResponse(rsp)
 }
 
-func (c *ClientWithResponses) PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterManagerID ClusterManagerIDParameter, body PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDJSONRequestBody, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse, error) {
-	rsp, err := c.PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerID(ctx, organizationID, projectID, clusterManagerID, body, reqEditors...)
+// ListNodePoolsWithResponse request returning *ListNodePoolsResponse
+func (c *ClientWithResponses) ListNodePoolsWithResponse(ctx context.Context, params *ListNodePoolsParams, reqEditors ...RequestEditorFn) (*ListNodePoolsResponse, error) {
+	rsp, err := c.ListNodePools(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse(rsp)
+	return ParseListNodePoolsResponse(rsp)
 }
 
-// PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersWithBodyWithResponse request with arbitrary body returning *PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersResponse
-func (c *ClientWithResponses) PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersResponse, error) {
-	rsp, err := c.PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersWithBody(ctx, organizationID, projectID, contentType, body, reqEditors...)
+// CreateNodePoolWithBodyWithResponse request with arbitrary body returning *CreateNodePoolResponse
+func (c *ClientWithResponses) CreateNodePoolWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateNodePoolResponse, error) {
+	rsp, err := c.CreateNodePoolWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersResponse(rsp)
+	return ParseCreateNodePoolResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, body PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersJSONRequestBody, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersResponse, error) {
-	rsp, err := c.PostApiV1OrganizationsOrganizationIDProjectsProjectIDClusters(ctx, organizationID, projectID, body, reqEditors...)
+func (c *ClientWithResponses) CreateNodePoolWithResponse(ctx context.Context, body CreateNodePoolJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateNodePoolResponse, error) {
+	rsp, err := c.CreateNodePool(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersResponse(rsp)
+	return ParseCreateNodePoolResponse(rsp)
 }
 
-// DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDWithResponse request returning *DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse
-func (c *ClientWithResponses) DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse, error) {
-	rsp, err := c.DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterID(ctx, organizationID, projectID, clusterID, reqEditors...)
+// DeleteNodePoolWithResponse request returning *DeleteNodePoolResponse
+func (c *ClientWithResponses) DeleteNodePoolWithResponse(ctx context.Context, nodePoolID NodePoolIDParameter, reqEditors ...RequestEditorFn) (*DeleteNodePoolResponse, error) {
+	rsp, err := c.DeleteNodePool(ctx, nodePoolID, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse(rsp)
+	return ParseDeleteNodePoolResponse(rsp)
 }
 
-// PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDWithBodyWithResponse request with arbitrary body returning *PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse
-func (c *ClientWithResponses) PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse, error) {
-	rsp, err := c.PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDWithBody(ctx, organizationID, projectID, clusterID, contentType, body, reqEditors...)
+// GetNodePoolWithResponse request returning *GetNodePoolResponse
+func (c *ClientWithResponses) GetNodePoolWithResponse(ctx context.Context, nodePoolID NodePoolIDParameter, reqEditors ...RequestEditorFn) (*GetNodePoolResponse, error) {
+	rsp, err := c.GetNodePool(ctx, nodePoolID, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse(rsp)
+	return ParseGetNodePoolResponse(rsp)
 }
 
-func (c *ClientWithResponses) PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, body PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDJSONRequestBody, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse, error) {
-	rsp, err := c.PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterID(ctx, organizationID, projectID, clusterID, body, reqEditors...)
+// UpdateNodePoolWithBodyWithResponse request with arbitrary body returning *UpdateNodePoolResponse
+func (c *ClientWithResponses) UpdateNodePoolWithBodyWithResponse(ctx context.Context, nodePoolID NodePoolIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateNodePoolResponse, error) {
+	rsp, err := c.UpdateNodePoolWithBody(ctx, nodePoolID, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse(rsp)
+	return ParseUpdateNodePoolResponse(rsp)
 }
 
-// GetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfigWithResponse request returning *GetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfigResponse
-func (c *ClientWithResponses) GetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfigWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfigResponse, error) {
-	rsp, err := c.GetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfig(ctx, organizationID, projectID, clusterID, reqEditors...)
+func (c *ClientWithResponses) UpdateNodePoolWithResponse(ctx context.Context, nodePoolID NodePoolIDParameter, body UpdateNodePoolJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateNodePoolResponse, error) {
+	rsp, err := c.UpdateNodePool(ctx, nodePoolID, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfigResponse(rsp)
+	return ParseUpdateNodePoolResponse(rsp)
 }
 
-// PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersWithBodyWithResponse request with arbitrary body returning *PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersResponse
-func (c *ClientWithResponses) PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersResponse, error) {
-	rsp, err := c.PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersWithBody(ctx, organizationID, projectID, contentType, body, reqEditors...)
+// ListPlatformReleasesWithResponse request returning *ListPlatformReleasesResponse
+func (c *ClientWithResponses) ListPlatformReleasesWithResponse(ctx context.Context, params *ListPlatformReleasesParams, reqEditors ...RequestEditorFn) (*ListPlatformReleasesResponse, error) {
+	rsp, err := c.ListPlatformReleases(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersResponse(rsp)
+	return ParseListPlatformReleasesResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, body PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersJSONRequestBody, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersResponse, error) {
-	rsp, err := c.PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclusters(ctx, organizationID, projectID, body, reqEditors...)
+// GetPlatformReleaseWithResponse request returning *GetPlatformReleaseResponse
+func (c *ClientWithResponses) GetPlatformReleaseWithResponse(ctx context.Context, releaseID ReleaseIDParameter, reqEditors ...RequestEditorFn) (*GetPlatformReleaseResponse, error) {
+	rsp, err := c.GetPlatformRelease(ctx, releaseID, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersResponse(rsp)
+	return ParseGetPlatformReleaseResponse(rsp)
 }
 
-// DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDWithResponse request returning *DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse
-func (c *ClientWithResponses) DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse, error) {
-	rsp, err := c.DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterID(ctx, organizationID, projectID, clusterID, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse(rsp)
-}
-
-// PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDWithBodyWithResponse request with arbitrary body returning *PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse
-func (c *ClientWithResponses) PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse, error) {
-	rsp, err := c.PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDWithBody(ctx, organizationID, projectID, clusterID, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse(rsp)
-}
-
-func (c *ClientWithResponses) PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, body PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDJSONRequestBody, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse, error) {
-	rsp, err := c.PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterID(ctx, organizationID, projectID, clusterID, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse(rsp)
-}
-
-// GetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfigWithResponse request returning *GetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfigResponse
-func (c *ClientWithResponses) GetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfigWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, clusterID ClusterIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfigResponse, error) {
-	rsp, err := c.GetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfig(ctx, organizationID, projectID, clusterID, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfigResponse(rsp)
-}
-
-// GetApiV1OrganizationsOrganizationIDRegionsWithResponse request returning *GetApiV1OrganizationsOrganizationIDRegionsResponse
-func (c *ClientWithResponses) GetApiV1OrganizationsOrganizationIDRegionsWithResponse(ctx context.Context, organizationID OrganizationIDParameter, params *GetApiV1OrganizationsOrganizationIDRegionsParams, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDRegionsResponse, error) {
-	rsp, err := c.GetApiV1OrganizationsOrganizationIDRegions(ctx, organizationID, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetApiV1OrganizationsOrganizationIDRegionsResponse(rsp)
-}
-
-// GetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsWithResponse request returning *GetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsResponse
-func (c *ClientWithResponses) GetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsWithResponse(ctx context.Context, organizationID OrganizationIDParameter, regionID RegionIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsResponse, error) {
-	rsp, err := c.GetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavors(ctx, organizationID, regionID, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsResponse(rsp)
-}
-
-// GetApiV1OrganizationsOrganizationIDRegionsRegionIDImagesWithResponse request returning *GetApiV1OrganizationsOrganizationIDRegionsRegionIDImagesResponse
-func (c *ClientWithResponses) GetApiV1OrganizationsOrganizationIDRegionsRegionIDImagesWithResponse(ctx context.Context, organizationID OrganizationIDParameter, regionID RegionIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDRegionsRegionIDImagesResponse, error) {
-	rsp, err := c.GetApiV1OrganizationsOrganizationIDRegionsRegionIDImages(ctx, organizationID, regionID, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetApiV1OrganizationsOrganizationIDRegionsRegionIDImagesResponse(rsp)
-}
-
-// GetApiV1OrganizationsOrganizationIDVirtualclustersWithResponse request returning *GetApiV1OrganizationsOrganizationIDVirtualclustersResponse
-func (c *ClientWithResponses) GetApiV1OrganizationsOrganizationIDVirtualclustersWithResponse(ctx context.Context, organizationID OrganizationIDParameter, params *GetApiV1OrganizationsOrganizationIDVirtualclustersParams, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDVirtualclustersResponse, error) {
-	rsp, err := c.GetApiV1OrganizationsOrganizationIDVirtualclusters(ctx, organizationID, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetApiV1OrganizationsOrganizationIDVirtualclustersResponse(rsp)
-}
-
-// ParseGetWellKnownOpenidProtectedResourceResponse parses an HTTP response from a GetWellKnownOpenidProtectedResourceWithResponse call
-func ParseGetWellKnownOpenidProtectedResourceResponse(rsp *http.Response) (*GetWellKnownOpenidProtectedResourceResponse, error) {
+// ParseListClustersResponse parses an HTTP response from a ListClustersWithResponse call
+func ParseListClustersResponse(rsp *http.Response) (*ListClustersResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetWellKnownOpenidProtectedResourceResponse{
+	response := &ListClustersResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef0.OpenidProtectedResourceResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetApiV1OrganizationsOrganizationIDClustermanagersResponse parses an HTTP response from a GetApiV1OrganizationsOrganizationIDClustermanagersWithResponse call
-func ParseGetApiV1OrganizationsOrganizationIDClustermanagersResponse(rsp *http.Response) (*GetApiV1OrganizationsOrganizationIDClustermanagersResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetApiV1OrganizationsOrganizationIDClustermanagersResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest ClusterManagersResponse
+		var dest ClustersV1Response
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2592,57 +2726,57 @@ func ParseGetApiV1OrganizationsOrganizationIDClustermanagersResponse(rsp *http.R
 	return response, nil
 }
 
-// ParseGetApiV1OrganizationsOrganizationIDClustersResponse parses an HTTP response from a GetApiV1OrganizationsOrganizationIDClustersWithResponse call
-func ParseGetApiV1OrganizationsOrganizationIDClustersResponse(rsp *http.Response) (*GetApiV1OrganizationsOrganizationIDClustersResponse, error) {
+// ParseCreateClusterResponse parses an HTTP response from a CreateClusterWithResponse call
+func ParseCreateClusterResponse(rsp *http.Response) (*CreateClusterResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetApiV1OrganizationsOrganizationIDClustersResponse{
+	response := &CreateClusterResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest KubernetesClustersResponse
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest ClusterV1Created
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
-		response.JSON200 = &dest
+		response.JSON201 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest UnprocessableContentResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
-		response.JSON404 = &dest
+		response.JSON422 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2653,57 +2787,186 @@ func ParseGetApiV1OrganizationsOrganizationIDClustersResponse(rsp *http.Response
 	return response, nil
 }
 
-// ParsePostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersResponse parses an HTTP response from a PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersWithResponse call
-func ParsePostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersResponse(rsp *http.Response) (*PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersResponse, error) {
+// ParseDeleteClusterResponse parses an HTTP response from a DeleteClusterWithResponse call
+func ParseDeleteClusterResponse(rsp *http.Response) (*DeleteClusterResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersResponse{
+	response := &DeleteClusterResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 202:
-		var dest ClusterManagerResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON202 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFoundResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetClusterResponse parses an HTTP response from a GetClusterWithResponse call
+func ParseGetClusterResponse(rsp *http.Response) (*GetClusterResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetClusterResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ClusterV1Response
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequestResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest UnauthorizedResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ForbiddenResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFoundResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseUpdateClusterResponse parses an HTTP response from a UpdateClusterWithResponse call
+func ParseUpdateClusterResponse(rsp *http.Response) (*UpdateClusterResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdateClusterResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ClusterV1Response
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequestResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest UnauthorizedResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ForbiddenResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFoundResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest externalRef0.ConflictResponse
+		var dest ConflictResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON409 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest UnprocessableContentResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON422 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2714,50 +2977,165 @@ func ParsePostApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersRe
 	return response, nil
 }
 
-// ParseDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse parses an HTTP response from a DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDWithResponse call
-func ParseDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse(rsp *http.Response) (*DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse, error) {
+// ParseListNodePoolsResponse parses an HTTP response from a ListNodePoolsWithResponse call
+func ParseListNodePoolsResponse(rsp *http.Response) (*ListNodePoolsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse{
+	response := &ListNodePoolsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest NodePoolsV1Response
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseCreateNodePoolResponse parses an HTTP response from a CreateNodePoolWithResponse call
+func ParseCreateNodePoolResponse(rsp *http.Response) (*CreateNodePoolResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &CreateNodePoolResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
+		var dest NodePoolV1Created
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON201 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequestResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest UnauthorizedResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ForbiddenResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest UnprocessableContentResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON422 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseDeleteNodePoolResponse parses an HTTP response from a DeleteNodePoolWithResponse call
+func ParseDeleteNodePoolResponse(rsp *http.Response) (*DeleteNodePoolResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteNodePoolResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequestResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest UnauthorizedResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2768,50 +3146,57 @@ func ParseDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagers
 	return response, nil
 }
 
-// ParsePutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse parses an HTTP response from a PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDWithResponse call
-func ParsePutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse(rsp *http.Response) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse, error) {
+// ParseGetNodePoolResponse parses an HTTP response from a GetNodePoolWithResponse call
+func ParseGetNodePoolResponse(rsp *http.Response) (*GetNodePoolResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClusterManagerIDResponse{
+	response := &GetNodePoolResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest NodePoolV1Response
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2822,57 +3207,71 @@ func ParsePutApiV1OrganizationsOrganizationIDProjectsProjectIDClustermanagersClu
 	return response, nil
 }
 
-// ParsePostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersResponse parses an HTTP response from a PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersWithResponse call
-func ParsePostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersResponse(rsp *http.Response) (*PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersResponse, error) {
+// ParseUpdateNodePoolResponse parses an HTTP response from a UpdateNodePoolWithResponse call
+func ParseUpdateNodePoolResponse(rsp *http.Response) (*UpdateNodePoolResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersResponse{
+	response := &UpdateNodePoolResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 202:
-		var dest KubernetesClusterResponse
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest NodePoolV1Response
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
-		response.JSON202 = &dest
+		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFoundResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest externalRef0.ConflictResponse
+		var dest ConflictResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON409 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest UnprocessableContentResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON422 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2883,435 +3282,50 @@ func ParsePostApiV1OrganizationsOrganizationIDProjectsProjectIDClustersResponse(
 	return response, nil
 }
 
-// ParseDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse parses an HTTP response from a DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDWithResponse call
-func ParseDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse(rsp *http.Response) (*DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse, error) {
+// ParseListPlatformReleasesResponse parses an HTTP response from a ListPlatformReleasesWithResponse call
+func ParseListPlatformReleasesResponse(rsp *http.Response) (*ListPlatformReleasesResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParsePutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse parses an HTTP response from a PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDWithResponse call
-func ParsePutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse(rsp *http.Response) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &PutApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfigResponse parses an HTTP response from a GetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfigWithResponse call
-func ParseGetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfigResponse(rsp *http.Response) (*GetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfigResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetApiV1OrganizationsOrganizationIDProjectsProjectIDClustersClusterIDKubeconfigResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParsePostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersResponse parses an HTTP response from a PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersWithResponse call
-func ParsePostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersResponse(rsp *http.Response) (*PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &PostApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 202:
-		var dest VirtualKubernetesClusterResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON202 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest externalRef0.ConflictResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON409 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse parses an HTTP response from a DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDWithResponse call
-func ParseDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse(rsp *http.Response) (*DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParsePutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse parses an HTTP response from a PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDWithResponse call
-func ParsePutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse(rsp *http.Response) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &PutApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfigResponse parses an HTTP response from a GetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfigWithResponse call
-func ParseGetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfigResponse(rsp *http.Response) (*GetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfigResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetApiV1OrganizationsOrganizationIDProjectsProjectIDVirtualclustersClusterIDKubeconfigResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetApiV1OrganizationsOrganizationIDRegionsResponse parses an HTTP response from a GetApiV1OrganizationsOrganizationIDRegionsWithResponse call
-func ParseGetApiV1OrganizationsOrganizationIDRegionsResponse(rsp *http.Response) (*GetApiV1OrganizationsOrganizationIDRegionsResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetApiV1OrganizationsOrganizationIDRegionsResponse{
+	response := &ListPlatformReleasesResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef1.RegionsResponse
+		var dest PlatformReleasesV1Response
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -3322,179 +3336,57 @@ func ParseGetApiV1OrganizationsOrganizationIDRegionsResponse(rsp *http.Response)
 	return response, nil
 }
 
-// ParseGetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsResponse parses an HTTP response from a GetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsWithResponse call
-func ParseGetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsResponse(rsp *http.Response) (*GetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsResponse, error) {
+// ParseGetPlatformReleaseResponse parses an HTTP response from a GetPlatformReleaseWithResponse call
+func ParseGetPlatformReleaseResponse(rsp *http.Response) (*GetPlatformReleaseResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsResponse{
+	response := &GetPlatformReleaseResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef1.FlavorsResponse
+		var dest PlatformReleaseV1Response
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetApiV1OrganizationsOrganizationIDRegionsRegionIDImagesResponse parses an HTTP response from a GetApiV1OrganizationsOrganizationIDRegionsRegionIDImagesWithResponse call
-func ParseGetApiV1OrganizationsOrganizationIDRegionsRegionIDImagesResponse(rsp *http.Response) (*GetApiV1OrganizationsOrganizationIDRegionsRegionIDImagesResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetApiV1OrganizationsOrganizationIDRegionsRegionIDImagesResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef1.ImagesResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetApiV1OrganizationsOrganizationIDVirtualclustersResponse parses an HTTP response from a GetApiV1OrganizationsOrganizationIDVirtualclustersWithResponse call
-func ParseGetApiV1OrganizationsOrganizationIDVirtualclustersResponse(rsp *http.Response) (*GetApiV1OrganizationsOrganizationIDVirtualclustersResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetApiV1OrganizationsOrganizationIDVirtualclustersResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest VirtualKubernetesClustersResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

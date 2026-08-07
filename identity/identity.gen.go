@@ -14,9 +14,8 @@ import (
 	"strings"
 	"time"
 
-	externalRef0 "github.com/nscaledev/nscale-sdk-go/common"
 	"github.com/oapi-codegen/runtime"
-	identityids "github.com/unikorn-cloud/identity/pkg/ids"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 const (
@@ -45,6 +44,13 @@ const (
 	TlsClientAuth     AuthMethod = "tls_client_auth"
 )
 
+// Defines values for BearerMethod.
+const (
+	BearerMethodBody   BearerMethod = "body"
+	BearerMethodHeader BearerMethod = "header"
+	BearerMethodQuery  BearerMethod = "query"
+)
+
 // Defines values for Claim.
 const (
 	ClaimAud           Claim = "aud"
@@ -67,6 +73,20 @@ const (
 	S256  CodeChallengeMethod = "S256"
 )
 
+// Defines values for ErrorError.
+const (
+	ErrorErrorAccessDenied          ErrorError = "access_denied"
+	ErrorErrorConflict              ErrorError = "conflict"
+	ErrorErrorForbidden             ErrorError = "forbidden"
+	ErrorErrorInvalidRequest        ErrorError = "invalid_request"
+	ErrorErrorMethodNotAllowed      ErrorError = "method_not_allowed"
+	ErrorErrorNotFound              ErrorError = "not_found"
+	ErrorErrorRequestEntityTooLarge ErrorError = "request_entity_too_large"
+	ErrorErrorServerError           ErrorError = "server_error"
+	ErrorErrorUnprocessableContent  ErrorError = "unprocessable_content"
+	ErrorErrorUnsupportedMediaType  ErrorError = "unsupported_media_type"
+)
+
 // Defines values for GrantType.
 const (
 	AuthorizationCode                        GrantType = "authorization_code"
@@ -77,16 +97,16 @@ const (
 
 // Defines values for Oauth2ErrorError.
 const (
-	AccessDenied            Oauth2ErrorError = "access_denied"
-	InvalidClient           Oauth2ErrorError = "invalid_client"
-	InvalidGrant            Oauth2ErrorError = "invalid_grant"
-	InvalidRequest          Oauth2ErrorError = "invalid_request"
-	InvalidScope            Oauth2ErrorError = "invalid_scope"
-	ServerError             Oauth2ErrorError = "server_error"
-	TemporarilyUnavailable  Oauth2ErrorError = "temporarily_unavailable"
-	UnauthorizedClient      Oauth2ErrorError = "unauthorized_client"
-	UnsupportedGrantType    Oauth2ErrorError = "unsupported_grant_type"
-	UnsupportedResponseType Oauth2ErrorError = "unsupported_response_type"
+	Oauth2ErrorErrorAccessDenied            Oauth2ErrorError = "access_denied"
+	Oauth2ErrorErrorInvalidClient           Oauth2ErrorError = "invalid_client"
+	Oauth2ErrorErrorInvalidGrant            Oauth2ErrorError = "invalid_grant"
+	Oauth2ErrorErrorInvalidRequest          Oauth2ErrorError = "invalid_request"
+	Oauth2ErrorErrorInvalidScope            Oauth2ErrorError = "invalid_scope"
+	Oauth2ErrorErrorServerError             Oauth2ErrorError = "server_error"
+	Oauth2ErrorErrorTemporarilyUnavailable  Oauth2ErrorError = "temporarily_unavailable"
+	Oauth2ErrorErrorUnauthorizedClient      Oauth2ErrorError = "unauthorized_client"
+	Oauth2ErrorErrorUnsupportedGrantType    Oauth2ErrorError = "unsupported_grant_type"
+	Oauth2ErrorErrorUnsupportedResponseType Oauth2ErrorError = "unsupported_response_type"
 )
 
 // Defines values for Oauth2ProviderType.
@@ -108,10 +128,28 @@ const (
 	Organization ProviderScope = "organization"
 )
 
+// Defines values for ResourceHealthStatus.
+const (
+	ResourceHealthStatusDegraded ResourceHealthStatus = "degraded"
+	ResourceHealthStatusError    ResourceHealthStatus = "error"
+	ResourceHealthStatusHealthy  ResourceHealthStatus = "healthy"
+	ResourceHealthStatusUnknown  ResourceHealthStatus = "unknown"
+)
+
+// Defines values for ResourceProvisioningStatus.
+const (
+	ResourceProvisioningStatusDeprovisioning ResourceProvisioningStatus = "deprovisioning"
+	ResourceProvisioningStatusError          ResourceProvisioningStatus = "error"
+	ResourceProvisioningStatusPending        ResourceProvisioningStatus = "pending"
+	ResourceProvisioningStatusProvisioned    ResourceProvisioningStatus = "provisioned"
+	ResourceProvisioningStatusProvisioning   ResourceProvisioningStatus = "provisioning"
+	ResourceProvisioningStatusUnknown        ResourceProvisioningStatus = "unknown"
+)
+
 // Defines values for ResponseMode.
 const (
-	Fragment ResponseMode = "fragment"
-	Query    ResponseMode = "query"
+	ResponseModeFragment ResponseMode = "fragment"
+	ResponseModeQuery    ResponseMode = "query"
 )
 
 // Defines values for ResponseType.
@@ -206,12 +244,12 @@ type AclProject struct {
 type AclProjectList = []AclProject
 
 // AllocationId A resource allocation ID.
-type AllocationId = identityids.AllocationID
+type AllocationId = openapi_types.UUID
 
 // AllocationRead An allocation of resources.
 type AllocationRead struct {
 	// Metadata Metadata required by project scoped resource reads.
-	Metadata externalRef0.ProjectScopedResourceReadMetadata `json:"metadata"`
+	Metadata ProjectScopedResourceReadMetadata `json:"metadata"`
 
 	// Spec A set of resource allocations.
 	Spec AllocationSpec `json:"spec"`
@@ -232,7 +270,7 @@ type AllocationSpec struct {
 // AllocationWrite An allocation of resources.
 type AllocationWrite struct {
 	// Metadata Metadata required for all API resource reads and writes.
-	Metadata externalRef0.ResourceWriteMetadata `json:"metadata"`
+	Metadata ResourceMetadata `json:"metadata"`
 
 	// Spec A set of resource allocations.
 	Spec AllocationSpec `json:"spec"`
@@ -299,11 +337,35 @@ type AuthorizationRequestOptions struct {
 	UiLocales *string `json:"ui_locales"`
 }
 
+// AuthorizationServerList List of authorization servers that can grant access to the resource.
+type AuthorizationServerList = []string
+
+// BearerMethod Bearer token transport method
+type BearerMethod string
+
+// BearerMethodList A set of bearer token transport methods supported by the protected endpoint.
+type BearerMethodList = []BearerMethod
+
 // Claim Supported claims.
 type Claim string
 
 // CodeChallengeMethod Supported code challenge methods.
 type CodeChallengeMethod string
+
+// Error Generic error message, compatible with oauth2.
+type Error struct {
+	// Error A terse error string expanding on the HTTP error code. Errors are based on the OAuth 2.02 specification, but are expanded with proprietary status codes for APIs other than those specified by OAuth 2.02.
+	Error ErrorError `json:"error"`
+
+	// ErrorDescription Verbose message describing the error.
+	ErrorDescription string `json:"error_description"`
+
+	// TraceId Unique trace identifier for the request.
+	TraceId *string `json:"trace_id,omitempty"`
+}
+
+// ErrorError A terse error string expanding on the HTTP error code. Errors are based on the OAuth 2.02 specification, but are expanded with proprietary status codes for APIs other than those specified by OAuth 2.02.
+type ErrorError string
 
 // GrantType Supported grant type.
 type GrantType string
@@ -312,12 +374,12 @@ type GrantType string
 type GroupIDs = []string
 
 // GroupId A group ID.
-type GroupId = identityids.GroupID
+type GroupId = openapi_types.UUID
 
 // GroupRead A group when read.
 type GroupRead struct {
 	// Metadata Metadata required by organization scoped resource reads.
-	Metadata externalRef0.OrganizationScopedResourceReadMetadata `json:"metadata"`
+	Metadata OrganizationScopedResourceReadMetadata `json:"metadata"`
 
 	// Spec A group.
 	Spec GroupSpec `json:"spec"`
@@ -341,7 +403,7 @@ type GroupSpec struct {
 // GroupWrite A group when created or updated.
 type GroupWrite struct {
 	// Metadata Metadata required for all API resource reads and writes.
-	Metadata externalRef0.ResourceWriteMetadata `json:"metadata"`
+	Metadata ResourceMetadata `json:"metadata"`
 
 	// Spec A group.
 	Spec GroupSpec `json:"spec"`
@@ -358,6 +420,10 @@ type JsonWebKey = map[string]interface{}
 type JsonWebKeySet struct {
 	Keys *[]JsonWebKey `json:"keys,omitempty"`
 }
+
+// KubernetesLabelValue A valid Kubernetes label value, typically used for resource names that can be
+// indexed in the database.
+type KubernetesLabelValue = string
 
 // LoginRequestOptions Login request options.
 type LoginRequestOptions struct {
@@ -384,12 +450,12 @@ type Oauth2Error struct {
 type Oauth2ErrorError string
 
 // Oauth2ProviderId An OAuth2 provider ID.
-type Oauth2ProviderId = identityids.OAuth2ProviderID
+type Oauth2ProviderId = openapi_types.UUID
 
 // Oauth2ProviderRead An OAuth 2.0 provider when read.
 type Oauth2ProviderRead struct {
 	// Metadata Metadata required by organization scoped resource reads.
-	Metadata externalRef0.OrganizationScopedResourceReadMetadata `json:"metadata"`
+	Metadata OrganizationScopedResourceReadMetadata `json:"metadata"`
 
 	// Spec An OAuth 2.0 provider.
 	Spec Oauth2ProviderSpec `json:"spec"`
@@ -416,7 +482,7 @@ type Oauth2ProviderType string
 // Oauth2ProviderWrite An OAuth 2.0 provider when created or updated.
 type Oauth2ProviderWrite struct {
 	// Metadata Metadata required for all API resource reads and writes.
-	Metadata externalRef0.ResourceWriteMetadata `json:"metadata"`
+	Metadata ResourceMetadata `json:"metadata"`
 
 	// Spec An OAuth 2.0 provider.
 	Spec Oauth2ProviderSpec `json:"spec"`
@@ -476,16 +542,71 @@ type OpenidConfiguration struct {
 	UserinfoEndpoint string `json:"userinfo_endpoint"`
 }
 
+// OpenidProtectedResource OpenID athentication server discovery configuration.
+type OpenidProtectedResource struct {
+	// AuthorizationServers List of authorization servers that can grant access to the resource.
+	AuthorizationServers AuthorizationServerList `json:"authorization_servers"`
+
+	// BearerMethodsSupported A set of bearer token transport methods supported by the protected endpoint.
+	BearerMethodsSupported BearerMethodList `json:"bearer_methods_supported"`
+
+	// Resource The protected resource's scheme and hostname.
+	Resource string `json:"resource"`
+
+	// ScopesSupported A set of OIDC scopes that are required for authorization.
+	ScopesSupported ScopeList `json:"scopes_supported"`
+}
+
 // OrganizationId An organization ID.
-type OrganizationId = identityids.OrganizationID
+type OrganizationId = openapi_types.UUID
 
 // OrganizationRead An organization when read.
 type OrganizationRead struct {
 	// Metadata Metadata required by all resource reads.
-	Metadata externalRef0.ResourceReadMetadata `json:"metadata"`
+	Metadata ResourceReadMetadata `json:"metadata"`
 
 	// Spec An organization.
 	Spec OrganizationSpec `json:"spec"`
+}
+
+// OrganizationScopedResourceReadMetadata defines model for organizationScopedResourceReadMetadata.
+type OrganizationScopedResourceReadMetadata struct {
+	// CreatedBy The user who created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+
+	// CreationTime The time the resource was created.
+	CreationTime time.Time `json:"creationTime"`
+
+	// DeletionTime The time the resource was deleted.
+	DeletionTime *time.Time `json:"deletionTime,omitempty"`
+
+	// Description The resource description, this optionally augments the name with more context.
+	Description *string `json:"description,omitempty"`
+
+	// HealthStatus The health state of a resource.
+	HealthStatus ResourceHealthStatus `json:"healthStatus"`
+
+	// Id The unique resource ID.
+	Id string `json:"id"`
+
+	// ModifiedBy The user who updated the resource.
+	ModifiedBy *string `json:"modifiedBy,omitempty"`
+
+	// ModifiedTime The time a resource was updated.
+	ModifiedTime *time.Time `json:"modifiedTime,omitempty"`
+
+	// Name A valid Kubernetes label value, typically used for resource names that can be
+	// indexed in the database.
+	Name KubernetesLabelValue `json:"name"`
+
+	// OrganizationId The organization identifier the resource belongs to.
+	OrganizationId string `json:"organizationId"`
+
+	// ProvisioningStatus The provisioning state of a resource.
+	ProvisioningStatus ResourceProvisioningStatus `json:"provisioningStatus"`
+
+	// Tags A list of tags.
+	Tags *TagList `json:"tags,omitempty"`
 }
 
 // OrganizationSpec An organization.
@@ -524,7 +645,7 @@ type OrganizationType string
 // OrganizationWrite An organization when created or updated.
 type OrganizationWrite struct {
 	// Metadata Metadata required for all API resource reads and writes.
-	Metadata externalRef0.ResourceWriteMetadata `json:"metadata"`
+	Metadata ResourceMetadata `json:"metadata"`
 
 	// Spec An organization.
 	Spec OrganizationSpec `json:"spec"`
@@ -534,15 +655,58 @@ type OrganizationWrite struct {
 type Organizations = []OrganizationRead
 
 // ProjectId A project ID.
-type ProjectId = identityids.ProjectID
+type ProjectId = openapi_types.UUID
 
 // ProjectRead A project when read.
 type ProjectRead struct {
 	// Metadata Metadata required by organization scoped resource reads.
-	Metadata externalRef0.OrganizationScopedResourceReadMetadata `json:"metadata"`
+	Metadata OrganizationScopedResourceReadMetadata `json:"metadata"`
 
 	// Spec A project.
 	Spec ProjectSpec `json:"spec"`
+}
+
+// ProjectScopedResourceReadMetadata defines model for projectScopedResourceReadMetadata.
+type ProjectScopedResourceReadMetadata struct {
+	// CreatedBy The user who created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+
+	// CreationTime The time the resource was created.
+	CreationTime time.Time `json:"creationTime"`
+
+	// DeletionTime The time the resource was deleted.
+	DeletionTime *time.Time `json:"deletionTime,omitempty"`
+
+	// Description The resource description, this optionally augments the name with more context.
+	Description *string `json:"description,omitempty"`
+
+	// HealthStatus The health state of a resource.
+	HealthStatus ResourceHealthStatus `json:"healthStatus"`
+
+	// Id The unique resource ID.
+	Id string `json:"id"`
+
+	// ModifiedBy The user who updated the resource.
+	ModifiedBy *string `json:"modifiedBy,omitempty"`
+
+	// ModifiedTime The time a resource was updated.
+	ModifiedTime *time.Time `json:"modifiedTime,omitempty"`
+
+	// Name A valid Kubernetes label value, typically used for resource names that can be
+	// indexed in the database.
+	Name KubernetesLabelValue `json:"name"`
+
+	// OrganizationId The organization identifier the resource belongs to.
+	OrganizationId string `json:"organizationId"`
+
+	// ProjectId The project identifier the resource belongs to.
+	ProjectId string `json:"projectId"`
+
+	// ProvisioningStatus The provisioning state of a resource.
+	ProvisioningStatus ResourceProvisioningStatus `json:"provisioningStatus"`
+
+	// Tags A list of tags.
+	Tags *TagList `json:"tags,omitempty"`
 }
 
 // ProjectSpec A project.
@@ -554,7 +718,7 @@ type ProjectSpec struct {
 // ProjectWrite A project when created or updated.
 type ProjectWrite struct {
 	// Metadata Metadata required for all API resource reads and writes.
-	Metadata externalRef0.ResourceWriteMetadata `json:"metadata"`
+	Metadata ResourceMetadata `json:"metadata"`
 
 	// Spec A project.
 	Spec ProjectSpec `json:"spec"`
@@ -645,6 +809,62 @@ type ResourceAllocation struct {
 // ResourceAllocationList A list of quotas.
 type ResourceAllocationList = []ResourceAllocation
 
+// ResourceHealthStatus The health state of a resource.
+type ResourceHealthStatus string
+
+// ResourceMetadata Metadata required for all API resource reads and writes.
+type ResourceMetadata struct {
+	// Description The resource description, this optionally augments the name with more context.
+	Description *string `json:"description,omitempty"`
+
+	// Name A valid Kubernetes label value, typically used for resource names that can be
+	// indexed in the database.
+	Name KubernetesLabelValue `json:"name"`
+
+	// Tags A list of tags.
+	Tags *TagList `json:"tags,omitempty"`
+}
+
+// ResourceProvisioningStatus The provisioning state of a resource.
+type ResourceProvisioningStatus string
+
+// ResourceReadMetadata defines model for resourceReadMetadata.
+type ResourceReadMetadata struct {
+	// CreatedBy The user who created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+
+	// CreationTime The time the resource was created.
+	CreationTime time.Time `json:"creationTime"`
+
+	// DeletionTime The time the resource was deleted.
+	DeletionTime *time.Time `json:"deletionTime,omitempty"`
+
+	// Description The resource description, this optionally augments the name with more context.
+	Description *string `json:"description,omitempty"`
+
+	// HealthStatus The health state of a resource.
+	HealthStatus ResourceHealthStatus `json:"healthStatus"`
+
+	// Id The unique resource ID.
+	Id string `json:"id"`
+
+	// ModifiedBy The user who updated the resource.
+	ModifiedBy *string `json:"modifiedBy,omitempty"`
+
+	// ModifiedTime The time a resource was updated.
+	ModifiedTime *time.Time `json:"modifiedTime,omitempty"`
+
+	// Name A valid Kubernetes label value, typically used for resource names that can be
+	// indexed in the database.
+	Name KubernetesLabelValue `json:"name"`
+
+	// ProvisioningStatus The provisioning state of a resource.
+	ProvisioningStatus ResourceProvisioningStatus `json:"provisioningStatus"`
+
+	// Tags A list of tags.
+	Tags *TagList `json:"tags,omitempty"`
+}
+
 // ResponseMode Supported response modes.
 type ResponseMode string
 
@@ -654,7 +874,7 @@ type ResponseType string
 // RoleRead A role.
 type RoleRead struct {
 	// Metadata Metadata required by all resource reads.
-	Metadata externalRef0.ResourceReadMetadata `json:"metadata"`
+	Metadata ResourceReadMetadata `json:"metadata"`
 }
 
 // Roles A list of roles.
@@ -663,10 +883,13 @@ type Roles = []RoleRead
 // Scope Supported scopes.
 type Scope string
 
+// ScopeList A set of OIDC scopes that are required for authorization.
+type ScopeList = []string
+
 // ServiceAccountCreate A new service account.
 type ServiceAccountCreate struct {
 	// Metadata Metadata required by organization scoped resource reads.
-	Metadata externalRef0.OrganizationScopedResourceReadMetadata `json:"metadata"`
+	Metadata OrganizationScopedResourceReadMetadata `json:"metadata"`
 
 	// Spec A service account specification.
 	Spec ServiceAccountSpec `json:"spec"`
@@ -676,12 +899,12 @@ type ServiceAccountCreate struct {
 }
 
 // ServiceAccountId A service account ID.
-type ServiceAccountId = identityids.ServiceAccountID
+type ServiceAccountId = openapi_types.UUID
 
 // ServiceAccountRead A service account.
 type ServiceAccountRead struct {
 	// Metadata Metadata required by organization scoped resource reads.
-	Metadata externalRef0.OrganizationScopedResourceReadMetadata `json:"metadata"`
+	Metadata OrganizationScopedResourceReadMetadata `json:"metadata"`
 
 	// Spec A service account specification.
 	Spec ServiceAccountSpec `json:"spec"`
@@ -708,7 +931,7 @@ type ServiceAccountStatus struct {
 // ServiceAccountWrite A service account creation request.
 type ServiceAccountWrite struct {
 	// Metadata Metadata required for all API resource reads and writes.
-	Metadata externalRef0.ResourceWriteMetadata `json:"metadata"`
+	Metadata ResourceMetadata `json:"metadata"`
 
 	// Spec A service account specification.
 	Spec ServiceAccountSpec `json:"spec"`
@@ -717,8 +940,46 @@ type ServiceAccountWrite struct {
 // ServiceAccounts A list of service accounts.
 type ServiceAccounts = []ServiceAccountRead
 
+// ServiceVersionRead Build version information for the running service, stamped into the
+// binary at release time.  Developer builds report version 0.0.0.
+type ServiceVersionRead struct {
+	// Name The service application name.
+	Name string `json:"name"`
+
+	// Version The service release version, e.g. v1.2.3.
+	Version string `json:"version"`
+}
+
 // SigningAlgorithm Supported signing algorithms.
 type SigningAlgorithm string
+
+// StaticResourceMetadata defines model for staticResourceMetadata.
+type StaticResourceMetadata struct {
+	// CreatedBy The user who created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+
+	// CreationTime The time the resource was created.
+	CreationTime time.Time `json:"creationTime"`
+
+	// Description The resource description, this optionally augments the name with more context.
+	Description *string `json:"description,omitempty"`
+
+	// Id The unique resource ID.
+	Id string `json:"id"`
+
+	// ModifiedBy The user who updated the resource.
+	ModifiedBy *string `json:"modifiedBy,omitempty"`
+
+	// ModifiedTime The time a resource was updated.
+	ModifiedTime *time.Time `json:"modifiedTime,omitempty"`
+
+	// Name A valid Kubernetes label value, typically used for resource names that can be
+	// indexed in the database.
+	Name KubernetesLabelValue `json:"name"`
+
+	// Tags A list of tags.
+	Tags *TagList `json:"tags,omitempty"`
+}
 
 // StringList A list of strings.
 type StringList = []string
@@ -738,7 +999,7 @@ type Subject struct {
 // SystemOauth2ProviderRead An OAuth 2.0 provider when read.
 type SystemOauth2ProviderRead struct {
 	// Metadata Metadata required by all resource reads.
-	Metadata externalRef0.ResourceReadMetadata `json:"metadata"`
+	Metadata ResourceReadMetadata `json:"metadata"`
 
 	// Spec An OAuth 2.0 provider.
 	Spec Oauth2ProviderSpec `json:"spec"`
@@ -746,6 +1007,20 @@ type SystemOauth2ProviderRead struct {
 
 // SystemOauth2Providers A list of system provided OAuth 2.0 providers.
 type SystemOauth2Providers = []SystemOauth2ProviderRead
+
+// Tag A tag mapping arbitrary names to values.  These have no special meaning
+// for any component are are intended for use by end users to add additional
+// context to a resource, for example to categorize it.
+type Tag struct {
+	// Name A unique tag name.
+	Name string `json:"name"`
+
+	// Value The value of the tag.
+	Value string `json:"value"`
+}
+
+// TagList A list of tags.
+type TagList = []Tag
 
 // Token OAuth 2.0 token result.
 type Token struct {
@@ -839,12 +1114,12 @@ type TokenRequestOptions struct {
 }
 
 // UserId A user ID.
-type UserId = identityids.UserID
+type UserId = openapi_types.UUID
 
 // UserRead A user read object.
 type UserRead struct {
 	// Metadata Metadata required by organization scoped resource reads.
-	Metadata externalRef0.OrganizationScopedResourceReadMetadata `json:"metadata"`
+	Metadata OrganizationScopedResourceReadMetadata `json:"metadata"`
 
 	// Spec A user specification.
 	Spec UserSpec `json:"spec"`
@@ -878,7 +1153,7 @@ type UserStatus struct {
 // UserWrite A user create/update object.
 type UserWrite struct {
 	// Metadata Metadata required for all API resource reads and writes.
-	Metadata *externalRef0.ResourceWriteMetadata `json:"metadata,omitempty"`
+	Metadata *ResourceMetadata `json:"metadata,omitempty"`
 
 	// Spec A user specification.
 	Spec UserSpec `json:"spec"`
@@ -983,15 +1258,30 @@ type AclResponse = Acl
 // AllocationResponse An allocation of resources.
 type AllocationResponse = AllocationRead
 
+// BadRequestResponse Generic error message, compatible with oauth2.
+type BadRequestResponse = Error
+
+// ConflictResponse Generic error message, compatible with oauth2.
+type ConflictResponse = Error
+
+// ForbiddenResponse Generic error message, compatible with oauth2.
+type ForbiddenResponse = Error
+
 // GroupResponse A group when read.
 type GroupResponse = GroupRead
 
 // GroupsResponse A list of groups.
 type GroupsResponse = Groups
 
+// InternalServerErrorResponse Generic error message, compatible with oauth2.
+type InternalServerErrorResponse = Error
+
 // JwksResponse JSON web key set. This data type is defined by an external 3rd party standards
 // committee. Consult the relevant documentation for further details.
 type JwksResponse = JsonWebKeySet
+
+// NotFoundResponse Generic error message, compatible with oauth2.
+type NotFoundResponse = Error
 
 // Oauth2BadRequestResponse Generic error message, compatible with oauth2.
 type Oauth2BadRequestResponse = Oauth2Error
@@ -1010,6 +1300,9 @@ type Oauth2UnauthorizedResponse = Oauth2Error
 
 // OpenidConfigurationResponse OpenID configuration.
 type OpenidConfigurationResponse = OpenidConfiguration
+
+// OpenidProtectedResourceResponse OpenID athentication server discovery configuration.
+type OpenidProtectedResourceResponse = OpenidProtectedResource
 
 // OrganizationResponse An organization when read.
 type OrganizationResponse = OrganizationRead
@@ -1038,11 +1331,18 @@ type ServiceAccountResponse = ServiceAccountRead
 // ServiceAccountsResponse A list of service accounts.
 type ServiceAccountsResponse = ServiceAccounts
 
+// ServiceVersionResponse Build version information for the running service, stamped into the
+// binary at release time.  Developer builds report version 0.0.0.
+type ServiceVersionResponse = ServiceVersionRead
+
 // SystemOauth2ProvidersResponse A list of OAuth 2.0 providers.
 type SystemOauth2ProvidersResponse = Oauth2Providers
 
 // TokenResponse OAuth 2.0 token result.
 type TokenResponse = Token
+
+// UnauthorizedResponse Generic error message, compatible with oauth2.
+type UnauthorizedResponse = Error
 
 // UserResponse A user read object.
 type UserResponse = UserRead
@@ -1092,9 +1392,6 @@ type GetApiV1OrganizationsParams struct {
 	Email *UserEmailParameter `form:"email,omitempty" json:"email,omitempty"`
 }
 
-// PostApiV1OrganizationsJSONRequestBody defines body for PostApiV1Organizations for application/json ContentType.
-type PostApiV1OrganizationsJSONRequestBody = OrganizationWrite
-
 // PutApiV1OrganizationsOrganizationIDJSONRequestBody defines body for PutApiV1OrganizationsOrganizationID for application/json ContentType.
 type PutApiV1OrganizationsOrganizationIDJSONRequestBody = OrganizationWrite
 
@@ -1104,26 +1401,11 @@ type PostApiV1OrganizationsOrganizationIDGroupsJSONRequestBody = GroupWrite
 // PutApiV1OrganizationsOrganizationIDGroupsGroupidJSONRequestBody defines body for PutApiV1OrganizationsOrganizationIDGroupsGroupid for application/json ContentType.
 type PutApiV1OrganizationsOrganizationIDGroupsGroupidJSONRequestBody = GroupWrite
 
-// PostApiV1OrganizationsOrganizationIDOauth2providersJSONRequestBody defines body for PostApiV1OrganizationsOrganizationIDOauth2providers for application/json ContentType.
-type PostApiV1OrganizationsOrganizationIDOauth2providersJSONRequestBody = Oauth2ProviderWrite
-
-// PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDJSONRequestBody defines body for PutApiV1OrganizationsOrganizationIDOauth2providersProviderID for application/json ContentType.
-type PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDJSONRequestBody = Oauth2ProviderWrite
-
 // PostApiV1OrganizationsOrganizationIDProjectsJSONRequestBody defines body for PostApiV1OrganizationsOrganizationIDProjects for application/json ContentType.
 type PostApiV1OrganizationsOrganizationIDProjectsJSONRequestBody = ProjectWrite
 
 // PutApiV1OrganizationsOrganizationIDProjectsProjectIDJSONRequestBody defines body for PutApiV1OrganizationsOrganizationIDProjectsProjectID for application/json ContentType.
 type PutApiV1OrganizationsOrganizationIDProjectsProjectIDJSONRequestBody = ProjectWrite
-
-// PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsJSONRequestBody defines body for PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocations for application/json ContentType.
-type PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsJSONRequestBody = AllocationWrite
-
-// PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDJSONRequestBody defines body for PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationID for application/json ContentType.
-type PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDJSONRequestBody = AllocationWrite
-
-// PutApiV1OrganizationsOrganizationIDQuotasJSONRequestBody defines body for PutApiV1OrganizationsOrganizationIDQuotas for application/json ContentType.
-type PutApiV1OrganizationsOrganizationIDQuotasJSONRequestBody = QuotasWrite
 
 // PostApiV1OrganizationsOrganizationIDServiceaccountsJSONRequestBody defines body for PostApiV1OrganizationsOrganizationIDServiceaccounts for application/json ContentType.
 type PostApiV1OrganizationsOrganizationIDServiceaccountsJSONRequestBody = ServiceAccountWrite
@@ -1136,18 +1418,6 @@ type PostApiV1OrganizationsOrganizationIDUsersJSONRequestBody = UserWrite
 
 // PutApiV1OrganizationsOrganizationIDUsersUserIDJSONRequestBody defines body for PutApiV1OrganizationsOrganizationIDUsersUserID for application/json ContentType.
 type PutApiV1OrganizationsOrganizationIDUsersUserIDJSONRequestBody = UserWrite
-
-// PostOauth2V2AuthorizationFormdataRequestBody defines body for PostOauth2V2Authorization for application/x-www-form-urlencoded ContentType.
-type PostOauth2V2AuthorizationFormdataRequestBody = AuthorizationRequestOptions
-
-// PostOauth2V2LoginFormdataRequestBody defines body for PostOauth2V2Login for application/x-www-form-urlencoded ContentType.
-type PostOauth2V2LoginFormdataRequestBody = LoginRequestOptions
-
-// PostOauth2V2TokenFormdataRequestBody defines body for PostOauth2V2Token for application/x-www-form-urlencoded ContentType.
-type PostOauth2V2TokenFormdataRequestBody = TokenRequestOptions
-
-// PostOauth2V2UserinfoFormdataRequestBody defines body for PostOauth2V2Userinfo for application/x-www-form-urlencoded ContentType.
-type PostOauth2V2UserinfoFormdataRequestBody = UserinfoRequestOptions
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -1222,28 +1492,8 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// GetWellKnownOpenidConfiguration request
-	GetWellKnownOpenidConfiguration(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetWellKnownOpenidProtectedResource request
-	GetWellKnownOpenidProtectedResource(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetApiV1Acl request
-	GetApiV1Acl(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetApiV1Oauth2providers request
-	GetApiV1Oauth2providers(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// GetApiV1Organizations request
 	GetApiV1Organizations(ctx context.Context, params *GetApiV1OrganizationsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// PostApiV1OrganizationsWithBody request with any body
-	PostApiV1OrganizationsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	PostApiV1Organizations(ctx context.Context, body PostApiV1OrganizationsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// DeleteApiV1OrganizationsOrganizationID request
-	DeleteApiV1OrganizationsOrganizationID(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetApiV1OrganizationsOrganizationID request
 	GetApiV1OrganizationsOrganizationID(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1252,9 +1502,6 @@ type ClientInterface interface {
 	PutApiV1OrganizationsOrganizationIDWithBody(ctx context.Context, organizationID OrganizationIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	PutApiV1OrganizationsOrganizationID(ctx context.Context, organizationID OrganizationIDParameter, body PutApiV1OrganizationsOrganizationIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetApiV1OrganizationsOrganizationIDAcl request
-	GetApiV1OrganizationsOrganizationIDAcl(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetApiV1OrganizationsOrganizationIDGroups request
 	GetApiV1OrganizationsOrganizationIDGroups(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1275,22 +1522,6 @@ type ClientInterface interface {
 
 	PutApiV1OrganizationsOrganizationIDGroupsGroupid(ctx context.Context, organizationID OrganizationIDParameter, groupid GroupidParameter, body PutApiV1OrganizationsOrganizationIDGroupsGroupidJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetApiV1OrganizationsOrganizationIDOauth2providers request
-	GetApiV1OrganizationsOrganizationIDOauth2providers(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// PostApiV1OrganizationsOrganizationIDOauth2providersWithBody request with any body
-	PostApiV1OrganizationsOrganizationIDOauth2providersWithBody(ctx context.Context, organizationID OrganizationIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	PostApiV1OrganizationsOrganizationIDOauth2providers(ctx context.Context, organizationID OrganizationIDParameter, body PostApiV1OrganizationsOrganizationIDOauth2providersJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// DeleteApiV1OrganizationsOrganizationIDOauth2providersProviderID request
-	DeleteApiV1OrganizationsOrganizationIDOauth2providersProviderID(ctx context.Context, organizationID OrganizationIDParameter, providerID Oauth2ProvderIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDWithBody request with any body
-	PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDWithBody(ctx context.Context, organizationID OrganizationIDParameter, providerID Oauth2ProvderIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	PutApiV1OrganizationsOrganizationIDOauth2providersProviderID(ctx context.Context, organizationID OrganizationIDParameter, providerID Oauth2ProvderIDParameter, body PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// GetApiV1OrganizationsOrganizationIDProjects request
 	GetApiV1OrganizationsOrganizationIDProjects(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -1310,35 +1541,8 @@ type ClientInterface interface {
 
 	PutApiV1OrganizationsOrganizationIDProjectsProjectID(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, body PutApiV1OrganizationsOrganizationIDProjectsProjectIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsWithBody request with any body
-	PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsWithBody(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocations(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, body PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationID request
-	DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationID(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, allocationID AllocationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationID request
-	GetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationID(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, allocationID AllocationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDWithBody request with any body
-	PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDWithBody(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, allocationID AllocationIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationID(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, allocationID AllocationIDParameter, body PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReference request
-	DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReference(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, reference ReferenceParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// PutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReference request
-	PutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReference(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, reference ReferenceParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// GetApiV1OrganizationsOrganizationIDQuotas request
 	GetApiV1OrganizationsOrganizationIDQuotas(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// PutApiV1OrganizationsOrganizationIDQuotasWithBody request with any body
-	PutApiV1OrganizationsOrganizationIDQuotasWithBody(ctx context.Context, organizationID OrganizationIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	PutApiV1OrganizationsOrganizationIDQuotas(ctx context.Context, organizationID OrganizationIDParameter, body PutApiV1OrganizationsOrganizationIDQuotasJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetApiV1OrganizationsOrganizationIDRoles request
 	GetApiV1OrganizationsOrganizationIDRoles(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1380,126 +1584,10 @@ type ClientInterface interface {
 
 	// GetApiVersion request
 	GetApiVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetOauth2V2Authorization request
-	GetOauth2V2Authorization(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// PostOauth2V2AuthorizationWithBody request with any body
-	PostOauth2V2AuthorizationWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	PostOauth2V2AuthorizationWithFormdataBody(ctx context.Context, body PostOauth2V2AuthorizationFormdataRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetOauth2V2Jwks request
-	GetOauth2V2Jwks(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// PostOauth2V2LoginWithBody request with any body
-	PostOauth2V2LoginWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	PostOauth2V2LoginWithFormdataBody(ctx context.Context, body PostOauth2V2LoginFormdataRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// PostOauth2V2TokenWithBody request with any body
-	PostOauth2V2TokenWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	PostOauth2V2TokenWithFormdataBody(ctx context.Context, body PostOauth2V2TokenFormdataRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetOauth2V2Userinfo request
-	GetOauth2V2Userinfo(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// PostOauth2V2UserinfoWithBody request with any body
-	PostOauth2V2UserinfoWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	PostOauth2V2UserinfoWithFormdataBody(ctx context.Context, body PostOauth2V2UserinfoFormdataRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-
-	// GetOidcCallback request
-	GetOidcCallback(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-}
-
-func (c *Client) GetWellKnownOpenidConfiguration(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetWellKnownOpenidConfigurationRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetWellKnownOpenidProtectedResource(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetWellKnownOpenidProtectedResourceRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetApiV1Acl(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetApiV1AclRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetApiV1Oauth2providers(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetApiV1Oauth2providersRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
 }
 
 func (c *Client) GetApiV1Organizations(ctx context.Context, params *GetApiV1OrganizationsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetApiV1OrganizationsRequest(c.Server, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PostApiV1OrganizationsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostApiV1OrganizationsRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PostApiV1Organizations(ctx context.Context, body PostApiV1OrganizationsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostApiV1OrganizationsRequest(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) DeleteApiV1OrganizationsOrganizationID(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteApiV1OrganizationsOrganizationIDRequest(c.Server, organizationID)
 	if err != nil {
 		return nil, err
 	}
@@ -1536,18 +1624,6 @@ func (c *Client) PutApiV1OrganizationsOrganizationIDWithBody(ctx context.Context
 
 func (c *Client) PutApiV1OrganizationsOrganizationID(ctx context.Context, organizationID OrganizationIDParameter, body PutApiV1OrganizationsOrganizationIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPutApiV1OrganizationsOrganizationIDRequest(c.Server, organizationID, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetApiV1OrganizationsOrganizationIDAcl(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetApiV1OrganizationsOrganizationIDAclRequest(c.Server, organizationID)
 	if err != nil {
 		return nil, err
 	}
@@ -1642,78 +1718,6 @@ func (c *Client) PutApiV1OrganizationsOrganizationIDGroupsGroupid(ctx context.Co
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetApiV1OrganizationsOrganizationIDOauth2providers(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetApiV1OrganizationsOrganizationIDOauth2providersRequest(c.Server, organizationID)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PostApiV1OrganizationsOrganizationIDOauth2providersWithBody(ctx context.Context, organizationID OrganizationIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostApiV1OrganizationsOrganizationIDOauth2providersRequestWithBody(c.Server, organizationID, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PostApiV1OrganizationsOrganizationIDOauth2providers(ctx context.Context, organizationID OrganizationIDParameter, body PostApiV1OrganizationsOrganizationIDOauth2providersJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostApiV1OrganizationsOrganizationIDOauth2providersRequest(c.Server, organizationID, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) DeleteApiV1OrganizationsOrganizationIDOauth2providersProviderID(ctx context.Context, organizationID OrganizationIDParameter, providerID Oauth2ProvderIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteApiV1OrganizationsOrganizationIDOauth2providersProviderIDRequest(c.Server, organizationID, providerID)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDWithBody(ctx context.Context, organizationID OrganizationIDParameter, providerID Oauth2ProvderIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPutApiV1OrganizationsOrganizationIDOauth2providersProviderIDRequestWithBody(c.Server, organizationID, providerID, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PutApiV1OrganizationsOrganizationIDOauth2providersProviderID(ctx context.Context, organizationID OrganizationIDParameter, providerID Oauth2ProvderIDParameter, body PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPutApiV1OrganizationsOrganizationIDOauth2providersProviderIDRequest(c.Server, organizationID, providerID, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) GetApiV1OrganizationsOrganizationIDProjects(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetApiV1OrganizationsOrganizationIDProjectsRequest(c.Server, organizationID)
 	if err != nil {
@@ -1798,128 +1802,8 @@ func (c *Client) PutApiV1OrganizationsOrganizationIDProjectsProjectID(ctx contex
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsWithBody(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsRequestWithBody(c.Server, organizationID, projectID, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocations(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, body PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsRequest(c.Server, organizationID, projectID, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationID(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, allocationID AllocationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDRequest(c.Server, organizationID, projectID, allocationID)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationID(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, allocationID AllocationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDRequest(c.Server, organizationID, projectID, allocationID)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDWithBody(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, allocationID AllocationIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDRequestWithBody(c.Server, organizationID, projectID, allocationID, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationID(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, allocationID AllocationIDParameter, body PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDRequest(c.Server, organizationID, projectID, allocationID, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReference(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, reference ReferenceParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceRequest(c.Server, organizationID, projectID, reference)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReference(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, reference ReferenceParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceRequest(c.Server, organizationID, projectID, reference)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
 func (c *Client) GetApiV1OrganizationsOrganizationIDQuotas(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetApiV1OrganizationsOrganizationIDQuotasRequest(c.Server, organizationID)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PutApiV1OrganizationsOrganizationIDQuotasWithBody(ctx context.Context, organizationID OrganizationIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPutApiV1OrganizationsOrganizationIDQuotasRequestWithBody(c.Server, organizationID, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PutApiV1OrganizationsOrganizationIDQuotas(ctx context.Context, organizationID OrganizationIDParameter, body PutApiV1OrganizationsOrganizationIDQuotasJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPutApiV1OrganizationsOrganizationIDQuotasRequest(c.Server, organizationID, body)
 	if err != nil {
 		return nil, err
 	}
@@ -2110,258 +1994,6 @@ func (c *Client) GetApiVersion(ctx context.Context, reqEditors ...RequestEditorF
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetOauth2V2Authorization(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetOauth2V2AuthorizationRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PostOauth2V2AuthorizationWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostOauth2V2AuthorizationRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PostOauth2V2AuthorizationWithFormdataBody(ctx context.Context, body PostOauth2V2AuthorizationFormdataRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostOauth2V2AuthorizationRequestWithFormdataBody(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetOauth2V2Jwks(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetOauth2V2JwksRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PostOauth2V2LoginWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostOauth2V2LoginRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PostOauth2V2LoginWithFormdataBody(ctx context.Context, body PostOauth2V2LoginFormdataRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostOauth2V2LoginRequestWithFormdataBody(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PostOauth2V2TokenWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostOauth2V2TokenRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PostOauth2V2TokenWithFormdataBody(ctx context.Context, body PostOauth2V2TokenFormdataRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostOauth2V2TokenRequestWithFormdataBody(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetOauth2V2Userinfo(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetOauth2V2UserinfoRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PostOauth2V2UserinfoWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostOauth2V2UserinfoRequestWithBody(c.Server, contentType, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) PostOauth2V2UserinfoWithFormdataBody(ctx context.Context, body PostOauth2V2UserinfoFormdataRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostOauth2V2UserinfoRequestWithFormdataBody(c.Server, body)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-func (c *Client) GetOidcCallback(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetOidcCallbackRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
-}
-
-// NewGetWellKnownOpenidConfigurationRequest generates requests for GetWellKnownOpenidConfiguration
-func NewGetWellKnownOpenidConfigurationRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/.well-known/openid-configuration")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewGetWellKnownOpenidProtectedResourceRequest generates requests for GetWellKnownOpenidProtectedResource
-func NewGetWellKnownOpenidProtectedResourceRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/.well-known/openid-protected-resource")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewGetApiV1AclRequest generates requests for GetApiV1Acl
-func NewGetApiV1AclRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/acl")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewGetApiV1Oauth2providersRequest generates requests for GetApiV1Oauth2providers
-func NewGetApiV1Oauth2providersRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/oauth2providers")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewGetApiV1OrganizationsRequest generates requests for GetApiV1Organizations
 func NewGetApiV1OrganizationsRequest(server string, params *GetApiV1OrganizationsParams) (*http.Request, error) {
 	var err error
@@ -2404,80 +2036,6 @@ func NewGetApiV1OrganizationsRequest(server string, params *GetApiV1Organization
 	}
 
 	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewPostApiV1OrganizationsRequest calls the generic PostApiV1Organizations builder with application/json body
-func NewPostApiV1OrganizationsRequest(server string, body PostApiV1OrganizationsJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewPostApiV1OrganizationsRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewPostApiV1OrganizationsRequestWithBody generates requests for PostApiV1Organizations with any type of body
-func NewPostApiV1OrganizationsRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewDeleteApiV1OrganizationsOrganizationIDRequest generates requests for DeleteApiV1OrganizationsOrganizationID
-func NewDeleteApiV1OrganizationsOrganizationIDRequest(server string, organizationID OrganizationIDParameter) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -2562,40 +2120,6 @@ func NewPutApiV1OrganizationsOrganizationIDRequestWithBody(server string, organi
 	}
 
 	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewGetApiV1OrganizationsOrganizationIDAclRequest generates requests for GetApiV1OrganizationsOrganizationIDAcl
-func NewGetApiV1OrganizationsOrganizationIDAclRequest(server string, organizationID OrganizationIDParameter) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/acl", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
 
 	return req, nil
 }
@@ -2798,182 +2322,6 @@ func NewPutApiV1OrganizationsOrganizationIDGroupsGroupidRequestWithBody(server s
 	}
 
 	operationPath := fmt.Sprintf("/api/v1/organizations/%s/groups/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("PUT", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewGetApiV1OrganizationsOrganizationIDOauth2providersRequest generates requests for GetApiV1OrganizationsOrganizationIDOauth2providers
-func NewGetApiV1OrganizationsOrganizationIDOauth2providersRequest(server string, organizationID OrganizationIDParameter) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/oauth2providers", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewPostApiV1OrganizationsOrganizationIDOauth2providersRequest calls the generic PostApiV1OrganizationsOrganizationIDOauth2providers builder with application/json body
-func NewPostApiV1OrganizationsOrganizationIDOauth2providersRequest(server string, organizationID OrganizationIDParameter, body PostApiV1OrganizationsOrganizationIDOauth2providersJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewPostApiV1OrganizationsOrganizationIDOauth2providersRequestWithBody(server, organizationID, "application/json", bodyReader)
-}
-
-// NewPostApiV1OrganizationsOrganizationIDOauth2providersRequestWithBody generates requests for PostApiV1OrganizationsOrganizationIDOauth2providers with any type of body
-func NewPostApiV1OrganizationsOrganizationIDOauth2providersRequestWithBody(server string, organizationID OrganizationIDParameter, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/oauth2providers", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewDeleteApiV1OrganizationsOrganizationIDOauth2providersProviderIDRequest generates requests for DeleteApiV1OrganizationsOrganizationIDOauth2providersProviderID
-func NewDeleteApiV1OrganizationsOrganizationIDOauth2providersProviderIDRequest(server string, organizationID OrganizationIDParameter, providerID Oauth2ProvderIDParameter) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "providerID", runtime.ParamLocationPath, providerID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/oauth2providers/%s", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewPutApiV1OrganizationsOrganizationIDOauth2providersProviderIDRequest calls the generic PutApiV1OrganizationsOrganizationIDOauth2providersProviderID builder with application/json body
-func NewPutApiV1OrganizationsOrganizationIDOauth2providersProviderIDRequest(server string, organizationID OrganizationIDParameter, providerID Oauth2ProvderIDParameter, body PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewPutApiV1OrganizationsOrganizationIDOauth2providersProviderIDRequestWithBody(server, organizationID, providerID, "application/json", bodyReader)
-}
-
-// NewPutApiV1OrganizationsOrganizationIDOauth2providersProviderIDRequestWithBody generates requests for PutApiV1OrganizationsOrganizationIDOauth2providersProviderID with any type of body
-func NewPutApiV1OrganizationsOrganizationIDOauth2providersProviderIDRequestWithBody(server string, organizationID OrganizationIDParameter, providerID Oauth2ProvderIDParameter, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "providerID", runtime.ParamLocationPath, providerID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/oauth2providers/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -3210,313 +2558,6 @@ func NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDRequestWithBody(serv
 	return req, nil
 }
 
-// NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsRequest calls the generic PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocations builder with application/json body
-func NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsRequest(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, body PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsRequestWithBody(server, organizationID, projectID, "application/json", bodyReader)
-}
-
-// NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsRequestWithBody generates requests for PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocations with any type of body
-func NewPostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsRequestWithBody(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "projectID", runtime.ParamLocationPath, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/projects/%s/allocations", pathParam0, pathParam1)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDRequest generates requests for DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationID
-func NewDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDRequest(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, allocationID AllocationIDParameter) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "projectID", runtime.ParamLocationPath, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "allocationID", runtime.ParamLocationPath, allocationID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/projects/%s/allocations/%s", pathParam0, pathParam1, pathParam2)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewGetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDRequest generates requests for GetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationID
-func NewGetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDRequest(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, allocationID AllocationIDParameter) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "projectID", runtime.ParamLocationPath, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "allocationID", runtime.ParamLocationPath, allocationID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/projects/%s/allocations/%s", pathParam0, pathParam1, pathParam2)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDRequest calls the generic PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationID builder with application/json body
-func NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDRequest(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, allocationID AllocationIDParameter, body PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDRequestWithBody(server, organizationID, projectID, allocationID, "application/json", bodyReader)
-}
-
-// NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDRequestWithBody generates requests for PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationID with any type of body
-func NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDRequestWithBody(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, allocationID AllocationIDParameter, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "projectID", runtime.ParamLocationPath, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "allocationID", runtime.ParamLocationPath, allocationID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/projects/%s/allocations/%s", pathParam0, pathParam1, pathParam2)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("PUT", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceRequest generates requests for DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReference
-func NewDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceRequest(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, reference ReferenceParameter) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "projectID", runtime.ParamLocationPath, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "reference", runtime.ParamLocationPath, reference)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/projects/%s/references/%s", pathParam0, pathParam1, pathParam2)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceRequest generates requests for PutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReference
-func NewPutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceRequest(server string, organizationID OrganizationIDParameter, projectID ProjectIDParameter, reference ReferenceParameter) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam1 string
-
-	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "projectID", runtime.ParamLocationPath, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	var pathParam2 string
-
-	pathParam2, err = runtime.StyleParamWithLocation("simple", false, "reference", runtime.ParamLocationPath, reference)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/projects/%s/references/%s", pathParam0, pathParam1, pathParam2)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("PUT", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 // NewGetApiV1OrganizationsOrganizationIDQuotasRequest generates requests for GetApiV1OrganizationsOrganizationIDQuotas
 func NewGetApiV1OrganizationsOrganizationIDQuotasRequest(server string, organizationID OrganizationIDParameter) (*http.Request, error) {
 	var err error
@@ -3547,53 +2588,6 @@ func NewGetApiV1OrganizationsOrganizationIDQuotasRequest(server string, organiza
 	if err != nil {
 		return nil, err
 	}
-
-	return req, nil
-}
-
-// NewPutApiV1OrganizationsOrganizationIDQuotasRequest calls the generic PutApiV1OrganizationsOrganizationIDQuotas builder with application/json body
-func NewPutApiV1OrganizationsOrganizationIDQuotasRequest(server string, organizationID OrganizationIDParameter, body PutApiV1OrganizationsOrganizationIDQuotasJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewPutApiV1OrganizationsOrganizationIDQuotasRequestWithBody(server, organizationID, "application/json", bodyReader)
-}
-
-// NewPutApiV1OrganizationsOrganizationIDQuotasRequestWithBody generates requests for PutApiV1OrganizationsOrganizationIDQuotas with any type of body
-func NewPutApiV1OrganizationsOrganizationIDQuotasRequestWithBody(server string, organizationID OrganizationIDParameter, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/api/v1/organizations/%s/quotas", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("PUT", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -4052,274 +3046,6 @@ func NewGetApiVersionRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
-// NewGetOauth2V2AuthorizationRequest generates requests for GetOauth2V2Authorization
-func NewGetOauth2V2AuthorizationRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/oauth2/v2/authorization")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewPostOauth2V2AuthorizationRequestWithFormdataBody calls the generic PostOauth2V2Authorization builder with application/x-www-form-urlencoded body
-func NewPostOauth2V2AuthorizationRequestWithFormdataBody(server string, body PostOauth2V2AuthorizationFormdataRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	bodyStr, err := runtime.MarshalForm(body, nil)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = strings.NewReader(bodyStr.Encode())
-	return NewPostOauth2V2AuthorizationRequestWithBody(server, "application/x-www-form-urlencoded", bodyReader)
-}
-
-// NewPostOauth2V2AuthorizationRequestWithBody generates requests for PostOauth2V2Authorization with any type of body
-func NewPostOauth2V2AuthorizationRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/oauth2/v2/authorization")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewGetOauth2V2JwksRequest generates requests for GetOauth2V2Jwks
-func NewGetOauth2V2JwksRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/oauth2/v2/jwks")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewPostOauth2V2LoginRequestWithFormdataBody calls the generic PostOauth2V2Login builder with application/x-www-form-urlencoded body
-func NewPostOauth2V2LoginRequestWithFormdataBody(server string, body PostOauth2V2LoginFormdataRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	bodyStr, err := runtime.MarshalForm(body, nil)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = strings.NewReader(bodyStr.Encode())
-	return NewPostOauth2V2LoginRequestWithBody(server, "application/x-www-form-urlencoded", bodyReader)
-}
-
-// NewPostOauth2V2LoginRequestWithBody generates requests for PostOauth2V2Login with any type of body
-func NewPostOauth2V2LoginRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/oauth2/v2/login")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewPostOauth2V2TokenRequestWithFormdataBody calls the generic PostOauth2V2Token builder with application/x-www-form-urlencoded body
-func NewPostOauth2V2TokenRequestWithFormdataBody(server string, body PostOauth2V2TokenFormdataRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	bodyStr, err := runtime.MarshalForm(body, nil)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = strings.NewReader(bodyStr.Encode())
-	return NewPostOauth2V2TokenRequestWithBody(server, "application/x-www-form-urlencoded", bodyReader)
-}
-
-// NewPostOauth2V2TokenRequestWithBody generates requests for PostOauth2V2Token with any type of body
-func NewPostOauth2V2TokenRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/oauth2/v2/token")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewGetOauth2V2UserinfoRequest generates requests for GetOauth2V2Userinfo
-func NewGetOauth2V2UserinfoRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/oauth2/v2/userinfo")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
-// NewPostOauth2V2UserinfoRequestWithFormdataBody calls the generic PostOauth2V2Userinfo builder with application/x-www-form-urlencoded body
-func NewPostOauth2V2UserinfoRequestWithFormdataBody(server string, body PostOauth2V2UserinfoFormdataRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	bodyStr, err := runtime.MarshalForm(body, nil)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = strings.NewReader(bodyStr.Encode())
-	return NewPostOauth2V2UserinfoRequestWithBody(server, "application/x-www-form-urlencoded", bodyReader)
-}
-
-// NewPostOauth2V2UserinfoRequestWithBody generates requests for PostOauth2V2Userinfo with any type of body
-func NewPostOauth2V2UserinfoRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/oauth2/v2/userinfo")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewGetOidcCallbackRequest generates requests for GetOidcCallback
-func NewGetOidcCallbackRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/oidc/callback")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
-}
-
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -4363,28 +3089,8 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// GetWellKnownOpenidConfigurationWithResponse request
-	GetWellKnownOpenidConfigurationWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetWellKnownOpenidConfigurationResponse, error)
-
-	// GetWellKnownOpenidProtectedResourceWithResponse request
-	GetWellKnownOpenidProtectedResourceWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetWellKnownOpenidProtectedResourceResponse, error)
-
-	// GetApiV1AclWithResponse request
-	GetApiV1AclWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetApiV1AclResponse, error)
-
-	// GetApiV1Oauth2providersWithResponse request
-	GetApiV1Oauth2providersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetApiV1Oauth2providersResponse, error)
-
 	// GetApiV1OrganizationsWithResponse request
 	GetApiV1OrganizationsWithResponse(ctx context.Context, params *GetApiV1OrganizationsParams, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsResponse, error)
-
-	// PostApiV1OrganizationsWithBodyWithResponse request with any body
-	PostApiV1OrganizationsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsResponse, error)
-
-	PostApiV1OrganizationsWithResponse(ctx context.Context, body PostApiV1OrganizationsJSONRequestBody, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsResponse, error)
-
-	// DeleteApiV1OrganizationsOrganizationIDWithResponse request
-	DeleteApiV1OrganizationsOrganizationIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*DeleteApiV1OrganizationsOrganizationIDResponse, error)
 
 	// GetApiV1OrganizationsOrganizationIDWithResponse request
 	GetApiV1OrganizationsOrganizationIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDResponse, error)
@@ -4393,9 +3099,6 @@ type ClientWithResponsesInterface interface {
 	PutApiV1OrganizationsOrganizationIDWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDResponse, error)
 
 	PutApiV1OrganizationsOrganizationIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, body PutApiV1OrganizationsOrganizationIDJSONRequestBody, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDResponse, error)
-
-	// GetApiV1OrganizationsOrganizationIDAclWithResponse request
-	GetApiV1OrganizationsOrganizationIDAclWithResponse(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDAclResponse, error)
 
 	// GetApiV1OrganizationsOrganizationIDGroupsWithResponse request
 	GetApiV1OrganizationsOrganizationIDGroupsWithResponse(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDGroupsResponse, error)
@@ -4416,22 +3119,6 @@ type ClientWithResponsesInterface interface {
 
 	PutApiV1OrganizationsOrganizationIDGroupsGroupidWithResponse(ctx context.Context, organizationID OrganizationIDParameter, groupid GroupidParameter, body PutApiV1OrganizationsOrganizationIDGroupsGroupidJSONRequestBody, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDGroupsGroupidResponse, error)
 
-	// GetApiV1OrganizationsOrganizationIDOauth2providersWithResponse request
-	GetApiV1OrganizationsOrganizationIDOauth2providersWithResponse(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDOauth2providersResponse, error)
-
-	// PostApiV1OrganizationsOrganizationIDOauth2providersWithBodyWithResponse request with any body
-	PostApiV1OrganizationsOrganizationIDOauth2providersWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsOrganizationIDOauth2providersResponse, error)
-
-	PostApiV1OrganizationsOrganizationIDOauth2providersWithResponse(ctx context.Context, organizationID OrganizationIDParameter, body PostApiV1OrganizationsOrganizationIDOauth2providersJSONRequestBody, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsOrganizationIDOauth2providersResponse, error)
-
-	// DeleteApiV1OrganizationsOrganizationIDOauth2providersProviderIDWithResponse request
-	DeleteApiV1OrganizationsOrganizationIDOauth2providersProviderIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, providerID Oauth2ProvderIDParameter, reqEditors ...RequestEditorFn) (*DeleteApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse, error)
-
-	// PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDWithBodyWithResponse request with any body
-	PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, providerID Oauth2ProvderIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse, error)
-
-	PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, providerID Oauth2ProvderIDParameter, body PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDJSONRequestBody, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse, error)
-
 	// GetApiV1OrganizationsOrganizationIDProjectsWithResponse request
 	GetApiV1OrganizationsOrganizationIDProjectsWithResponse(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDProjectsResponse, error)
 
@@ -4451,35 +3138,8 @@ type ClientWithResponsesInterface interface {
 
 	PutApiV1OrganizationsOrganizationIDProjectsProjectIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, body PutApiV1OrganizationsOrganizationIDProjectsProjectIDJSONRequestBody, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDResponse, error)
 
-	// PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsWithBodyWithResponse request with any body
-	PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsResponse, error)
-
-	PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, body PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsJSONRequestBody, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsResponse, error)
-
-	// DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDWithResponse request
-	DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, allocationID AllocationIDParameter, reqEditors ...RequestEditorFn) (*DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse, error)
-
-	// GetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDWithResponse request
-	GetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, allocationID AllocationIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse, error)
-
-	// PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDWithBodyWithResponse request with any body
-	PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, allocationID AllocationIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse, error)
-
-	PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, allocationID AllocationIDParameter, body PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDJSONRequestBody, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse, error)
-
-	// DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceWithResponse request
-	DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, reference ReferenceParameter, reqEditors ...RequestEditorFn) (*DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceResponse, error)
-
-	// PutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceWithResponse request
-	PutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, reference ReferenceParameter, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceResponse, error)
-
 	// GetApiV1OrganizationsOrganizationIDQuotasWithResponse request
 	GetApiV1OrganizationsOrganizationIDQuotasWithResponse(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDQuotasResponse, error)
-
-	// PutApiV1OrganizationsOrganizationIDQuotasWithBodyWithResponse request with any body
-	PutApiV1OrganizationsOrganizationIDQuotasWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDQuotasResponse, error)
-
-	PutApiV1OrganizationsOrganizationIDQuotasWithResponse(ctx context.Context, organizationID OrganizationIDParameter, body PutApiV1OrganizationsOrganizationIDQuotasJSONRequestBody, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDQuotasResponse, error)
 
 	// GetApiV1OrganizationsOrganizationIDRolesWithResponse request
 	GetApiV1OrganizationsOrganizationIDRolesWithResponse(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDRolesResponse, error)
@@ -4521,141 +3181,16 @@ type ClientWithResponsesInterface interface {
 
 	// GetApiVersionWithResponse request
 	GetApiVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetApiVersionResponse, error)
-
-	// GetOauth2V2AuthorizationWithResponse request
-	GetOauth2V2AuthorizationWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOauth2V2AuthorizationResponse, error)
-
-	// PostOauth2V2AuthorizationWithBodyWithResponse request with any body
-	PostOauth2V2AuthorizationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostOauth2V2AuthorizationResponse, error)
-
-	PostOauth2V2AuthorizationWithFormdataBodyWithResponse(ctx context.Context, body PostOauth2V2AuthorizationFormdataRequestBody, reqEditors ...RequestEditorFn) (*PostOauth2V2AuthorizationResponse, error)
-
-	// GetOauth2V2JwksWithResponse request
-	GetOauth2V2JwksWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOauth2V2JwksResponse, error)
-
-	// PostOauth2V2LoginWithBodyWithResponse request with any body
-	PostOauth2V2LoginWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostOauth2V2LoginResponse, error)
-
-	PostOauth2V2LoginWithFormdataBodyWithResponse(ctx context.Context, body PostOauth2V2LoginFormdataRequestBody, reqEditors ...RequestEditorFn) (*PostOauth2V2LoginResponse, error)
-
-	// PostOauth2V2TokenWithBodyWithResponse request with any body
-	PostOauth2V2TokenWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostOauth2V2TokenResponse, error)
-
-	PostOauth2V2TokenWithFormdataBodyWithResponse(ctx context.Context, body PostOauth2V2TokenFormdataRequestBody, reqEditors ...RequestEditorFn) (*PostOauth2V2TokenResponse, error)
-
-	// GetOauth2V2UserinfoWithResponse request
-	GetOauth2V2UserinfoWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOauth2V2UserinfoResponse, error)
-
-	// PostOauth2V2UserinfoWithBodyWithResponse request with any body
-	PostOauth2V2UserinfoWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostOauth2V2UserinfoResponse, error)
-
-	PostOauth2V2UserinfoWithFormdataBodyWithResponse(ctx context.Context, body PostOauth2V2UserinfoFormdataRequestBody, reqEditors ...RequestEditorFn) (*PostOauth2V2UserinfoResponse, error)
-
-	// GetOidcCallbackWithResponse request
-	GetOidcCallbackWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOidcCallbackResponse, error)
-}
-
-type GetWellKnownOpenidConfigurationResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *OpenidConfigurationResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetWellKnownOpenidConfigurationResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetWellKnownOpenidConfigurationResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetWellKnownOpenidProtectedResourceResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *externalRef0.OpenidProtectedResourceResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetWellKnownOpenidProtectedResourceResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetWellKnownOpenidProtectedResourceResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetApiV1AclResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *AclResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetApiV1AclResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetApiV1AclResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetApiV1Oauth2providersResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *SystemOauth2ProvidersResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetApiV1Oauth2providersResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetApiV1Oauth2providersResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
 }
 
 type GetApiV1OrganizationsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *OrganizationsResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -4674,64 +3209,13 @@ func (r GetApiV1OrganizationsResponse) StatusCode() int {
 	return 0
 }
 
-type PostApiV1OrganizationsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON202      *OrganizationResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r PostApiV1OrganizationsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r PostApiV1OrganizationsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type DeleteApiV1OrganizationsOrganizationIDResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r DeleteApiV1OrganizationsOrganizationIDResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r DeleteApiV1OrganizationsOrganizationIDResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type GetApiV1OrganizationsOrganizationIDResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *OrganizationResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -4753,10 +3237,10 @@ func (r GetApiV1OrganizationsOrganizationIDResponse) StatusCode() int {
 type PutApiV1OrganizationsOrganizationIDResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON409      *externalRef0.ConflictResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON409      *ConflictResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -4775,38 +3259,14 @@ func (r PutApiV1OrganizationsOrganizationIDResponse) StatusCode() int {
 	return 0
 }
 
-type GetApiV1OrganizationsOrganizationIDAclResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *AclResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetApiV1OrganizationsOrganizationIDAclResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetApiV1OrganizationsOrganizationIDAclResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type GetApiV1OrganizationsOrganizationIDGroupsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *GroupsResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -4829,12 +3289,12 @@ type PostApiV1OrganizationsOrganizationIDGroupsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON201      *GroupResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON409      *externalRef0.ConflictResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON409      *ConflictResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -4856,10 +3316,10 @@ func (r PostApiV1OrganizationsOrganizationIDGroupsResponse) StatusCode() int {
 type DeleteApiV1OrganizationsOrganizationIDGroupsGroupidResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -4882,10 +3342,10 @@ type GetApiV1OrganizationsOrganizationIDGroupsGroupidResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *GroupResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -4907,12 +3367,12 @@ func (r GetApiV1OrganizationsOrganizationIDGroupsGroupidResponse) StatusCode() i
 type PutApiV1OrganizationsOrganizationIDGroupsGroupidResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON409      *externalRef0.ConflictResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON409      *ConflictResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -4931,116 +3391,13 @@ func (r PutApiV1OrganizationsOrganizationIDGroupsGroupidResponse) StatusCode() i
 	return 0
 }
 
-type GetApiV1OrganizationsOrganizationIDOauth2providersResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *Oauth2ProvidersResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetApiV1OrganizationsOrganizationIDOauth2providersResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetApiV1OrganizationsOrganizationIDOauth2providersResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type PostApiV1OrganizationsOrganizationIDOauth2providersResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON201      *Oauth2ProviderResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON409      *externalRef0.ConflictResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r PostApiV1OrganizationsOrganizationIDOauth2providersResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r PostApiV1OrganizationsOrganizationIDOauth2providersResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type DeleteApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r DeleteApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r DeleteApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON409      *externalRef0.ConflictResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type GetApiV1OrganizationsOrganizationIDProjectsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ProjectsResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -5063,11 +3420,11 @@ type PostApiV1OrganizationsOrganizationIDProjectsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON202      *ProjectResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON409      *externalRef0.ConflictResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON409      *ConflictResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -5089,11 +3446,11 @@ func (r PostApiV1OrganizationsOrganizationIDProjectsResponse) StatusCode() int {
 type DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -5116,11 +3473,11 @@ type GetApiV1OrganizationsOrganizationIDProjectsProjectIDResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ProjectResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -5142,12 +3499,12 @@ func (r GetApiV1OrganizationsOrganizationIDProjectsProjectIDResponse) StatusCode
 type PutApiV1OrganizationsOrganizationIDProjectsProjectIDResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON409      *externalRef0.ConflictResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON409      *ConflictResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -5166,171 +3523,13 @@ func (r PutApiV1OrganizationsOrganizationIDProjectsProjectIDResponse) StatusCode
 	return 0
 }
 
-type PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON201      *AllocationResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON409      *externalRef0.ConflictResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *AllocationResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *AllocationResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON409      *externalRef0.ConflictResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type PutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON409      *externalRef0.ConflictResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r PutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r PutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type GetApiV1OrganizationsOrganizationIDQuotasResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *QuotasResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -5349,40 +3548,13 @@ func (r GetApiV1OrganizationsOrganizationIDQuotasResponse) StatusCode() int {
 	return 0
 }
 
-type PutApiV1OrganizationsOrganizationIDQuotasResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *QuotasResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON409      *externalRef0.ConflictResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r PutApiV1OrganizationsOrganizationIDQuotasResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r PutApiV1OrganizationsOrganizationIDQuotasResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
 type GetApiV1OrganizationsOrganizationIDRolesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *RolesResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -5405,9 +3577,9 @@ type GetApiV1OrganizationsOrganizationIDServiceaccountsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ServiceAccountsResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -5430,9 +3602,9 @@ type PostApiV1OrganizationsOrganizationIDServiceaccountsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON201      *ServiceAccountCreateResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -5454,10 +3626,10 @@ func (r PostApiV1OrganizationsOrganizationIDServiceaccountsResponse) StatusCode(
 type DeleteApiV1OrganizationsOrganizationIDServiceaccountsServiceAccountIDResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -5480,11 +3652,11 @@ type PutApiV1OrganizationsOrganizationIDServiceaccountsServiceAccountIDResponse 
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ServiceAccountResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON409      *externalRef0.ConflictResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON409      *ConflictResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -5507,11 +3679,11 @@ type PostApiV1OrganizationsOrganizationIDServiceaccountsServiceAccountIDRotateRe
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ServiceAccountCreateResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON409      *externalRef0.ConflictResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON409      *ConflictResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -5534,9 +3706,9 @@ type GetApiV1OrganizationsOrganizationIDUsersResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *UsersResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -5559,10 +3731,10 @@ type PostApiV1OrganizationsOrganizationIDUsersResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON201      *UserResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON409      *externalRef0.ConflictResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON409      *ConflictResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -5584,10 +3756,10 @@ func (r PostApiV1OrganizationsOrganizationIDUsersResponse) StatusCode() int {
 type DeleteApiV1OrganizationsOrganizationIDUsersUserIDResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -5610,11 +3782,11 @@ type PutApiV1OrganizationsOrganizationIDUsersUserIDResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *UserResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON409      *externalRef0.ConflictResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON409      *ConflictResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -5636,9 +3808,9 @@ func (r PutApiV1OrganizationsOrganizationIDUsersUserIDResponse) StatusCode() int
 type GetApiVersionResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef0.ServiceVersionResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON200      *ServiceVersionResponse
+	JSON401      *UnauthorizedResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -5657,221 +3829,6 @@ func (r GetApiVersionResponse) StatusCode() int {
 	return 0
 }
 
-type GetOauth2V2AuthorizationResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r GetOauth2V2AuthorizationResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetOauth2V2AuthorizationResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type PostOauth2V2AuthorizationResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r PostOauth2V2AuthorizationResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r PostOauth2V2AuthorizationResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetOauth2V2JwksResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *JwksResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetOauth2V2JwksResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetOauth2V2JwksResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type PostOauth2V2LoginResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-}
-
-// Status returns HTTPResponse.Status
-func (r PostOauth2V2LoginResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r PostOauth2V2LoginResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type PostOauth2V2TokenResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *TokenResponse
-	JSON400      *Oauth2BadRequestResponse
-	JSON401      *Oauth2UnauthorizedResponse
-	JSON500      *Oauth2ServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r PostOauth2V2TokenResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r PostOauth2V2TokenResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetOauth2V2UserinfoResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *UserinfoResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetOauth2V2UserinfoResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetOauth2V2UserinfoResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type PostOauth2V2UserinfoResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *UserinfoResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r PostOauth2V2UserinfoResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r PostOauth2V2UserinfoResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type GetOidcCallbackResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON500      *externalRef0.InternalServerErrorResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetOidcCallbackResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetOidcCallbackResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-// GetWellKnownOpenidConfigurationWithResponse request returning *GetWellKnownOpenidConfigurationResponse
-func (c *ClientWithResponses) GetWellKnownOpenidConfigurationWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetWellKnownOpenidConfigurationResponse, error) {
-	rsp, err := c.GetWellKnownOpenidConfiguration(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetWellKnownOpenidConfigurationResponse(rsp)
-}
-
-// GetWellKnownOpenidProtectedResourceWithResponse request returning *GetWellKnownOpenidProtectedResourceResponse
-func (c *ClientWithResponses) GetWellKnownOpenidProtectedResourceWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetWellKnownOpenidProtectedResourceResponse, error) {
-	rsp, err := c.GetWellKnownOpenidProtectedResource(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetWellKnownOpenidProtectedResourceResponse(rsp)
-}
-
-// GetApiV1AclWithResponse request returning *GetApiV1AclResponse
-func (c *ClientWithResponses) GetApiV1AclWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetApiV1AclResponse, error) {
-	rsp, err := c.GetApiV1Acl(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetApiV1AclResponse(rsp)
-}
-
-// GetApiV1Oauth2providersWithResponse request returning *GetApiV1Oauth2providersResponse
-func (c *ClientWithResponses) GetApiV1Oauth2providersWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetApiV1Oauth2providersResponse, error) {
-	rsp, err := c.GetApiV1Oauth2providers(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetApiV1Oauth2providersResponse(rsp)
-}
-
 // GetApiV1OrganizationsWithResponse request returning *GetApiV1OrganizationsResponse
 func (c *ClientWithResponses) GetApiV1OrganizationsWithResponse(ctx context.Context, params *GetApiV1OrganizationsParams, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsResponse, error) {
 	rsp, err := c.GetApiV1Organizations(ctx, params, reqEditors...)
@@ -5879,32 +3836,6 @@ func (c *ClientWithResponses) GetApiV1OrganizationsWithResponse(ctx context.Cont
 		return nil, err
 	}
 	return ParseGetApiV1OrganizationsResponse(rsp)
-}
-
-// PostApiV1OrganizationsWithBodyWithResponse request with arbitrary body returning *PostApiV1OrganizationsResponse
-func (c *ClientWithResponses) PostApiV1OrganizationsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsResponse, error) {
-	rsp, err := c.PostApiV1OrganizationsWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePostApiV1OrganizationsResponse(rsp)
-}
-
-func (c *ClientWithResponses) PostApiV1OrganizationsWithResponse(ctx context.Context, body PostApiV1OrganizationsJSONRequestBody, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsResponse, error) {
-	rsp, err := c.PostApiV1Organizations(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePostApiV1OrganizationsResponse(rsp)
-}
-
-// DeleteApiV1OrganizationsOrganizationIDWithResponse request returning *DeleteApiV1OrganizationsOrganizationIDResponse
-func (c *ClientWithResponses) DeleteApiV1OrganizationsOrganizationIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*DeleteApiV1OrganizationsOrganizationIDResponse, error) {
-	rsp, err := c.DeleteApiV1OrganizationsOrganizationID(ctx, organizationID, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDeleteApiV1OrganizationsOrganizationIDResponse(rsp)
 }
 
 // GetApiV1OrganizationsOrganizationIDWithResponse request returning *GetApiV1OrganizationsOrganizationIDResponse
@@ -5931,15 +3862,6 @@ func (c *ClientWithResponses) PutApiV1OrganizationsOrganizationIDWithResponse(ct
 		return nil, err
 	}
 	return ParsePutApiV1OrganizationsOrganizationIDResponse(rsp)
-}
-
-// GetApiV1OrganizationsOrganizationIDAclWithResponse request returning *GetApiV1OrganizationsOrganizationIDAclResponse
-func (c *ClientWithResponses) GetApiV1OrganizationsOrganizationIDAclWithResponse(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDAclResponse, error) {
-	rsp, err := c.GetApiV1OrganizationsOrganizationIDAcl(ctx, organizationID, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetApiV1OrganizationsOrganizationIDAclResponse(rsp)
 }
 
 // GetApiV1OrganizationsOrganizationIDGroupsWithResponse request returning *GetApiV1OrganizationsOrganizationIDGroupsResponse
@@ -6003,58 +3925,6 @@ func (c *ClientWithResponses) PutApiV1OrganizationsOrganizationIDGroupsGroupidWi
 	return ParsePutApiV1OrganizationsOrganizationIDGroupsGroupidResponse(rsp)
 }
 
-// GetApiV1OrganizationsOrganizationIDOauth2providersWithResponse request returning *GetApiV1OrganizationsOrganizationIDOauth2providersResponse
-func (c *ClientWithResponses) GetApiV1OrganizationsOrganizationIDOauth2providersWithResponse(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDOauth2providersResponse, error) {
-	rsp, err := c.GetApiV1OrganizationsOrganizationIDOauth2providers(ctx, organizationID, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetApiV1OrganizationsOrganizationIDOauth2providersResponse(rsp)
-}
-
-// PostApiV1OrganizationsOrganizationIDOauth2providersWithBodyWithResponse request with arbitrary body returning *PostApiV1OrganizationsOrganizationIDOauth2providersResponse
-func (c *ClientWithResponses) PostApiV1OrganizationsOrganizationIDOauth2providersWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsOrganizationIDOauth2providersResponse, error) {
-	rsp, err := c.PostApiV1OrganizationsOrganizationIDOauth2providersWithBody(ctx, organizationID, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePostApiV1OrganizationsOrganizationIDOauth2providersResponse(rsp)
-}
-
-func (c *ClientWithResponses) PostApiV1OrganizationsOrganizationIDOauth2providersWithResponse(ctx context.Context, organizationID OrganizationIDParameter, body PostApiV1OrganizationsOrganizationIDOauth2providersJSONRequestBody, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsOrganizationIDOauth2providersResponse, error) {
-	rsp, err := c.PostApiV1OrganizationsOrganizationIDOauth2providers(ctx, organizationID, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePostApiV1OrganizationsOrganizationIDOauth2providersResponse(rsp)
-}
-
-// DeleteApiV1OrganizationsOrganizationIDOauth2providersProviderIDWithResponse request returning *DeleteApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse
-func (c *ClientWithResponses) DeleteApiV1OrganizationsOrganizationIDOauth2providersProviderIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, providerID Oauth2ProvderIDParameter, reqEditors ...RequestEditorFn) (*DeleteApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse, error) {
-	rsp, err := c.DeleteApiV1OrganizationsOrganizationIDOauth2providersProviderID(ctx, organizationID, providerID, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDeleteApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse(rsp)
-}
-
-// PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDWithBodyWithResponse request with arbitrary body returning *PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse
-func (c *ClientWithResponses) PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, providerID Oauth2ProvderIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse, error) {
-	rsp, err := c.PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDWithBody(ctx, organizationID, providerID, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePutApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse(rsp)
-}
-
-func (c *ClientWithResponses) PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, providerID Oauth2ProvderIDParameter, body PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDJSONRequestBody, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse, error) {
-	rsp, err := c.PutApiV1OrganizationsOrganizationIDOauth2providersProviderID(ctx, organizationID, providerID, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePutApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse(rsp)
-}
-
 // GetApiV1OrganizationsOrganizationIDProjectsWithResponse request returning *GetApiV1OrganizationsOrganizationIDProjectsResponse
 func (c *ClientWithResponses) GetApiV1OrganizationsOrganizationIDProjectsWithResponse(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDProjectsResponse, error) {
 	rsp, err := c.GetApiV1OrganizationsOrganizationIDProjects(ctx, organizationID, reqEditors...)
@@ -6116,76 +3986,6 @@ func (c *ClientWithResponses) PutApiV1OrganizationsOrganizationIDProjectsProject
 	return ParsePutApiV1OrganizationsOrganizationIDProjectsProjectIDResponse(rsp)
 }
 
-// PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsWithBodyWithResponse request with arbitrary body returning *PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsResponse
-func (c *ClientWithResponses) PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsResponse, error) {
-	rsp, err := c.PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsWithBody(ctx, organizationID, projectID, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsResponse(rsp)
-}
-
-func (c *ClientWithResponses) PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, body PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsJSONRequestBody, reqEditors ...RequestEditorFn) (*PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsResponse, error) {
-	rsp, err := c.PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocations(ctx, organizationID, projectID, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsResponse(rsp)
-}
-
-// DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDWithResponse request returning *DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse
-func (c *ClientWithResponses) DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, allocationID AllocationIDParameter, reqEditors ...RequestEditorFn) (*DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse, error) {
-	rsp, err := c.DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationID(ctx, organizationID, projectID, allocationID, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse(rsp)
-}
-
-// GetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDWithResponse request returning *GetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse
-func (c *ClientWithResponses) GetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, allocationID AllocationIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse, error) {
-	rsp, err := c.GetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationID(ctx, organizationID, projectID, allocationID, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse(rsp)
-}
-
-// PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDWithBodyWithResponse request with arbitrary body returning *PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse
-func (c *ClientWithResponses) PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, allocationID AllocationIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse, error) {
-	rsp, err := c.PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDWithBody(ctx, organizationID, projectID, allocationID, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse(rsp)
-}
-
-func (c *ClientWithResponses) PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, allocationID AllocationIDParameter, body PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDJSONRequestBody, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse, error) {
-	rsp, err := c.PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationID(ctx, organizationID, projectID, allocationID, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse(rsp)
-}
-
-// DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceWithResponse request returning *DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceResponse
-func (c *ClientWithResponses) DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, reference ReferenceParameter, reqEditors ...RequestEditorFn) (*DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceResponse, error) {
-	rsp, err := c.DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReference(ctx, organizationID, projectID, reference, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceResponse(rsp)
-}
-
-// PutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceWithResponse request returning *PutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceResponse
-func (c *ClientWithResponses) PutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceWithResponse(ctx context.Context, organizationID OrganizationIDParameter, projectID ProjectIDParameter, reference ReferenceParameter, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceResponse, error) {
-	rsp, err := c.PutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReference(ctx, organizationID, projectID, reference, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceResponse(rsp)
-}
-
 // GetApiV1OrganizationsOrganizationIDQuotasWithResponse request returning *GetApiV1OrganizationsOrganizationIDQuotasResponse
 func (c *ClientWithResponses) GetApiV1OrganizationsOrganizationIDQuotasWithResponse(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDQuotasResponse, error) {
 	rsp, err := c.GetApiV1OrganizationsOrganizationIDQuotas(ctx, organizationID, reqEditors...)
@@ -6193,23 +3993,6 @@ func (c *ClientWithResponses) GetApiV1OrganizationsOrganizationIDQuotasWithRespo
 		return nil, err
 	}
 	return ParseGetApiV1OrganizationsOrganizationIDQuotasResponse(rsp)
-}
-
-// PutApiV1OrganizationsOrganizationIDQuotasWithBodyWithResponse request with arbitrary body returning *PutApiV1OrganizationsOrganizationIDQuotasResponse
-func (c *ClientWithResponses) PutApiV1OrganizationsOrganizationIDQuotasWithBodyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDQuotasResponse, error) {
-	rsp, err := c.PutApiV1OrganizationsOrganizationIDQuotasWithBody(ctx, organizationID, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePutApiV1OrganizationsOrganizationIDQuotasResponse(rsp)
-}
-
-func (c *ClientWithResponses) PutApiV1OrganizationsOrganizationIDQuotasWithResponse(ctx context.Context, organizationID OrganizationIDParameter, body PutApiV1OrganizationsOrganizationIDQuotasJSONRequestBody, reqEditors ...RequestEditorFn) (*PutApiV1OrganizationsOrganizationIDQuotasResponse, error) {
-	rsp, err := c.PutApiV1OrganizationsOrganizationIDQuotas(ctx, organizationID, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePutApiV1OrganizationsOrganizationIDQuotasResponse(rsp)
 }
 
 // GetApiV1OrganizationsOrganizationIDRolesWithResponse request returning *GetApiV1OrganizationsOrganizationIDRolesResponse
@@ -6343,249 +4126,6 @@ func (c *ClientWithResponses) GetApiVersionWithResponse(ctx context.Context, req
 	return ParseGetApiVersionResponse(rsp)
 }
 
-// GetOauth2V2AuthorizationWithResponse request returning *GetOauth2V2AuthorizationResponse
-func (c *ClientWithResponses) GetOauth2V2AuthorizationWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOauth2V2AuthorizationResponse, error) {
-	rsp, err := c.GetOauth2V2Authorization(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetOauth2V2AuthorizationResponse(rsp)
-}
-
-// PostOauth2V2AuthorizationWithBodyWithResponse request with arbitrary body returning *PostOauth2V2AuthorizationResponse
-func (c *ClientWithResponses) PostOauth2V2AuthorizationWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostOauth2V2AuthorizationResponse, error) {
-	rsp, err := c.PostOauth2V2AuthorizationWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePostOauth2V2AuthorizationResponse(rsp)
-}
-
-func (c *ClientWithResponses) PostOauth2V2AuthorizationWithFormdataBodyWithResponse(ctx context.Context, body PostOauth2V2AuthorizationFormdataRequestBody, reqEditors ...RequestEditorFn) (*PostOauth2V2AuthorizationResponse, error) {
-	rsp, err := c.PostOauth2V2AuthorizationWithFormdataBody(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePostOauth2V2AuthorizationResponse(rsp)
-}
-
-// GetOauth2V2JwksWithResponse request returning *GetOauth2V2JwksResponse
-func (c *ClientWithResponses) GetOauth2V2JwksWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOauth2V2JwksResponse, error) {
-	rsp, err := c.GetOauth2V2Jwks(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetOauth2V2JwksResponse(rsp)
-}
-
-// PostOauth2V2LoginWithBodyWithResponse request with arbitrary body returning *PostOauth2V2LoginResponse
-func (c *ClientWithResponses) PostOauth2V2LoginWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostOauth2V2LoginResponse, error) {
-	rsp, err := c.PostOauth2V2LoginWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePostOauth2V2LoginResponse(rsp)
-}
-
-func (c *ClientWithResponses) PostOauth2V2LoginWithFormdataBodyWithResponse(ctx context.Context, body PostOauth2V2LoginFormdataRequestBody, reqEditors ...RequestEditorFn) (*PostOauth2V2LoginResponse, error) {
-	rsp, err := c.PostOauth2V2LoginWithFormdataBody(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePostOauth2V2LoginResponse(rsp)
-}
-
-// PostOauth2V2TokenWithBodyWithResponse request with arbitrary body returning *PostOauth2V2TokenResponse
-func (c *ClientWithResponses) PostOauth2V2TokenWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostOauth2V2TokenResponse, error) {
-	rsp, err := c.PostOauth2V2TokenWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePostOauth2V2TokenResponse(rsp)
-}
-
-func (c *ClientWithResponses) PostOauth2V2TokenWithFormdataBodyWithResponse(ctx context.Context, body PostOauth2V2TokenFormdataRequestBody, reqEditors ...RequestEditorFn) (*PostOauth2V2TokenResponse, error) {
-	rsp, err := c.PostOauth2V2TokenWithFormdataBody(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePostOauth2V2TokenResponse(rsp)
-}
-
-// GetOauth2V2UserinfoWithResponse request returning *GetOauth2V2UserinfoResponse
-func (c *ClientWithResponses) GetOauth2V2UserinfoWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOauth2V2UserinfoResponse, error) {
-	rsp, err := c.GetOauth2V2Userinfo(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetOauth2V2UserinfoResponse(rsp)
-}
-
-// PostOauth2V2UserinfoWithBodyWithResponse request with arbitrary body returning *PostOauth2V2UserinfoResponse
-func (c *ClientWithResponses) PostOauth2V2UserinfoWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostOauth2V2UserinfoResponse, error) {
-	rsp, err := c.PostOauth2V2UserinfoWithBody(ctx, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePostOauth2V2UserinfoResponse(rsp)
-}
-
-func (c *ClientWithResponses) PostOauth2V2UserinfoWithFormdataBodyWithResponse(ctx context.Context, body PostOauth2V2UserinfoFormdataRequestBody, reqEditors ...RequestEditorFn) (*PostOauth2V2UserinfoResponse, error) {
-	rsp, err := c.PostOauth2V2UserinfoWithFormdataBody(ctx, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParsePostOauth2V2UserinfoResponse(rsp)
-}
-
-// GetOidcCallbackWithResponse request returning *GetOidcCallbackResponse
-func (c *ClientWithResponses) GetOidcCallbackWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOidcCallbackResponse, error) {
-	rsp, err := c.GetOidcCallback(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetOidcCallbackResponse(rsp)
-}
-
-// ParseGetWellKnownOpenidConfigurationResponse parses an HTTP response from a GetWellKnownOpenidConfigurationWithResponse call
-func ParseGetWellKnownOpenidConfigurationResponse(rsp *http.Response) (*GetWellKnownOpenidConfigurationResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetWellKnownOpenidConfigurationResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest OpenidConfigurationResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetWellKnownOpenidProtectedResourceResponse parses an HTTP response from a GetWellKnownOpenidProtectedResourceWithResponse call
-func ParseGetWellKnownOpenidProtectedResourceResponse(rsp *http.Response) (*GetWellKnownOpenidProtectedResourceResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetWellKnownOpenidProtectedResourceResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef0.OpenidProtectedResourceResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetApiV1AclResponse parses an HTTP response from a GetApiV1AclWithResponse call
-func ParseGetApiV1AclResponse(rsp *http.Response) (*GetApiV1AclResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetApiV1AclResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest AclResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetApiV1Oauth2providersResponse parses an HTTP response from a GetApiV1Oauth2providersWithResponse call
-func ParseGetApiV1Oauth2providersResponse(rsp *http.Response) (*GetApiV1Oauth2providersResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetApiV1Oauth2providersResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest SystemOauth2ProvidersResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
 // ParseGetApiV1OrganizationsResponse parses an HTTP response from a GetApiV1OrganizationsWithResponse call
 func ParseGetApiV1OrganizationsResponse(rsp *http.Response) (*GetApiV1OrganizationsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -6608,129 +4148,28 @@ func ParseGetApiV1OrganizationsResponse(rsp *http.Response) (*GetApiV1Organizati
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParsePostApiV1OrganizationsResponse parses an HTTP response from a PostApiV1OrganizationsWithResponse call
-func ParsePostApiV1OrganizationsResponse(rsp *http.Response) (*PostApiV1OrganizationsResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &PostApiV1OrganizationsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 202:
-		var dest OrganizationResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON202 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseDeleteApiV1OrganizationsOrganizationIDResponse parses an HTTP response from a DeleteApiV1OrganizationsOrganizationIDWithResponse call
-func ParseDeleteApiV1OrganizationsOrganizationIDResponse(rsp *http.Response) (*DeleteApiV1OrganizationsOrganizationIDResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &DeleteApiV1OrganizationsOrganizationIDResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -6763,21 +4202,21 @@ func ParseGetApiV1OrganizationsOrganizationIDResponse(rsp *http.Response) (*GetA
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -6803,68 +4242,28 @@ func ParsePutApiV1OrganizationsOrganizationIDResponse(rsp *http.Response) (*PutA
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest externalRef0.ConflictResponse
+		var dest ConflictResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON409 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetApiV1OrganizationsOrganizationIDAclResponse parses an HTTP response from a GetApiV1OrganizationsOrganizationIDAclWithResponse call
-func ParseGetApiV1OrganizationsOrganizationIDAclResponse(rsp *http.Response) (*GetApiV1OrganizationsOrganizationIDAclResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetApiV1OrganizationsOrganizationIDAclResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest AclResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -6897,28 +4296,28 @@ func ParseGetApiV1OrganizationsOrganizationIDGroupsResponse(rsp *http.Response) 
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -6951,42 +4350,42 @@ func ParsePostApiV1OrganizationsOrganizationIDGroupsResponse(rsp *http.Response)
 		response.JSON201 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest externalRef0.ConflictResponse
+		var dest ConflictResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON409 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -7012,28 +4411,28 @@ func ParseDeleteApiV1OrganizationsOrganizationIDGroupsGroupidResponse(rsp *http.
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -7066,28 +4465,28 @@ func ParseGetApiV1OrganizationsOrganizationIDGroupsGroupidResponse(rsp *http.Res
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -7113,251 +4512,42 @@ func ParsePutApiV1OrganizationsOrganizationIDGroupsGroupidResponse(rsp *http.Res
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest externalRef0.ConflictResponse
+		var dest ConflictResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON409 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetApiV1OrganizationsOrganizationIDOauth2providersResponse parses an HTTP response from a GetApiV1OrganizationsOrganizationIDOauth2providersWithResponse call
-func ParseGetApiV1OrganizationsOrganizationIDOauth2providersResponse(rsp *http.Response) (*GetApiV1OrganizationsOrganizationIDOauth2providersResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetApiV1OrganizationsOrganizationIDOauth2providersResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest Oauth2ProvidersResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParsePostApiV1OrganizationsOrganizationIDOauth2providersResponse parses an HTTP response from a PostApiV1OrganizationsOrganizationIDOauth2providersWithResponse call
-func ParsePostApiV1OrganizationsOrganizationIDOauth2providersResponse(rsp *http.Response) (*PostApiV1OrganizationsOrganizationIDOauth2providersResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &PostApiV1OrganizationsOrganizationIDOauth2providersResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
-		var dest Oauth2ProviderResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON201 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest externalRef0.ConflictResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON409 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseDeleteApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse parses an HTTP response from a DeleteApiV1OrganizationsOrganizationIDOauth2providersProviderIDWithResponse call
-func ParseDeleteApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse(rsp *http.Response) (*DeleteApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &DeleteApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParsePutApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse parses an HTTP response from a PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDWithResponse call
-func ParsePutApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse(rsp *http.Response) (*PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &PutApiV1OrganizationsOrganizationIDOauth2providersProviderIDResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest externalRef0.ConflictResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON409 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -7390,21 +4580,21 @@ func ParseGetApiV1OrganizationsOrganizationIDProjectsResponse(rsp *http.Response
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -7437,35 +4627,35 @@ func ParsePostApiV1OrganizationsOrganizationIDProjectsResponse(rsp *http.Respons
 		response.JSON202 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest externalRef0.ConflictResponse
+		var dest ConflictResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON409 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -7491,35 +4681,35 @@ func ParseDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDResponse(rsp *h
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -7552,35 +4742,35 @@ func ParseGetApiV1OrganizationsOrganizationIDProjectsProjectIDResponse(rsp *http
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -7606,380 +4796,42 @@ func ParsePutApiV1OrganizationsOrganizationIDProjectsProjectIDResponse(rsp *http
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest externalRef0.ConflictResponse
+		var dest ConflictResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON409 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParsePostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsResponse parses an HTTP response from a PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsWithResponse call
-func ParsePostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsResponse(rsp *http.Response) (*PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &PostApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
-		var dest AllocationResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON201 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest externalRef0.ConflictResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON409 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse parses an HTTP response from a DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDWithResponse call
-func ParseDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse(rsp *http.Response) (*DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse parses an HTTP response from a GetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDWithResponse call
-func ParseGetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse(rsp *http.Response) (*GetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest AllocationResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParsePutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse parses an HTTP response from a PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDWithResponse call
-func ParsePutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse(rsp *http.Response) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &PutApiV1OrganizationsOrganizationIDProjectsProjectIDAllocationsAllocationIDResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest AllocationResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest externalRef0.ConflictResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON409 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceResponse parses an HTTP response from a DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceWithResponse call
-func ParseDeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceResponse(rsp *http.Response) (*DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &DeleteApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParsePutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceResponse parses an HTTP response from a PutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceWithResponse call
-func ParsePutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceResponse(rsp *http.Response) (*PutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &PutApiV1OrganizationsOrganizationIDProjectsProjectIDReferencesReferenceResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest externalRef0.ConflictResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON409 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -8012,82 +4864,21 @@ func ParseGetApiV1OrganizationsOrganizationIDQuotasResponse(rsp *http.Response) 
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParsePutApiV1OrganizationsOrganizationIDQuotasResponse parses an HTTP response from a PutApiV1OrganizationsOrganizationIDQuotasWithResponse call
-func ParsePutApiV1OrganizationsOrganizationIDQuotasResponse(rsp *http.Response) (*PutApiV1OrganizationsOrganizationIDQuotasResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &PutApiV1OrganizationsOrganizationIDQuotasResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest QuotasResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest externalRef0.ConflictResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON409 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -8120,21 +4911,21 @@ func ParseGetApiV1OrganizationsOrganizationIDRolesResponse(rsp *http.Response) (
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -8167,21 +4958,21 @@ func ParseGetApiV1OrganizationsOrganizationIDServiceaccountsResponse(rsp *http.R
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -8214,21 +5005,21 @@ func ParsePostApiV1OrganizationsOrganizationIDServiceaccountsResponse(rsp *http.
 		response.JSON201 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -8254,28 +5045,28 @@ func ParseDeleteApiV1OrganizationsOrganizationIDServiceaccountsServiceAccountIDR
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -8308,35 +5099,35 @@ func ParsePutApiV1OrganizationsOrganizationIDServiceaccountsServiceAccountIDResp
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest externalRef0.ConflictResponse
+		var dest ConflictResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON409 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -8369,35 +5160,35 @@ func ParsePostApiV1OrganizationsOrganizationIDServiceaccountsServiceAccountIDRot
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest externalRef0.ConflictResponse
+		var dest ConflictResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON409 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -8430,21 +5221,21 @@ func ParseGetApiV1OrganizationsOrganizationIDUsersResponse(rsp *http.Response) (
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -8477,28 +5268,28 @@ func ParsePostApiV1OrganizationsOrganizationIDUsersResponse(rsp *http.Response) 
 		response.JSON201 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest externalRef0.ConflictResponse
+		var dest ConflictResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON409 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -8524,28 +5315,28 @@ func ParseDeleteApiV1OrganizationsOrganizationIDUsersUserIDResponse(rsp *http.Re
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -8578,35 +5369,35 @@ func ParsePutApiV1OrganizationsOrganizationIDUsersUserIDResponse(rsp *http.Respo
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest externalRef0.ConflictResponse
+		var dest ConflictResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON409 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -8632,241 +5423,21 @@ func ParseGetApiVersionResponse(rsp *http.Response) (*GetApiVersionResponse, err
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef0.ServiceVersionResponse
+		var dest ServiceVersionResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetOauth2V2AuthorizationResponse parses an HTTP response from a GetOauth2V2AuthorizationWithResponse call
-func ParseGetOauth2V2AuthorizationResponse(rsp *http.Response) (*GetOauth2V2AuthorizationResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetOauth2V2AuthorizationResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParsePostOauth2V2AuthorizationResponse parses an HTTP response from a PostOauth2V2AuthorizationWithResponse call
-func ParsePostOauth2V2AuthorizationResponse(rsp *http.Response) (*PostOauth2V2AuthorizationResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &PostOauth2V2AuthorizationResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParseGetOauth2V2JwksResponse parses an HTTP response from a GetOauth2V2JwksWithResponse call
-func ParseGetOauth2V2JwksResponse(rsp *http.Response) (*GetOauth2V2JwksResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetOauth2V2JwksResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest JwksResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParsePostOauth2V2LoginResponse parses an HTTP response from a PostOauth2V2LoginWithResponse call
-func ParsePostOauth2V2LoginResponse(rsp *http.Response) (*PostOauth2V2LoginResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &PostOauth2V2LoginResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	return response, nil
-}
-
-// ParsePostOauth2V2TokenResponse parses an HTTP response from a PostOauth2V2TokenWithResponse call
-func ParsePostOauth2V2TokenResponse(rsp *http.Response) (*PostOauth2V2TokenResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &PostOauth2V2TokenResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest TokenResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest Oauth2BadRequestResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest Oauth2UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest Oauth2ServerErrorResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetOauth2V2UserinfoResponse parses an HTTP response from a GetOauth2V2UserinfoWithResponse call
-func ParseGetOauth2V2UserinfoResponse(rsp *http.Response) (*GetOauth2V2UserinfoResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetOauth2V2UserinfoResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest UserinfoResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParsePostOauth2V2UserinfoResponse parses an HTTP response from a PostOauth2V2UserinfoWithResponse call
-func ParsePostOauth2V2UserinfoResponse(rsp *http.Response) (*PostOauth2V2UserinfoResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &PostOauth2V2UserinfoResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest UserinfoResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetOidcCallbackResponse parses an HTTP response from a GetOidcCallbackWithResponse call
-func ParseGetOidcCallbackResponse(rsp *http.Response) (*GetOidcCallbackResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetOidcCallbackResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
