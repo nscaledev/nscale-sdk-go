@@ -12,13 +12,34 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
-	externalRef0 "github.com/nscaledev/nscale-sdk-go/common"
 	"github.com/oapi-codegen/runtime"
 )
 
 const (
 	Oauth2AuthenticationScopes = "oauth2Authentication.Scopes"
+)
+
+// Defines values for BearerMethod.
+const (
+	Body   BearerMethod = "body"
+	Header BearerMethod = "header"
+	Query  BearerMethod = "query"
+)
+
+// Defines values for ErrorError.
+const (
+	AccessDenied          ErrorError = "access_denied"
+	Conflict              ErrorError = "conflict"
+	Forbidden             ErrorError = "forbidden"
+	InvalidRequest        ErrorError = "invalid_request"
+	MethodNotAllowed      ErrorError = "method_not_allowed"
+	NotFound              ErrorError = "not_found"
+	RequestEntityTooLarge ErrorError = "request_entity_too_large"
+	ServerError           ErrorError = "server_error"
+	UnprocessableContent  ErrorError = "unprocessable_content"
+	UnsupportedMediaType  ErrorError = "unsupported_media_type"
 )
 
 // Defines values for ObjectStorageEndpointClassSupportedEndpointType.
@@ -27,13 +48,59 @@ const (
 	Public  ObjectStorageEndpointClassSupportedEndpointType = "public"
 )
 
+// Defines values for ResourceHealthStatus.
+const (
+	ResourceHealthStatusDegraded ResourceHealthStatus = "degraded"
+	ResourceHealthStatusError    ResourceHealthStatus = "error"
+	ResourceHealthStatusHealthy  ResourceHealthStatus = "healthy"
+	ResourceHealthStatusUnknown  ResourceHealthStatus = "unknown"
+)
+
+// Defines values for ResourceProvisioningStatus.
+const (
+	ResourceProvisioningStatusDeprovisioning ResourceProvisioningStatus = "deprovisioning"
+	ResourceProvisioningStatusError          ResourceProvisioningStatus = "error"
+	ResourceProvisioningStatusPending        ResourceProvisioningStatus = "pending"
+	ResourceProvisioningStatusProvisioned    ResourceProvisioningStatus = "provisioned"
+	ResourceProvisioningStatusProvisioning   ResourceProvisioningStatus = "provisioning"
+	ResourceProvisioningStatusUnknown        ResourceProvisioningStatus = "unknown"
+)
+
+// AuthorizationServerList List of authorization servers that can grant access to the resource.
+type AuthorizationServerList = []string
+
+// BearerMethod Bearer token transport method
+type BearerMethod string
+
+// BearerMethodList A set of bearer token transport methods supported by the protected endpoint.
+type BearerMethodList = []BearerMethod
+
+// Error Generic error message, compatible with oauth2.
+type Error struct {
+	// Error A terse error string expanding on the HTTP error code. Errors are based on the OAuth 2.02 specification, but are expanded with proprietary status codes for APIs other than those specified by OAuth 2.02.
+	Error ErrorError `json:"error"`
+
+	// ErrorDescription Verbose message describing the error.
+	ErrorDescription string `json:"error_description"`
+
+	// TraceId Unique trace identifier for the request.
+	TraceId *string `json:"trace_id,omitempty"`
+}
+
+// ErrorError A terse error string expanding on the HTTP error code. Errors are based on the OAuth 2.02 specification, but are expanded with proprietary status codes for APIs other than those specified by OAuth 2.02.
+type ErrorError string
+
+// KubernetesLabelValue A valid Kubernetes label value, typically used for resource names that can be
+// indexed in the database.
+type KubernetesLabelValue = string
+
 // KubernetesNameParameter A Kubernetes name. Must be a valid DNS containing only lower case characters, numbers or hyphens, start and end with a character or number, and be at most 63 characters in length.
 type KubernetesNameParameter = string
 
 // ObjectStorageAccessKeyCreate An object storage access key create request.
 type ObjectStorageAccessKeyCreate struct {
 	// Metadata Metadata required for all API resource reads and writes.
-	Metadata externalRef0.ResourceWriteMetadata `json:"metadata"`
+	Metadata ResourceMetadata `json:"metadata"`
 
 	// Spec An object storage access key create specification.
 	Spec ObjectStorageAccessKeyCreateSpec `json:"spec"`
@@ -42,7 +109,7 @@ type ObjectStorageAccessKeyCreate struct {
 // ObjectStorageAccessKeyCreateResponseBody An object storage access key create response.
 type ObjectStorageAccessKeyCreateResponseBody struct {
 	// Metadata Metadata required by project scoped resource reads.
-	Metadata externalRef0.ProjectScopedResourceReadMetadata `json:"metadata"`
+	Metadata ProjectScopedResourceReadMetadata `json:"metadata"`
 
 	// Spec An object storage access key create response specification.
 	Spec ObjectStorageAccessKeyCreateResponseSpec `json:"spec"`
@@ -72,7 +139,7 @@ type ObjectStorageAccessKeyListRead = []ObjectStorageAccessKeyRead
 // ObjectStorageAccessKeyRead An object storage access key associated with an object storage endpoint.
 type ObjectStorageAccessKeyRead struct {
 	// Metadata Metadata required by project scoped resource reads.
-	Metadata externalRef0.ProjectScopedResourceReadMetadata `json:"metadata"`
+	Metadata ProjectScopedResourceReadMetadata `json:"metadata"`
 
 	// Spec An object storage access key specification.
 	Spec ObjectStorageAccessKeySpec `json:"spec"`
@@ -93,7 +160,7 @@ type ObjectStorageEndpointClassListRead = []ObjectStorageEndpointClassRead
 // ObjectStorageEndpointClassRead An object storage endpoint class.
 type ObjectStorageEndpointClassRead struct {
 	// Metadata Metadata required by all resource reads.
-	Metadata externalRef0.ResourceReadMetadata `json:"metadata"`
+	Metadata ResourceReadMetadata `json:"metadata"`
 
 	// Spec An object storage endpoint class specification.
 	Spec ObjectStorageEndpointClassSpec `json:"spec"`
@@ -114,7 +181,7 @@ type ObjectStorageEndpointClassSupportedEndpointType string
 // ObjectStorageEndpointCreate An object storage endpoint create request.
 type ObjectStorageEndpointCreate struct {
 	// Metadata Metadata required for all API resource reads and writes.
-	Metadata externalRef0.ResourceWriteMetadata `json:"metadata"`
+	Metadata ResourceMetadata `json:"metadata"`
 	Spec     struct {
 		// IdentityPolicies A list of identity policies configured for an object storage endpoint.
 		IdentityPolicies *ObjectStorageIdentityPolicyList `json:"identityPolicies,omitempty"`
@@ -151,7 +218,7 @@ type ObjectStorageEndpointList = []ObjectStorageEndpointRead
 // ObjectStorageEndpointRead An S3-compatible object storage endpoint that allows users to self-service create buckets through the access it exposes.
 type ObjectStorageEndpointRead struct {
 	// Metadata Metadata required by project scoped resource reads.
-	Metadata externalRef0.ProjectScopedResourceReadMetadata `json:"metadata"`
+	Metadata ProjectScopedResourceReadMetadata `json:"metadata"`
 
 	// Spec An object storage endpoint specification.
 	Spec ObjectStorageEndpointSpec `json:"spec"`
@@ -181,7 +248,7 @@ type ObjectStorageEndpointStatus struct {
 // ObjectStorageEndpointUpdate An object storage endpoint update request. The selected endpoint class is immutable, but the configured identity policies may be replaced as a full list.
 type ObjectStorageEndpointUpdate struct {
 	// Metadata Metadata required for all API resource reads and writes.
-	Metadata externalRef0.ResourceWriteMetadata `json:"metadata"`
+	Metadata ResourceMetadata `json:"metadata"`
 
 	// Spec The mutable portion of an object storage endpoint specification. When identityPolicies is present in an update request, it replaces the full set of configured policies.
 	Spec *ObjectStorageEndpointUpdateSpec `json:"spec,omitempty"`
@@ -208,6 +275,215 @@ type ObjectStorageIdentityPolicySpec struct {
 	Name string `json:"name"`
 }
 
+// OpenidProtectedResource OpenID athentication server discovery configuration.
+type OpenidProtectedResource struct {
+	// AuthorizationServers List of authorization servers that can grant access to the resource.
+	AuthorizationServers AuthorizationServerList `json:"authorization_servers"`
+
+	// BearerMethodsSupported A set of bearer token transport methods supported by the protected endpoint.
+	BearerMethodsSupported BearerMethodList `json:"bearer_methods_supported"`
+
+	// Resource The protected resource's scheme and hostname.
+	Resource string `json:"resource"`
+
+	// ScopesSupported A set of OIDC scopes that are required for authorization.
+	ScopesSupported ScopeList `json:"scopes_supported"`
+}
+
+// OrganizationScopedResourceReadMetadata defines model for organizationScopedResourceReadMetadata.
+type OrganizationScopedResourceReadMetadata struct {
+	// CreatedBy The user who created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+
+	// CreationTime The time the resource was created.
+	CreationTime time.Time `json:"creationTime"`
+
+	// DeletionTime The time the resource was deleted.
+	DeletionTime *time.Time `json:"deletionTime,omitempty"`
+
+	// Description The resource description, this optionally augments the name with more context.
+	Description *string `json:"description,omitempty"`
+
+	// HealthStatus The health state of a resource.
+	HealthStatus ResourceHealthStatus `json:"healthStatus"`
+
+	// Id The unique resource ID.
+	Id string `json:"id"`
+
+	// ModifiedBy The user who updated the resource.
+	ModifiedBy *string `json:"modifiedBy,omitempty"`
+
+	// ModifiedTime The time a resource was updated.
+	ModifiedTime *time.Time `json:"modifiedTime,omitempty"`
+
+	// Name A valid Kubernetes label value, typically used for resource names that can be
+	// indexed in the database.
+	Name KubernetesLabelValue `json:"name"`
+
+	// OrganizationId The organization identifier the resource belongs to.
+	OrganizationId string `json:"organizationId"`
+
+	// ProvisioningStatus The provisioning state of a resource.
+	ProvisioningStatus ResourceProvisioningStatus `json:"provisioningStatus"`
+
+	// Tags A list of tags.
+	Tags *TagList `json:"tags,omitempty"`
+}
+
+// ProjectScopedResourceReadMetadata defines model for projectScopedResourceReadMetadata.
+type ProjectScopedResourceReadMetadata struct {
+	// CreatedBy The user who created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+
+	// CreationTime The time the resource was created.
+	CreationTime time.Time `json:"creationTime"`
+
+	// DeletionTime The time the resource was deleted.
+	DeletionTime *time.Time `json:"deletionTime,omitempty"`
+
+	// Description The resource description, this optionally augments the name with more context.
+	Description *string `json:"description,omitempty"`
+
+	// HealthStatus The health state of a resource.
+	HealthStatus ResourceHealthStatus `json:"healthStatus"`
+
+	// Id The unique resource ID.
+	Id string `json:"id"`
+
+	// ModifiedBy The user who updated the resource.
+	ModifiedBy *string `json:"modifiedBy,omitempty"`
+
+	// ModifiedTime The time a resource was updated.
+	ModifiedTime *time.Time `json:"modifiedTime,omitempty"`
+
+	// Name A valid Kubernetes label value, typically used for resource names that can be
+	// indexed in the database.
+	Name KubernetesLabelValue `json:"name"`
+
+	// OrganizationId The organization identifier the resource belongs to.
+	OrganizationId string `json:"organizationId"`
+
+	// ProjectId The project identifier the resource belongs to.
+	ProjectId string `json:"projectId"`
+
+	// ProvisioningStatus The provisioning state of a resource.
+	ProvisioningStatus ResourceProvisioningStatus `json:"provisioningStatus"`
+
+	// Tags A list of tags.
+	Tags *TagList `json:"tags,omitempty"`
+}
+
+// ResourceHealthStatus The health state of a resource.
+type ResourceHealthStatus string
+
+// ResourceMetadata Metadata required for all API resource reads and writes.
+type ResourceMetadata struct {
+	// Description The resource description, this optionally augments the name with more context.
+	Description *string `json:"description,omitempty"`
+
+	// Name A valid Kubernetes label value, typically used for resource names that can be
+	// indexed in the database.
+	Name KubernetesLabelValue `json:"name"`
+
+	// Tags A list of tags.
+	Tags *TagList `json:"tags,omitempty"`
+}
+
+// ResourceProvisioningStatus The provisioning state of a resource.
+type ResourceProvisioningStatus string
+
+// ResourceReadMetadata defines model for resourceReadMetadata.
+type ResourceReadMetadata struct {
+	// CreatedBy The user who created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+
+	// CreationTime The time the resource was created.
+	CreationTime time.Time `json:"creationTime"`
+
+	// DeletionTime The time the resource was deleted.
+	DeletionTime *time.Time `json:"deletionTime,omitempty"`
+
+	// Description The resource description, this optionally augments the name with more context.
+	Description *string `json:"description,omitempty"`
+
+	// HealthStatus The health state of a resource.
+	HealthStatus ResourceHealthStatus `json:"healthStatus"`
+
+	// Id The unique resource ID.
+	Id string `json:"id"`
+
+	// ModifiedBy The user who updated the resource.
+	ModifiedBy *string `json:"modifiedBy,omitempty"`
+
+	// ModifiedTime The time a resource was updated.
+	ModifiedTime *time.Time `json:"modifiedTime,omitempty"`
+
+	// Name A valid Kubernetes label value, typically used for resource names that can be
+	// indexed in the database.
+	Name KubernetesLabelValue `json:"name"`
+
+	// ProvisioningStatus The provisioning state of a resource.
+	ProvisioningStatus ResourceProvisioningStatus `json:"provisioningStatus"`
+
+	// Tags A list of tags.
+	Tags *TagList `json:"tags,omitempty"`
+}
+
+// ScopeList A set of OIDC scopes that are required for authorization.
+type ScopeList = []string
+
+// ServiceVersionRead Build version information for the running service, stamped into the
+// binary at release time.  Developer builds report version 0.0.0.
+type ServiceVersionRead struct {
+	// Name The service application name.
+	Name string `json:"name"`
+
+	// Version The service release version, e.g. v1.2.3.
+	Version string `json:"version"`
+}
+
+// StaticResourceMetadata defines model for staticResourceMetadata.
+type StaticResourceMetadata struct {
+	// CreatedBy The user who created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+
+	// CreationTime The time the resource was created.
+	CreationTime time.Time `json:"creationTime"`
+
+	// Description The resource description, this optionally augments the name with more context.
+	Description *string `json:"description,omitempty"`
+
+	// Id The unique resource ID.
+	Id string `json:"id"`
+
+	// ModifiedBy The user who updated the resource.
+	ModifiedBy *string `json:"modifiedBy,omitempty"`
+
+	// ModifiedTime The time a resource was updated.
+	ModifiedTime *time.Time `json:"modifiedTime,omitempty"`
+
+	// Name A valid Kubernetes label value, typically used for resource names that can be
+	// indexed in the database.
+	Name KubernetesLabelValue `json:"name"`
+
+	// Tags A list of tags.
+	Tags *TagList `json:"tags,omitempty"`
+}
+
+// Tag A tag mapping arbitrary names to values.  These have no special meaning
+// for any component are are intended for use by end users to add additional
+// context to a resource, for example to categorize it.
+type Tag struct {
+	// Name A unique tag name.
+	Name string `json:"name"`
+
+	// Value The value of the tag.
+	Value string `json:"value"`
+}
+
+// TagList A list of tags.
+type TagList = []Tag
+
 // ObjectStorageAccessKeyIDParameter A Kubernetes name. Must be a valid DNS containing only lower case characters, numbers or hyphens, start and end with a character or number, and be at most 63 characters in length.
 type ObjectStorageAccessKeyIDParameter = KubernetesNameParameter
 
@@ -222,6 +498,24 @@ type ProjectIDQueryParameter = []string
 
 // RegionIDQueryParameter defines model for regionIDQueryParameter.
 type RegionIDQueryParameter = []string
+
+// TagSelectorParameter defines model for tagSelectorParameter.
+type TagSelectorParameter = []string
+
+// BadRequestResponse Generic error message, compatible with oauth2.
+type BadRequestResponse = Error
+
+// ConflictResponse Generic error message, compatible with oauth2.
+type ConflictResponse = Error
+
+// ForbiddenResponse Generic error message, compatible with oauth2.
+type ForbiddenResponse = Error
+
+// InternalServerErrorResponse Generic error message, compatible with oauth2.
+type InternalServerErrorResponse = Error
+
+// NotFoundResponse Generic error message, compatible with oauth2.
+type NotFoundResponse = Error
 
 // ObjectStorageAccessKeyCreateResponse An object storage access key create response.
 type ObjectStorageAccessKeyCreateResponse = ObjectStorageAccessKeyCreateResponseBody
@@ -240,6 +534,19 @@ type ObjectStorageEndpointListResponse = ObjectStorageEndpointList
 
 // ObjectStorageEndpointResponse An S3-compatible object storage endpoint that allows users to self-service create buckets through the access it exposes.
 type ObjectStorageEndpointResponse = ObjectStorageEndpointRead
+
+// OpenidProtectedResourceResponse OpenID athentication server discovery configuration.
+type OpenidProtectedResourceResponse = OpenidProtectedResource
+
+// ServiceVersionResponse Build version information for the running service, stamped into the
+// binary at release time.  Developer builds report version 0.0.0.
+type ServiceVersionResponse = ServiceVersionRead
+
+// UnauthorizedResponse Generic error message, compatible with oauth2.
+type UnauthorizedResponse = Error
+
+// UnprocessableContentResponse Generic error message, compatible with oauth2.
+type UnprocessableContentResponse = Error
 
 // ObjectStorageAccessKeyCreateRequest An object storage access key create request.
 type ObjectStorageAccessKeyCreateRequest = ObjectStorageAccessKeyCreate
@@ -260,7 +567,7 @@ type GetApiV1ObjectstorageendpointclassesParams struct {
 type GetApiV1ObjectstorageendpointsParams struct {
 	// Tag A set of tags to match against resources in the form "name=value",
 	// thus when encoded you get "?tag=foo%3Dcat&tag=bar%3Ddog".
-	Tag *externalRef0.TagSelectorParameter `form:"tag,omitempty" json:"tag,omitempty"`
+	Tag *TagSelectorParameter `form:"tag,omitempty" json:"tag,omitempty"`
 
 	// OrganizationID Allows resources to be filtered by organization.
 	OrganizationID *OrganizationIDQueryParameter `form:"organizationID,omitempty" json:"organizationID,omitempty"`
@@ -354,9 +661,6 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// GetWellKnownOpenidProtectedResource request
-	GetWellKnownOpenidProtectedResource(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// GetApiV1Objectstorageendpointclasses request
 	GetApiV1Objectstorageendpointclasses(ctx context.Context, params *GetApiV1ObjectstorageendpointclassesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -392,18 +696,9 @@ type ClientInterface interface {
 
 	// GetApiV1ObjectstorageendpointsObjectStorageEndpointIDAccesskeysObjectStorageAccessKeyID request
 	GetApiV1ObjectstorageendpointsObjectStorageEndpointIDAccesskeysObjectStorageAccessKeyID(ctx context.Context, objectStorageEndpointID ObjectStorageEndpointIDParameter, objectStorageAccessKeyID ObjectStorageAccessKeyIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
-}
 
-func (c *Client) GetWellKnownOpenidProtectedResource(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetWellKnownOpenidProtectedResourceRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
+	// GetApiVersion request
+	GetApiVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetApiV1Objectstorageendpointclasses(ctx context.Context, params *GetApiV1ObjectstorageendpointclassesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -562,31 +857,16 @@ func (c *Client) GetApiV1ObjectstorageendpointsObjectStorageEndpointIDAccesskeys
 	return c.Client.Do(req)
 }
 
-// NewGetWellKnownOpenidProtectedResourceRequest generates requests for GetWellKnownOpenidProtectedResource
-func NewGetWellKnownOpenidProtectedResourceRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
+func (c *Client) GetApiVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetApiVersionRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
-
-	operationPath := fmt.Sprintf("/.well-known/openid-protected-resource")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
 		return nil, err
 	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
+	return c.Client.Do(req)
 }
 
 // NewGetApiV1ObjectstorageendpointclassesRequest generates requests for GetApiV1Objectstorageendpointclasses
@@ -1053,6 +1333,33 @@ func NewGetApiV1ObjectstorageendpointsObjectStorageEndpointIDAccesskeysObjectSto
 	return req, nil
 }
 
+// NewGetApiVersionRequest generates requests for GetApiVersion
+func NewGetApiVersionRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/version")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -1096,9 +1403,6 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// GetWellKnownOpenidProtectedResourceWithResponse request
-	GetWellKnownOpenidProtectedResourceWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetWellKnownOpenidProtectedResourceResponse, error)
-
 	// GetApiV1ObjectstorageendpointclassesWithResponse request
 	GetApiV1ObjectstorageendpointclassesWithResponse(ctx context.Context, params *GetApiV1ObjectstorageendpointclassesParams, reqEditors ...RequestEditorFn) (*GetApiV1ObjectstorageendpointclassesResponse, error)
 
@@ -1134,38 +1438,19 @@ type ClientWithResponsesInterface interface {
 
 	// GetApiV1ObjectstorageendpointsObjectStorageEndpointIDAccesskeysObjectStorageAccessKeyIDWithResponse request
 	GetApiV1ObjectstorageendpointsObjectStorageEndpointIDAccesskeysObjectStorageAccessKeyIDWithResponse(ctx context.Context, objectStorageEndpointID ObjectStorageEndpointIDParameter, objectStorageAccessKeyID ObjectStorageAccessKeyIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1ObjectstorageendpointsObjectStorageEndpointIDAccesskeysObjectStorageAccessKeyIDResponse, error)
-}
 
-type GetWellKnownOpenidProtectedResourceResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *externalRef0.OpenidProtectedResourceResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetWellKnownOpenidProtectedResourceResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetWellKnownOpenidProtectedResourceResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
+	// GetApiVersionWithResponse request
+	GetApiVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetApiVersionResponse, error)
 }
 
 type GetApiV1ObjectstorageendpointclassesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ObjectStorageEndpointClassListResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1188,10 +1473,10 @@ type GetApiV1ObjectstorageendpointsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ObjectStorageEndpointListResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1214,11 +1499,11 @@ type PostApiV1ObjectstorageendpointsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON201      *ObjectStorageEndpointResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON422      *externalRef0.UnprocessableContentResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON422      *UnprocessableContentResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1240,11 +1525,11 @@ func (r PostApiV1ObjectstorageendpointsResponse) StatusCode() int {
 type DeleteApiV1ObjectstorageendpointsObjectStorageEndpointIDResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1267,11 +1552,11 @@ type GetApiV1ObjectstorageendpointsObjectStorageEndpointIDResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ObjectStorageEndpointResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1294,13 +1579,13 @@ type PutApiV1ObjectstorageendpointsObjectStorageEndpointIDResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON202      *ObjectStorageEndpointResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON409      *externalRef0.ConflictResponse
-	JSON422      *externalRef0.UnprocessableContentResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON409      *ConflictResponse
+	JSON422      *UnprocessableContentResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1323,10 +1608,11 @@ type GetApiV1ObjectstorageendpointsObjectStorageEndpointIDAccesskeysResponse str
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ObjectStorageAccessKeyListResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1349,12 +1635,12 @@ type PostApiV1ObjectstorageendpointsObjectStorageEndpointIDAccesskeysResponse st
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON201      *ObjectStorageAccessKeyCreateResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON422      *externalRef0.UnprocessableContentResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON422      *UnprocessableContentResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1376,11 +1662,11 @@ func (r PostApiV1ObjectstorageendpointsObjectStorageEndpointIDAccesskeysResponse
 type DeleteApiV1ObjectstorageendpointsObjectStorageEndpointIDAccesskeysObjectStorageAccessKeyIDResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1403,11 +1689,11 @@ type GetApiV1ObjectstorageendpointsObjectStorageEndpointIDAccesskeysObjectStorag
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ObjectStorageAccessKeyResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1426,13 +1712,28 @@ func (r GetApiV1ObjectstorageendpointsObjectStorageEndpointIDAccesskeysObjectSto
 	return 0
 }
 
-// GetWellKnownOpenidProtectedResourceWithResponse request returning *GetWellKnownOpenidProtectedResourceResponse
-func (c *ClientWithResponses) GetWellKnownOpenidProtectedResourceWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetWellKnownOpenidProtectedResourceResponse, error) {
-	rsp, err := c.GetWellKnownOpenidProtectedResource(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
+type GetApiVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ServiceVersionResponse
+	JSON401      *UnauthorizedResponse
+	JSON500      *InternalServerErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetApiVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
 	}
-	return ParseGetWellKnownOpenidProtectedResourceResponse(rsp)
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetApiVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 // GetApiV1ObjectstorageendpointclassesWithResponse request returning *GetApiV1ObjectstorageendpointclassesResponse
@@ -1549,30 +1850,13 @@ func (c *ClientWithResponses) GetApiV1ObjectstorageendpointsObjectStorageEndpoin
 	return ParseGetApiV1ObjectstorageendpointsObjectStorageEndpointIDAccesskeysObjectStorageAccessKeyIDResponse(rsp)
 }
 
-// ParseGetWellKnownOpenidProtectedResourceResponse parses an HTTP response from a GetWellKnownOpenidProtectedResourceWithResponse call
-func ParseGetWellKnownOpenidProtectedResourceResponse(rsp *http.Response) (*GetWellKnownOpenidProtectedResourceResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
+// GetApiVersionWithResponse request returning *GetApiVersionResponse
+func (c *ClientWithResponses) GetApiVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetApiVersionResponse, error) {
+	rsp, err := c.GetApiVersion(ctx, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-
-	response := &GetWellKnownOpenidProtectedResourceResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef0.OpenidProtectedResourceResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
+	return ParseGetApiVersionResponse(rsp)
 }
 
 // ParseGetApiV1ObjectstorageendpointclassesResponse parses an HTTP response from a GetApiV1ObjectstorageendpointclassesWithResponse call
@@ -1597,28 +1881,28 @@ func ParseGetApiV1ObjectstorageendpointclassesResponse(rsp *http.Response) (*Get
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1651,28 +1935,28 @@ func ParseGetApiV1ObjectstorageendpointsResponse(rsp *http.Response) (*GetApiV1O
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1705,35 +1989,35 @@ func ParsePostApiV1ObjectstorageendpointsResponse(rsp *http.Response) (*PostApiV
 		response.JSON201 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
-		var dest externalRef0.UnprocessableContentResponse
+		var dest UnprocessableContentResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON422 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1759,35 +2043,35 @@ func ParseDeleteApiV1ObjectstorageendpointsObjectStorageEndpointIDResponse(rsp *
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1820,35 +2104,35 @@ func ParseGetApiV1ObjectstorageendpointsObjectStorageEndpointIDResponse(rsp *htt
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1881,49 +2165,49 @@ func ParsePutApiV1ObjectstorageendpointsObjectStorageEndpointIDResponse(rsp *htt
 		response.JSON202 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest externalRef0.ConflictResponse
+		var dest ConflictResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON409 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
-		var dest externalRef0.UnprocessableContentResponse
+		var dest UnprocessableContentResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON422 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1956,28 +2240,35 @@ func ParseGetApiV1ObjectstorageendpointsObjectStorageEndpointIDAccesskeysRespons
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFoundResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2010,42 +2301,42 @@ func ParsePostApiV1ObjectstorageendpointsObjectStorageEndpointIDAccesskeysRespon
 		response.JSON201 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
-		var dest externalRef0.UnprocessableContentResponse
+		var dest UnprocessableContentResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON422 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2071,35 +2362,35 @@ func ParseDeleteApiV1ObjectstorageendpointsObjectStorageEndpointIDAccesskeysObje
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2132,35 +2423,75 @@ func ParseGetApiV1ObjectstorageendpointsObjectStorageEndpointIDAccesskeysObjectS
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetApiVersionResponse parses an HTTP response from a GetApiVersionWithResponse call
+func ParseGetApiVersionResponse(rsp *http.Response) (*GetApiVersionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetApiVersionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ServiceVersionResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest UnauthorizedResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

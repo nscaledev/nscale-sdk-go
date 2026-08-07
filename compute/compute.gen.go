@@ -12,14 +12,41 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
-	externalRef0 "github.com/nscaledev/nscale-sdk-go/common"
-	externalRef1 "github.com/nscaledev/nscale-sdk-go/region"
 	"github.com/oapi-codegen/runtime"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 const (
 	Oauth2AuthenticationScopes = "oauth2Authentication.Scopes"
+)
+
+// Defines values for Architecture.
+const (
+	Aarch64 Architecture = "aarch64"
+	X8664   Architecture = "x86_64"
+)
+
+// Defines values for BearerMethod.
+const (
+	Body   BearerMethod = "body"
+	Header BearerMethod = "header"
+	Query  BearerMethod = "query"
+)
+
+// Defines values for ErrorError.
+const (
+	AccessDenied          ErrorError = "access_denied"
+	Conflict              ErrorError = "conflict"
+	Forbidden             ErrorError = "forbidden"
+	InvalidRequest        ErrorError = "invalid_request"
+	MethodNotAllowed      ErrorError = "method_not_allowed"
+	NotFound              ErrorError = "not_found"
+	RequestEntityTooLarge ErrorError = "request_entity_too_large"
+	ServerError           ErrorError = "server_error"
+	UnprocessableContent  ErrorError = "unprocessable_content"
+	UnsupportedMediaType  ErrorError = "unsupported_media_type"
 )
 
 // Defines values for FirewallRuleDirection.
@@ -32,6 +59,67 @@ const (
 const (
 	Tcp FirewallRuleProtocol = "tcp"
 	Udp FirewallRuleProtocol = "udp"
+)
+
+// Defines values for GpuVendor.
+const (
+	AMD    GpuVendor = "AMD"
+	NVIDIA GpuVendor = "NVIDIA"
+)
+
+// Defines values for ImageState.
+const (
+	ImageStateCreating ImageState = "creating"
+	ImageStateFailed   ImageState = "failed"
+	ImageStatePending  ImageState = "pending"
+	ImageStateReady    ImageState = "ready"
+)
+
+// Defines values for ImageVirtualization.
+const (
+	Any         ImageVirtualization = "any"
+	Baremetal   ImageVirtualization = "baremetal"
+	Virtualized ImageVirtualization = "virtualized"
+)
+
+// Defines values for InstanceLifecyclePhase.
+const (
+	InstanceLifecyclePhaseBuilding InstanceLifecyclePhase = "Building"
+	InstanceLifecyclePhasePending  InstanceLifecyclePhase = "Pending"
+	InstanceLifecyclePhaseQueued   InstanceLifecyclePhase = "Queued"
+	InstanceLifecyclePhaseRunning  InstanceLifecyclePhase = "Running"
+	InstanceLifecyclePhaseStopped  InstanceLifecyclePhase = "Stopped"
+	InstanceLifecyclePhaseStopping InstanceLifecyclePhase = "Stopping"
+)
+
+// Defines values for OsKernel.
+const (
+	Linux OsKernel = "linux"
+)
+
+// Defines values for RegionType.
+const (
+	Kubernetes RegionType = "kubernetes"
+	Openstack  RegionType = "openstack"
+	Simulated  RegionType = "simulated"
+)
+
+// Defines values for ResourceHealthStatus.
+const (
+	ResourceHealthStatusDegraded ResourceHealthStatus = "degraded"
+	ResourceHealthStatusError    ResourceHealthStatus = "error"
+	ResourceHealthStatusHealthy  ResourceHealthStatus = "healthy"
+	ResourceHealthStatusUnknown  ResourceHealthStatus = "unknown"
+)
+
+// Defines values for ResourceProvisioningStatus.
+const (
+	ResourceProvisioningStatusDeprovisioning ResourceProvisioningStatus = "deprovisioning"
+	ResourceProvisioningStatusError          ResourceProvisioningStatus = "error"
+	ResourceProvisioningStatusPending        ResourceProvisioningStatus = "pending"
+	ResourceProvisioningStatusProvisioned    ResourceProvisioningStatus = "provisioned"
+	ResourceProvisioningStatusProvisioning   ResourceProvisioningStatus = "provisioning"
+	ResourceProvisioningStatusUnknown        ResourceProvisioningStatus = "unknown"
 )
 
 // AllowedAddressPair Allow multiple MAC/IP address (range) pairs to pass through this network port.
@@ -53,6 +141,18 @@ type AllowedAddressPairList = []AllowedAddressPair
 // to act as a router without SNAT rules.
 type AllowedSourceAddresses = []string
 
+// Architecture CPU architecture.
+type Architecture string
+
+// AuthorizationServerList List of authorization servers that can grant access to the resource.
+type AuthorizationServerList = []string
+
+// BearerMethod Bearer token transport method
+type BearerMethod string
+
+// BearerMethodList A set of bearer token transport methods supported by the protected endpoint.
+type BearerMethodList = []BearerMethod
+
 // ComputeImage The image to use for a server.
 type ComputeImage struct {
 	// Id The image ID.
@@ -68,6 +168,33 @@ type ComputeImage0 = interface{}
 
 // ComputeImage1 defines model for .
 type ComputeImage1 = interface{}
+
+// ConsoleOutput Console output
+type ConsoleOutput struct {
+	// Contents Console output.
+	Contents string `json:"contents"`
+}
+
+// ConsoleSession A console session response.
+type ConsoleSession struct {
+	// Url The URL to access the console session.
+	Url string `json:"url"`
+}
+
+// Error Generic error message, compatible with oauth2.
+type Error struct {
+	// Error A terse error string expanding on the HTTP error code. Errors are based on the OAuth 2.02 specification, but are expanded with proprietary status codes for APIs other than those specified by OAuth 2.02.
+	Error ErrorError `json:"error"`
+
+	// ErrorDescription Verbose message describing the error.
+	ErrorDescription string `json:"error_description"`
+
+	// TraceId Unique trace identifier for the request.
+	TraceId *string `json:"trace_id,omitempty"`
+}
+
+// ErrorError A terse error string expanding on the HTTP error code. Errors are based on the OAuth 2.02 specification, but are expanded with proprietary status codes for APIs other than those specified by OAuth 2.02.
+type ErrorError string
 
 // FirewallRule A firewall rule applied to a workload pool.
 type FirewallRule struct {
@@ -96,10 +223,131 @@ type FirewallRuleProtocol string
 // FirewallRules A list of firewall rules applied to a workload pool.
 type FirewallRules = []FirewallRule
 
+// Flavor A flavor.
+type Flavor struct {
+	// Metadata This metadata is for resources that just exist, and don't require
+	// any provisioning and health status, but benefit from a standardized
+	// metadata format.
+	Metadata StaticResourceMetadata `json:"metadata"`
+
+	// Spec A flavor.
+	Spec FlavorSpec `json:"spec"`
+}
+
+// FlavorId A flavor ID.
+type FlavorId = openapi_types.UUID
+
+// FlavorSpec A flavor.
+type FlavorSpec struct {
+	// Architecture CPU architecture.
+	Architecture Architecture `json:"architecture"`
+
+	// Baremetal Whether the flavor is for a dedicated machine.
+	Baremetal *bool `json:"baremetal,omitempty"`
+
+	// CpuFamily A free form CPU family description e.g. model number, architecture.
+	CpuFamily *string `json:"cpuFamily,omitempty"`
+
+	// Cpus The number of CPUs.
+	Cpus int `json:"cpus"`
+
+	// Disk The amount of ephemeral disk in GB.
+	Disk int `json:"disk"`
+
+	// Gpu GPU specification.
+	Gpu *GpuSpec `json:"gpu,omitempty"`
+
+	// Memory The amount of memory in GiB.
+	Memory int `json:"memory"`
+
+	// PinnedOnly When true, a server using this flavor must specify an infrastructureRef to identify the target host.
+	PinnedOnly *bool `json:"pinnedOnly,omitempty"`
+}
+
+// Flavors A list of flavors.
+type Flavors = []Flavor
+
+// GpuModel A GPU model number.
+type GpuModel = string
+
+// GpuModelList A list of GPU model numbers.
+type GpuModelList = []GpuModel
+
+// GpuSpec GPU specification.
+type GpuSpec struct {
+	// LogicalCount The logical number of GPUs available as seen in the OS.
+	LogicalCount int `json:"logicalCount"`
+
+	// Memory GPU memory in GiB.
+	Memory int `json:"memory"`
+
+	// Model A GPU model.
+	Model string `json:"model"`
+
+	// PhysicalCount The physical number of GPUs (cards) available.
+	PhysicalCount int `json:"physicalCount"`
+
+	// Vendor The GPU vendor.
+	Vendor GpuVendor `json:"vendor"`
+}
+
+// GpuVendor The GPU vendor.
+type GpuVendor string
+
+// Image An image.
+type Image struct {
+	// Metadata This metadata is for resources that just exist, and don't require
+	// any provisioning and health status, but benefit from a standardized
+	// metadata format.
+	Metadata StaticResourceMetadata `json:"metadata"`
+
+	// Spec An image.
+	Spec ImageSpec `json:"spec"`
+
+	// Status The image's status.
+	Status ImageStatus `json:"status"`
+}
+
+// ImageGpu The GPU driver if installed.
+type ImageGpu struct {
+	// Driver The GPU driver version, this is vendor specific.
+	Driver string `json:"driver"`
+
+	// Models A list of GPU model numbers.
+	Models *GpuModelList `json:"models,omitempty"`
+
+	// Vendor The GPU vendor.
+	Vendor GpuVendor `json:"vendor"`
+}
+
+// ImageId An image ID.
+type ImageId = openapi_types.UUID
+
+// ImageOS An operating system description.
+type ImageOS struct {
+	// Codename A free form code name e.g. warty/bionic.
+	Codename *string `json:"codename,omitempty"`
+
+	// Distro A distribution name.
+	Distro OsDistro `json:"distro"`
+
+	// Family A family of operating systems.  This typically defines the package format.
+	Family OsFamily `json:"family"`
+
+	// Kernel A kernel type.
+	Kernel OsKernel `json:"kernel"`
+
+	// Variant A free form variant e.g. desktop/server.
+	Variant *string `json:"variant,omitempty"`
+
+	// Version Version of the operating system e.g. "24.04".
+	Version string `json:"version"`
+}
+
 // ImageSelector A server image selector.
 type ImageSelector struct {
 	// Distro A distribution name.
-	Distro externalRef1.OsDistro `json:"distro"`
+	Distro OsDistro `json:"distro"`
 
 	// Variant The operating system variant.
 	Variant *string `json:"variant,omitempty"`
@@ -108,10 +356,46 @@ type ImageSelector struct {
 	Version string `json:"version"`
 }
 
+// ImageSpec An image.
+type ImageSpec struct {
+	// Architecture CPU architecture.
+	Architecture Architecture `json:"architecture"`
+
+	// Gpu The GPU driver if installed.
+	Gpu *ImageGpu `json:"gpu,omitempty"`
+
+	// Os An operating system description.
+	Os ImageOS `json:"os"`
+
+	// SizeGiB Minimum disk size required to use the image in GiB.
+	SizeGiB int `json:"sizeGiB"`
+
+	// SoftwareVersions Image preinstalled version version metadata.
+	SoftwareVersions *SoftwareVersions `json:"softwareVersions,omitempty"`
+
+	// Virtualization What type of machine the image is for.
+	Virtualization ImageVirtualization `json:"virtualization"`
+}
+
+// ImageState The images's lifecycle state.
+type ImageState string
+
+// ImageStatus The image's status.
+type ImageStatus struct {
+	// State The images's lifecycle state.
+	State ImageState `json:"state"`
+}
+
+// ImageVirtualization What type of machine the image is for.
+type ImageVirtualization string
+
+// Images A list of images that are compatible with this platform.
+type Images = []Image
+
 // InstanceCreate A compute instance creation request.
 type InstanceCreate struct {
 	// Metadata Metadata required for all API resource reads and writes.
-	Metadata externalRef0.ResourceWriteMetadata `json:"metadata"`
+	Metadata ResourceMetadata `json:"metadata"`
 
 	// Spec A compute instance.
 	Spec InstanceCreateSpec `json:"spec"`
@@ -119,33 +403,43 @@ type InstanceCreate struct {
 
 // InstanceCreateSpec defines model for instanceCreateSpec.
 type InstanceCreateSpec struct {
-	// FlavorId The flavor CPU/RAM of a compute instance.
-	FlavorId string `json:"flavorId"`
+	// FlavorId A flavor ID.
+	FlavorId FlavorId `json:"flavorId"`
 
-	// ImageId The image of a compute instance.
-	ImageId string `json:"imageId"`
+	// ImageId An image ID.
+	ImageId ImageId `json:"imageId"`
 
-	// NetworkId The network ID to attach the compute instance to.
-	NetworkId string `json:"networkId"`
+	// NetworkId A network ID.
+	NetworkId NetworkId `json:"networkId"`
 
 	// Networking A compute instance's network  configuration.
 	Networking *InstanceNetworking `json:"networking,omitempty"`
 
-	// OrganizationId The organization to provision the resource in.
-	OrganizationId string `json:"organizationId"`
+	// OrganizationId An organization ID.
+	OrganizationId OrganizationId `json:"organizationId"`
 
-	// ProjectId The project to provision the resource in.
-	ProjectId string `json:"projectId"`
+	// ProjectId A project ID.
+	ProjectId ProjectId `json:"projectId"`
 
-	// SshCertificateAuthorityId The SSH certificate authority used to bootstrap login trust when the backing server is
-	// created.
-	SshCertificateAuthorityId *string `json:"sshCertificateAuthorityId,omitempty"`
+	// SshCertificateAuthorityId An SSH certificate authority ID.
+	SshCertificateAuthorityId *SshCertificateAuthorityId `json:"sshCertificateAuthorityId,omitempty"`
 
 	// UserData Contains base64-encoded configuration information or scripts to use upon launch.
 	// The format of the data is governed by the cloud-init standard, and may be a script,
 	// a MIME multipart archive, etc.
 	UserData *[]byte `json:"userData,omitempty"`
 }
+
+// InstanceId A compute instance ID.
+type InstanceId = openapi_types.UUID
+
+// InstanceLifecyclePhase The lifecycle phase of an instance. Once provisioning_status reaches
+// provisioned, this becomes the live readiness signal: API consumers
+// should treat Running (not provisioned) as the "ready to use" state.
+// Queued and Building are observed during create — Queued for
+// baremetal servers waiting on hardware, Building for servers the
+// provider is actively bringing up.
+type InstanceLifecyclePhase string
 
 // InstanceNetworking A compute instance's network  configuration.
 type InstanceNetworking struct {
@@ -165,13 +459,17 @@ type InstanceNetworking struct {
 // InstanceRead A compute instance.
 type InstanceRead struct {
 	// Metadata Metadata required by project scoped resource reads.
-	Metadata externalRef0.ProjectScopedResourceReadMetadata `json:"metadata"`
+	Metadata ProjectScopedResourceReadMetadata `json:"metadata"`
 
 	// Spec A compute instance.
 	// Some stored desired-state changes only take effect on the backing server when that server is
-	// rebuilt or recreated. Currently, changing metadata.name, flavorId or imageId causes the
-	// backing server to be rebuilt or recreated. In those cases, backing server IP addresses are
-	// not preserved and may change when the replacement server is created.
+	// rebuilt or recreated. Currently, changing flavorId or imageId causes the backing server to
+	// be rebuilt or recreated. In those cases, backing server IP addresses are not preserved and
+	// may change when the replacement server is created. Instance names are immutable; rename
+	// attempts are rejected with HTTP 422.
+	// The imageId field may reference any image that Region reports as available to the
+	// organization in the target region; it is not limited to images returned by the curated
+	// Compute image catalog.
 	Spec InstanceSpec `json:"spec"`
 
 	// Status Read only status information about a compute instance.
@@ -181,27 +479,30 @@ type InstanceRead struct {
 // InstanceSnapshotCreate A compute instance snapshot request.
 type InstanceSnapshotCreate struct {
 	// Metadata Metadata required for all API resource reads and writes.
-	Metadata externalRef0.ResourceWriteMetadata `json:"metadata"`
+	Metadata ResourceMetadata `json:"metadata"`
 }
 
 // InstanceSpec A compute instance.
 // Some stored desired-state changes only take effect on the backing server when that server is
-// rebuilt or recreated. Currently, changing metadata.name, flavorId or imageId causes the
-// backing server to be rebuilt or recreated. In those cases, backing server IP addresses are
-// not preserved and may change when the replacement server is created.
+// rebuilt or recreated. Currently, changing flavorId or imageId causes the backing server to
+// be rebuilt or recreated. In those cases, backing server IP addresses are not preserved and
+// may change when the replacement server is created. Instance names are immutable; rename
+// attempts are rejected with HTTP 422.
+// The imageId field may reference any image that Region reports as available to the
+// organization in the target region; it is not limited to images returned by the curated
+// Compute image catalog.
 type InstanceSpec struct {
-	// FlavorId The flavor CPU/RAM of a compute instance.
-	FlavorId string `json:"flavorId"`
+	// FlavorId A flavor ID.
+	FlavorId FlavorId `json:"flavorId"`
 
-	// ImageId The image of a compute instance.
-	ImageId string `json:"imageId"`
+	// ImageId An image ID.
+	ImageId ImageId `json:"imageId"`
 
 	// Networking A compute instance's network  configuration.
 	Networking *InstanceNetworking `json:"networking,omitempty"`
 
-	// SshCertificateAuthorityId The SSH certificate authority used to bootstrap login trust when the backing server is
-	// created.
-	SshCertificateAuthorityId *string `json:"sshCertificateAuthorityId,omitempty"`
+	// SshCertificateAuthorityId An SSH certificate authority ID.
+	SshCertificateAuthorityId *SshCertificateAuthorityId `json:"sshCertificateAuthorityId,omitempty"`
 
 	// UserData Contains base64-encoded configuration information or scripts to use upon launch.
 	// The format of the data is governed by the cloud-init standard, and may be a script,
@@ -223,7 +524,7 @@ type InstanceStatus struct {
 	// Queued and Building are observed during create — Queued for
 	// baremetal servers waiting on hardware, Building for servers the
 	// provider is actively bringing up.
-	PowerState *externalRef1.InstanceLifecyclePhase `json:"powerState,omitempty"`
+	PowerState *InstanceLifecyclePhase `json:"powerState,omitempty"`
 
 	// PrivateIP The private IP address of the server.
 	PrivateIP *string `json:"privateIP,omitempty"`
@@ -238,21 +539,145 @@ type InstanceStatus struct {
 // InstanceUpdate A compute instance update request.
 type InstanceUpdate struct {
 	// Metadata Metadata required for all API resource reads and writes.
-	Metadata externalRef0.ResourceWriteMetadata `json:"metadata"`
+	Metadata ResourceMetadata `json:"metadata"`
 
 	// Spec A compute instance.
 	// Some stored desired-state changes only take effect on the backing server when that server is
-	// rebuilt or recreated. Currently, changing metadata.name, flavorId or imageId causes the
-	// backing server to be rebuilt or recreated. In those cases, backing server IP addresses are
-	// not preserved and may change when the replacement server is created.
+	// rebuilt or recreated. Currently, changing flavorId or imageId causes the backing server to
+	// be rebuilt or recreated. In those cases, backing server IP addresses are not preserved and
+	// may change when the replacement server is created. Instance names are immutable; rename
+	// attempts are rejected with HTTP 422.
+	// The imageId field may reference any image that Region reports as available to the
+	// organization in the target region; it is not limited to images returned by the curated
+	// Compute image catalog.
 	Spec InstanceSpec `json:"spec"`
 }
 
 // InstancesRead A list of compute instances.
 type InstancesRead = []InstanceRead
 
+// KubernetesLabelValue A valid Kubernetes label value, typically used for resource names that can be
+// indexed in the database.
+type KubernetesLabelValue = string
+
 // KubernetesNameParameter A Kubernetes name. Must be a valid DNS containing only lower case characters, numbers or hyphens, start and end with a character or number, and be at most 63 characters in length.
 type KubernetesNameParameter = string
+
+// NetworkId A network ID.
+type NetworkId = openapi_types.UUID
+
+// OpenidProtectedResource OpenID athentication server discovery configuration.
+type OpenidProtectedResource struct {
+	// AuthorizationServers List of authorization servers that can grant access to the resource.
+	AuthorizationServers AuthorizationServerList `json:"authorization_servers"`
+
+	// BearerMethodsSupported A set of bearer token transport methods supported by the protected endpoint.
+	BearerMethodsSupported BearerMethodList `json:"bearer_methods_supported"`
+
+	// Resource The protected resource's scheme and hostname.
+	Resource string `json:"resource"`
+
+	// ScopesSupported A set of OIDC scopes that are required for authorization.
+	ScopesSupported ScopeList `json:"scopes_supported"`
+}
+
+// OrganizationId An organization ID.
+type OrganizationId = openapi_types.UUID
+
+// OrganizationScopedResourceReadMetadata defines model for organizationScopedResourceReadMetadata.
+type OrganizationScopedResourceReadMetadata struct {
+	// CreatedBy The user who created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+
+	// CreationTime The time the resource was created.
+	CreationTime time.Time `json:"creationTime"`
+
+	// DeletionTime The time the resource was deleted.
+	DeletionTime *time.Time `json:"deletionTime,omitempty"`
+
+	// Description The resource description, this optionally augments the name with more context.
+	Description *string `json:"description,omitempty"`
+
+	// HealthStatus The health state of a resource.
+	HealthStatus ResourceHealthStatus `json:"healthStatus"`
+
+	// Id The unique resource ID.
+	Id string `json:"id"`
+
+	// ModifiedBy The user who updated the resource.
+	ModifiedBy *string `json:"modifiedBy,omitempty"`
+
+	// ModifiedTime The time a resource was updated.
+	ModifiedTime *time.Time `json:"modifiedTime,omitempty"`
+
+	// Name A valid Kubernetes label value, typically used for resource names that can be
+	// indexed in the database.
+	Name KubernetesLabelValue `json:"name"`
+
+	// OrganizationId The organization identifier the resource belongs to.
+	OrganizationId string `json:"organizationId"`
+
+	// ProvisioningStatus The provisioning state of a resource.
+	ProvisioningStatus ResourceProvisioningStatus `json:"provisioningStatus"`
+
+	// Tags A list of tags.
+	Tags *TagList `json:"tags,omitempty"`
+}
+
+// OsDistro A distribution name.
+type OsDistro = string
+
+// OsFamily A family of operating systems.  This typically defines the package format.
+type OsFamily = string
+
+// OsKernel A kernel type.
+type OsKernel string
+
+// ProjectId A project ID.
+type ProjectId = openapi_types.UUID
+
+// ProjectScopedResourceReadMetadata defines model for projectScopedResourceReadMetadata.
+type ProjectScopedResourceReadMetadata struct {
+	// CreatedBy The user who created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+
+	// CreationTime The time the resource was created.
+	CreationTime time.Time `json:"creationTime"`
+
+	// DeletionTime The time the resource was deleted.
+	DeletionTime *time.Time `json:"deletionTime,omitempty"`
+
+	// Description The resource description, this optionally augments the name with more context.
+	Description *string `json:"description,omitempty"`
+
+	// HealthStatus The health state of a resource.
+	HealthStatus ResourceHealthStatus `json:"healthStatus"`
+
+	// Id The unique resource ID.
+	Id string `json:"id"`
+
+	// ModifiedBy The user who updated the resource.
+	ModifiedBy *string `json:"modifiedBy,omitempty"`
+
+	// ModifiedTime The time a resource was updated.
+	ModifiedTime *time.Time `json:"modifiedTime,omitempty"`
+
+	// Name A valid Kubernetes label value, typically used for resource names that can be
+	// indexed in the database.
+	Name KubernetesLabelValue `json:"name"`
+
+	// OrganizationId The organization identifier the resource belongs to.
+	OrganizationId string `json:"organizationId"`
+
+	// ProjectId The project identifier the resource belongs to.
+	ProjectId string `json:"projectId"`
+
+	// ProvisioningStatus The provisioning state of a resource.
+	ProvisioningStatus ResourceProvisioningStatus `json:"provisioningStatus"`
+
+	// Tags A list of tags.
+	Tags *TagList `json:"tags,omitempty"`
+}
 
 // PublicIPAllocation A public IP allocation settings.
 type PublicIPAllocation struct {
@@ -260,8 +685,171 @@ type PublicIPAllocation struct {
 	Enabled bool `json:"enabled"`
 }
 
+// RegionFeatures A set of features the region may provide to clients.
+type RegionFeatures struct {
+	// PhysicalNetworks If set, this indicates that the region supports physical networks and
+	// one should be provisioned for clusters to use.  The implication here is
+	// the region supports base-metal machines, and these must be provisioned
+	// on a physical VLAN etc.
+	PhysicalNetworks bool `json:"physicalNetworks"`
+}
+
+// RegionId A region ID.
+type RegionId = openapi_types.UUID
+
+// RegionRead A region.
+type RegionRead struct {
+	// Metadata Metadata required by all resource reads.
+	Metadata ResourceReadMetadata `json:"metadata"`
+
+	// Spec Information about the region.
+	Spec RegionSpec `json:"spec"`
+}
+
+// RegionSpec Information about the region.
+type RegionSpec struct {
+	// Features A set of features the region may provide to clients.
+	Features RegionFeatures `json:"features"`
+
+	// Type The region's provider type.
+	Type RegionType `json:"type"`
+}
+
+// RegionType The region's provider type.
+type RegionType string
+
+// Regions A list of regions.
+type Regions = []RegionRead
+
+// ResourceHealthStatus The health state of a resource.
+type ResourceHealthStatus string
+
+// ResourceMetadata Metadata required for all API resource reads and writes.
+type ResourceMetadata struct {
+	// Description The resource description, this optionally augments the name with more context.
+	Description *string `json:"description,omitempty"`
+
+	// Name A valid Kubernetes label value, typically used for resource names that can be
+	// indexed in the database.
+	Name KubernetesLabelValue `json:"name"`
+
+	// Tags A list of tags.
+	Tags *TagList `json:"tags,omitempty"`
+}
+
+// ResourceProvisioningStatus The provisioning state of a resource.
+type ResourceProvisioningStatus string
+
+// ResourceReadMetadata defines model for resourceReadMetadata.
+type ResourceReadMetadata struct {
+	// CreatedBy The user who created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+
+	// CreationTime The time the resource was created.
+	CreationTime time.Time `json:"creationTime"`
+
+	// DeletionTime The time the resource was deleted.
+	DeletionTime *time.Time `json:"deletionTime,omitempty"`
+
+	// Description The resource description, this optionally augments the name with more context.
+	Description *string `json:"description,omitempty"`
+
+	// HealthStatus The health state of a resource.
+	HealthStatus ResourceHealthStatus `json:"healthStatus"`
+
+	// Id The unique resource ID.
+	Id string `json:"id"`
+
+	// ModifiedBy The user who updated the resource.
+	ModifiedBy *string `json:"modifiedBy,omitempty"`
+
+	// ModifiedTime The time a resource was updated.
+	ModifiedTime *time.Time `json:"modifiedTime,omitempty"`
+
+	// Name A valid Kubernetes label value, typically used for resource names that can be
+	// indexed in the database.
+	Name KubernetesLabelValue `json:"name"`
+
+	// ProvisioningStatus The provisioning state of a resource.
+	ProvisioningStatus ResourceProvisioningStatus `json:"provisioningStatus"`
+
+	// Tags A list of tags.
+	Tags *TagList `json:"tags,omitempty"`
+}
+
+// ScopeList A set of OIDC scopes that are required for authorization.
+type ScopeList = []string
+
 // SecurityGroupIDList A list of security group IDs.
 type SecurityGroupIDList = []string
+
+// Semver A semantic version in the form v1.2.3.
+// Pre-releases and variants are not currently supported.
+type Semver = string
+
+// ServiceVersionRead Build version information for the running service, stamped into the
+// binary at release time.  Developer builds report version 0.0.0.
+type ServiceVersionRead struct {
+	// Name The service application name.
+	Name string `json:"name"`
+
+	// Version The service release version, e.g. v1.2.3.
+	Version string `json:"version"`
+}
+
+// SoftwareVersions Image preinstalled version version metadata.
+type SoftwareVersions map[string]Semver
+
+// SshCertificateAuthorityId An SSH certificate authority ID.
+type SshCertificateAuthorityId = openapi_types.UUID
+
+// SshKey An SSH key.
+type SshKey struct {
+	// PrivateKey The SSH private key.
+	PrivateKey string `json:"privateKey"`
+}
+
+// StaticResourceMetadata defines model for staticResourceMetadata.
+type StaticResourceMetadata struct {
+	// CreatedBy The user who created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+
+	// CreationTime The time the resource was created.
+	CreationTime time.Time `json:"creationTime"`
+
+	// Description The resource description, this optionally augments the name with more context.
+	Description *string `json:"description,omitempty"`
+
+	// Id The unique resource ID.
+	Id string `json:"id"`
+
+	// ModifiedBy The user who updated the resource.
+	ModifiedBy *string `json:"modifiedBy,omitempty"`
+
+	// ModifiedTime The time a resource was updated.
+	ModifiedTime *time.Time `json:"modifiedTime,omitempty"`
+
+	// Name A valid Kubernetes label value, typically used for resource names that can be
+	// indexed in the database.
+	Name KubernetesLabelValue `json:"name"`
+
+	// Tags A list of tags.
+	Tags *TagList `json:"tags,omitempty"`
+}
+
+// Tag A tag mapping arbitrary names to values.  These have no special meaning
+// for any component are are intended for use by end users to add additional
+// context to a resource, for example to categorize it.
+type Tag struct {
+	// Name A unique tag name.
+	Name string `json:"name"`
+
+	// Value The value of the tag.
+	Value string `json:"value"`
+}
+
+// TagList A list of tags.
+type TagList = []Tag
 
 // Volume A volume.  This is currently only valid for VM based flavors.
 type Volume struct {
@@ -272,8 +860,8 @@ type Volume struct {
 // HardRebootParameter defines model for hardRebootParameter.
 type HardRebootParameter = bool
 
-// InstanceIDParameter A Kubernetes name. Must be a valid DNS containing only lower case characters, numbers or hyphens, start and end with a character or number, and be at most 63 characters in length.
-type InstanceIDParameter = KubernetesNameParameter
+// InstanceIDParameter A compute instance ID.
+type InstanceIDParameter = InstanceId
 
 // LengthParameter defines model for lengthParameter.
 type LengthParameter = int
@@ -281,29 +869,81 @@ type LengthParameter = int
 // NetworkIDQueryParameter defines model for networkIDQueryParameter.
 type NetworkIDQueryParameter = []string
 
-// OrganizationIDParameter A Kubernetes name. Must be a valid DNS containing only lower case characters, numbers or hyphens, start and end with a character or number, and be at most 63 characters in length.
-type OrganizationIDParameter = KubernetesNameParameter
+// OrganizationIDParameter An organization ID.
+type OrganizationIDParameter = OrganizationId
 
 // OrganizationIDQueryParameter defines model for organizationIDQueryParameter.
 type OrganizationIDQueryParameter = []string
 
-// ProjectIDParameter A Kubernetes name. Must be a valid DNS containing only lower case characters, numbers or hyphens, start and end with a character or number, and be at most 63 characters in length.
-type ProjectIDParameter = KubernetesNameParameter
+// ProjectIDParameter A project ID.
+type ProjectIDParameter = ProjectId
 
 // ProjectIDQueryParameter defines model for projectIDQueryParameter.
 type ProjectIDQueryParameter = []string
 
-// RegionIDParameter A Kubernetes name. Must be a valid DNS containing only lower case characters, numbers or hyphens, start and end with a character or number, and be at most 63 characters in length.
-type RegionIDParameter = KubernetesNameParameter
+// RegionIDParameter A region ID.
+type RegionIDParameter = RegionId
 
 // RegionIDQueryParameter defines model for regionIDQueryParameter.
 type RegionIDQueryParameter = []string
+
+// TagSelectorParameter defines model for tagSelectorParameter.
+type TagSelectorParameter = []string
+
+// BadRequestResponse Generic error message, compatible with oauth2.
+type BadRequestResponse = Error
+
+// ConflictResponse Generic error message, compatible with oauth2.
+type ConflictResponse = Error
+
+// ConsoleOutputResponse Console output
+type ConsoleOutputResponse = ConsoleOutput
+
+// ConsoleSessionResponse A console session response.
+type ConsoleSessionResponse = ConsoleSession
+
+// FlavorsResponse A list of flavors.
+type FlavorsResponse = Flavors
+
+// ForbiddenResponse Generic error message, compatible with oauth2.
+type ForbiddenResponse = Error
+
+// ImageResponse An image.
+type ImageResponse = Image
+
+// ImagesResponse A list of images that are compatible with this platform.
+type ImagesResponse = Images
 
 // InstanceResponse A compute instance.
 type InstanceResponse = InstanceRead
 
 // InstancesResponse A list of compute instances.
 type InstancesResponse = InstancesRead
+
+// InternalServerErrorResponse Generic error message, compatible with oauth2.
+type InternalServerErrorResponse = Error
+
+// NotFoundResponse Generic error message, compatible with oauth2.
+type NotFoundResponse = Error
+
+// OpenidProtectedResourceResponse OpenID athentication server discovery configuration.
+type OpenidProtectedResourceResponse = OpenidProtectedResource
+
+// RegionsResponse A list of regions.
+type RegionsResponse = Regions
+
+// ServiceVersionResponse Build version information for the running service, stamped into the
+// binary at release time.  Developer builds report version 0.0.0.
+type ServiceVersionResponse = ServiceVersionRead
+
+// SshKeyResponse An SSH key.
+type SshKeyResponse = SshKey
+
+// UnauthorizedResponse Generic error message, compatible with oauth2.
+type UnauthorizedResponse = Error
+
+// UnprocessableContentResponse Generic error message, compatible with oauth2.
+type UnprocessableContentResponse = Error
 
 // InstanceCreateRequest A compute instance creation request.
 type InstanceCreateRequest = InstanceCreate
@@ -318,7 +958,7 @@ type InstanceUpdateRequest = InstanceUpdate
 type GetApiV2InstancesParams struct {
 	// Tag A set of tags to match against resources in the form "name=value",
 	// thus when encoded you get "?tag=foo%3Dcat&tag=bar%3Ddog".
-	Tag *externalRef0.TagSelectorParameter `form:"tag,omitempty" json:"tag,omitempty"`
+	Tag *TagSelectorParameter `form:"tag,omitempty" json:"tag,omitempty"`
 
 	// OrganizationID Allows resources to be filtered by organization.
 	OrganizationID *OrganizationIDQueryParameter `form:"organizationID,omitempty" json:"organizationID,omitempty"`
@@ -537,9 +1177,6 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// GetWellKnownOpenidProtectedResource request
-	GetWellKnownOpenidProtectedResource(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// GetApiV1OrganizationsOrganizationIDRegions request
 	GetApiV1OrganizationsOrganizationIDRegions(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -590,18 +1227,9 @@ type ClientInterface interface {
 
 	// PostApiV2InstancesInstanceIDStop request
 	PostApiV2InstancesInstanceIDStop(ctx context.Context, instanceID InstanceIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
-}
 
-func (c *Client) GetWellKnownOpenidProtectedResource(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetWellKnownOpenidProtectedResourceRequest(c.Server)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
+	// GetApiVersion request
+	GetApiVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) GetApiV1OrganizationsOrganizationIDRegions(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -820,31 +1448,16 @@ func (c *Client) PostApiV2InstancesInstanceIDStop(ctx context.Context, instanceI
 	return c.Client.Do(req)
 }
 
-// NewGetWellKnownOpenidProtectedResourceRequest generates requests for GetWellKnownOpenidProtectedResource
-func NewGetWellKnownOpenidProtectedResourceRequest(server string) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
+func (c *Client) GetApiVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetApiVersionRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
-
-	operationPath := fmt.Sprintf("/.well-known/openid-protected-resource")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
 		return nil, err
 	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return req, nil
+	return c.Client.Do(req)
 }
 
 // NewGetApiV1OrganizationsOrganizationIDRegionsRequest generates requests for GetApiV1OrganizationsOrganizationIDRegions
@@ -1526,6 +2139,33 @@ func NewPostApiV2InstancesInstanceIDStopRequest(server string, instanceID Instan
 	return req, nil
 }
 
+// NewGetApiVersionRequest generates requests for GetApiVersion
+func NewGetApiVersionRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/version")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -1569,9 +2209,6 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// GetWellKnownOpenidProtectedResourceWithResponse request
-	GetWellKnownOpenidProtectedResourceWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetWellKnownOpenidProtectedResourceResponse, error)
-
 	// GetApiV1OrganizationsOrganizationIDRegionsWithResponse request
 	GetApiV1OrganizationsOrganizationIDRegionsWithResponse(ctx context.Context, organizationID OrganizationIDParameter, reqEditors ...RequestEditorFn) (*GetApiV1OrganizationsOrganizationIDRegionsResponse, error)
 
@@ -1622,38 +2259,19 @@ type ClientWithResponsesInterface interface {
 
 	// PostApiV2InstancesInstanceIDStopWithResponse request
 	PostApiV2InstancesInstanceIDStopWithResponse(ctx context.Context, instanceID InstanceIDParameter, reqEditors ...RequestEditorFn) (*PostApiV2InstancesInstanceIDStopResponse, error)
-}
 
-type GetWellKnownOpenidProtectedResourceResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *externalRef0.OpenidProtectedResourceResponse
-}
-
-// Status returns HTTPResponse.Status
-func (r GetWellKnownOpenidProtectedResourceResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetWellKnownOpenidProtectedResourceResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
+	// GetApiVersionWithResponse request
+	GetApiVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetApiVersionResponse, error)
 }
 
 type GetApiV1OrganizationsOrganizationIDRegionsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef1.RegionsResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON200      *RegionsResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1675,12 +2293,12 @@ func (r GetApiV1OrganizationsOrganizationIDRegionsResponse) StatusCode() int {
 type GetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef1.FlavorsResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON200      *FlavorsResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1702,12 +2320,12 @@ func (r GetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsResponse) Statu
 type GetApiV1OrganizationsOrganizationIDRegionsRegionIDImagesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef1.ImagesResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON200      *ImagesResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1730,11 +2348,11 @@ type GetApiV2InstancesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *InstancesResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1757,11 +2375,12 @@ type PostApiV2InstancesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON201      *InstanceResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON409      *externalRef0.ConflictResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON409      *ConflictResponse
+	JSON422      *UnprocessableContentResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1783,11 +2402,11 @@ func (r PostApiV2InstancesResponse) StatusCode() int {
 type DeleteApiV2InstancesInstanceIDResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1810,11 +2429,11 @@ type GetApiV2InstancesInstanceIDResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *InstanceResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1837,11 +2456,12 @@ type PutApiV2InstancesInstanceIDResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON202      *InstanceResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON422      *UnprocessableContentResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1863,12 +2483,12 @@ func (r PutApiV2InstancesInstanceIDResponse) StatusCode() int {
 type GetApiV2InstancesInstanceIDConsoleoutputResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef1.ConsoleOutputResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON200      *ConsoleOutputResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1890,12 +2510,12 @@ func (r GetApiV2InstancesInstanceIDConsoleoutputResponse) StatusCode() int {
 type GetApiV2InstancesInstanceIDConsolesessionResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef1.ConsoleSessionResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON200      *ConsoleSessionResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1917,11 +2537,11 @@ func (r GetApiV2InstancesInstanceIDConsolesessionResponse) StatusCode() int {
 type PostApiV2InstancesInstanceIDRebootResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1943,12 +2563,12 @@ func (r PostApiV2InstancesInstanceIDRebootResponse) StatusCode() int {
 type PostApiV2InstancesInstanceIDSnapshotResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON201      *externalRef1.ImageResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON201      *ImageResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1970,12 +2590,12 @@ func (r PostApiV2InstancesInstanceIDSnapshotResponse) StatusCode() int {
 type GetApiV2InstancesInstanceIDSshkeyResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef1.SshKeyResponse
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON200      *SshKeyResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1997,11 +2617,11 @@ func (r GetApiV2InstancesInstanceIDSshkeyResponse) StatusCode() int {
 type PostApiV2InstancesInstanceIDStartResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -2023,11 +2643,11 @@ func (r PostApiV2InstancesInstanceIDStartResponse) StatusCode() int {
 type PostApiV2InstancesInstanceIDStopResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -2046,13 +2666,28 @@ func (r PostApiV2InstancesInstanceIDStopResponse) StatusCode() int {
 	return 0
 }
 
-// GetWellKnownOpenidProtectedResourceWithResponse request returning *GetWellKnownOpenidProtectedResourceResponse
-func (c *ClientWithResponses) GetWellKnownOpenidProtectedResourceWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetWellKnownOpenidProtectedResourceResponse, error) {
-	rsp, err := c.GetWellKnownOpenidProtectedResource(ctx, reqEditors...)
-	if err != nil {
-		return nil, err
+type GetApiVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ServiceVersionResponse
+	JSON401      *UnauthorizedResponse
+	JSON500      *InternalServerErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetApiVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
 	}
-	return ParseGetWellKnownOpenidProtectedResourceResponse(rsp)
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetApiVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 // GetApiV1OrganizationsOrganizationIDRegionsWithResponse request returning *GetApiV1OrganizationsOrganizationIDRegionsResponse
@@ -2214,30 +2849,13 @@ func (c *ClientWithResponses) PostApiV2InstancesInstanceIDStopWithResponse(ctx c
 	return ParsePostApiV2InstancesInstanceIDStopResponse(rsp)
 }
 
-// ParseGetWellKnownOpenidProtectedResourceResponse parses an HTTP response from a GetWellKnownOpenidProtectedResourceWithResponse call
-func ParseGetWellKnownOpenidProtectedResourceResponse(rsp *http.Response) (*GetWellKnownOpenidProtectedResourceResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
+// GetApiVersionWithResponse request returning *GetApiVersionResponse
+func (c *ClientWithResponses) GetApiVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetApiVersionResponse, error) {
+	rsp, err := c.GetApiVersion(ctx, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-
-	response := &GetWellKnownOpenidProtectedResourceResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef0.OpenidProtectedResourceResponse
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	}
-
-	return response, nil
+	return ParseGetApiVersionResponse(rsp)
 }
 
 // ParseGetApiV1OrganizationsOrganizationIDRegionsResponse parses an HTTP response from a GetApiV1OrganizationsOrganizationIDRegionsWithResponse call
@@ -2255,35 +2873,35 @@ func ParseGetApiV1OrganizationsOrganizationIDRegionsResponse(rsp *http.Response)
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef1.RegionsResponse
+		var dest RegionsResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2309,42 +2927,42 @@ func ParseGetApiV1OrganizationsOrganizationIDRegionsRegionIDFlavorsResponse(rsp 
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef1.FlavorsResponse
+		var dest FlavorsResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2370,42 +2988,42 @@ func ParseGetApiV1OrganizationsOrganizationIDRegionsRegionIDImagesResponse(rsp *
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef1.ImagesResponse
+		var dest ImagesResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2438,35 +3056,35 @@ func ParseGetApiV2InstancesResponse(rsp *http.Response) (*GetApiV2InstancesRespo
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2499,35 +3117,42 @@ func ParsePostApiV2InstancesResponse(rsp *http.Response) (*PostApiV2InstancesRes
 		response.JSON201 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest externalRef0.ConflictResponse
+		var dest ConflictResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON409 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest UnprocessableContentResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON422 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2553,35 +3178,35 @@ func ParseDeleteApiV2InstancesInstanceIDResponse(rsp *http.Response) (*DeleteApi
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2614,35 +3239,35 @@ func ParseGetApiV2InstancesInstanceIDResponse(rsp *http.Response) (*GetApiV2Inst
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2675,35 +3300,42 @@ func ParsePutApiV2InstancesInstanceIDResponse(rsp *http.Response) (*PutApiV2Inst
 		response.JSON202 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest UnprocessableContentResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON422 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2729,42 +3361,42 @@ func ParseGetApiV2InstancesInstanceIDConsoleoutputResponse(rsp *http.Response) (
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef1.ConsoleOutputResponse
+		var dest ConsoleOutputResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2790,42 +3422,42 @@ func ParseGetApiV2InstancesInstanceIDConsolesessionResponse(rsp *http.Response) 
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef1.ConsoleSessionResponse
+		var dest ConsoleSessionResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2851,35 +3483,35 @@ func ParsePostApiV2InstancesInstanceIDRebootResponse(rsp *http.Response) (*PostA
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2905,42 +3537,42 @@ func ParsePostApiV2InstancesInstanceIDSnapshotResponse(rsp *http.Response) (*Pos
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
-		var dest externalRef1.ImageResponse
+		var dest ImageResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON201 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2966,42 +3598,42 @@ func ParseGetApiV2InstancesInstanceIDSshkeyResponse(rsp *http.Response) (*GetApi
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef1.SshKeyResponse
+		var dest SshKeyResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -3027,35 +3659,35 @@ func ParsePostApiV2InstancesInstanceIDStartResponse(rsp *http.Response) (*PostAp
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -3081,35 +3713,75 @@ func ParsePostApiV2InstancesInstanceIDStopResponse(rsp *http.Response) (*PostApi
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetApiVersionResponse parses an HTTP response from a GetApiVersionWithResponse call
+func ParseGetApiVersionResponse(rsp *http.Response) (*GetApiVersionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetApiVersionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ServiceVersionResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest UnauthorizedResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

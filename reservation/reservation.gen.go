@@ -14,8 +14,6 @@ import (
 	"strings"
 	"time"
 
-	externalRef0 "github.com/nscaledev/nscale-sdk-go/common"
-	externalRef1 "github.com/nscaledev/nscale-sdk-go/region"
 	"github.com/oapi-codegen/runtime"
 )
 
@@ -23,11 +21,44 @@ const (
 	Oauth2AuthenticationScopes = "oauth2Authentication.Scopes"
 )
 
+// Defines values for ErrorError.
+const (
+	AccessDenied          ErrorError = "access_denied"
+	Conflict              ErrorError = "conflict"
+	Forbidden             ErrorError = "forbidden"
+	InvalidRequest        ErrorError = "invalid_request"
+	MethodNotAllowed      ErrorError = "method_not_allowed"
+	NotFound              ErrorError = "not_found"
+	RequestEntityTooLarge ErrorError = "request_entity_too_large"
+	ServerError           ErrorError = "server_error"
+	UnprocessableContent  ErrorError = "unprocessable_content"
+	UnsupportedMediaType  ErrorError = "unsupported_media_type"
+)
+
 // Defines values for GpuVendorV2.
 const (
 	AMD     GpuVendorV2 = "AMD"
 	NVIDIA  GpuVendorV2 = "NVIDIA"
 	UNKNOWN GpuVendorV2 = "UNKNOWN"
+)
+
+// Defines values for HealthStatusReason.
+const (
+	HealthStatusReasonDegraded HealthStatusReason = "Degraded"
+	HealthStatusReasonHealthy  HealthStatusReason = "Healthy"
+	HealthStatusReasonUnknown  HealthStatusReason = "Unknown"
+)
+
+// Defines values for InstanceLifecyclePhase.
+const (
+	InstanceLifecyclePhaseBuilding   InstanceLifecyclePhase = "Building"
+	InstanceLifecyclePhaseError      InstanceLifecyclePhase = "Error"
+	InstanceLifecyclePhasePending    InstanceLifecyclePhase = "Pending"
+	InstanceLifecyclePhaseQueued     InstanceLifecyclePhase = "Queued"
+	InstanceLifecyclePhaseRebuilding InstanceLifecyclePhase = "Rebuilding"
+	InstanceLifecyclePhaseRunning    InstanceLifecyclePhase = "Running"
+	InstanceLifecyclePhaseStopped    InstanceLifecyclePhase = "Stopped"
+	InstanceLifecyclePhaseStopping   InstanceLifecyclePhase = "Stopping"
 )
 
 // Defines values for PlacementPolicyV2.
@@ -43,14 +74,149 @@ const (
 	Require PlacementReadinessModeV2 = "Require"
 )
 
+// Defines values for ProvisioningStatusReason.
+const (
+	DependencyFailed   ProvisioningStatusReason = "DependencyFailed"
+	DependencyNotFound ProvisioningStatusReason = "DependencyNotFound"
+	DependencyNotReady ProvisioningStatusReason = "DependencyNotReady"
+	Deprovisioned      ProvisioningStatusReason = "Deprovisioned"
+	Deprovisioning     ProvisioningStatusReason = "Deprovisioning"
+	Errored            ProvisioningStatusReason = "Errored"
+	Provisioned        ProvisioningStatusReason = "Provisioned"
+	Provisioning       ProvisioningStatusReason = "Provisioning"
+)
+
+// Defines values for ReservationUnitConsumerV2Type.
+const (
+	Placement ReservationUnitConsumerV2Type = "placement"
+)
+
+// Defines values for ResourceHealthStatus.
+const (
+	ResourceHealthStatusDegraded ResourceHealthStatus = "degraded"
+	ResourceHealthStatusError    ResourceHealthStatus = "error"
+	ResourceHealthStatusHealthy  ResourceHealthStatus = "healthy"
+	ResourceHealthStatusUnknown  ResourceHealthStatus = "unknown"
+)
+
+// Defines values for ResourceProvisioningStatus.
+const (
+	ResourceProvisioningStatusDeprovisioning ResourceProvisioningStatus = "deprovisioning"
+	ResourceProvisioningStatusError          ResourceProvisioningStatus = "error"
+	ResourceProvisioningStatusPending        ResourceProvisioningStatus = "pending"
+	ResourceProvisioningStatusProvisioned    ResourceProvisioningStatus = "provisioned"
+	ResourceProvisioningStatusProvisioning   ResourceProvisioningStatus = "provisioning"
+)
+
 // Defines values for WhenUnsatisfiableV2.
 const (
 	BestEffort WhenUnsatisfiableV2 = "bestEffort"
 	Fail       WhenUnsatisfiableV2 = "fail"
 )
 
+// Error Generic error message, compatible with oauth2.
+type Error struct {
+	// Error A terse error string expanding on the HTTP error code. Errors are based on the OAuth 2.02 specification, but are expanded with proprietary status codes for APIs other than those specified by OAuth 2.02.
+	Error ErrorError `json:"error"`
+
+	// ErrorDescription Verbose message describing the error.
+	ErrorDescription string `json:"error_description"`
+
+	// TraceId Unique trace identifier for the request.
+	TraceId *string `json:"trace_id,omitempty"`
+}
+
+// ErrorError A terse error string expanding on the HTTP error code. Errors are based on the OAuth 2.02 specification, but are expanded with proprietary status codes for APIs other than those specified by OAuth 2.02.
+type ErrorError string
+
 // GpuVendorV2 The GPU vendor.
 type GpuVendorV2 string
+
+// HealthStatusDetail Human-facing detail about the current health state: a machine-classifiable
+// reason drawn from a closed vocabulary, and a user-safe human-readable
+// message (e.g. "2/12 nodes are down"). Derived from the resource's status and
+// supplements the coarse healthStatus; never stored.
+type HealthStatusDetail struct {
+	// Message A user-safe, human-readable description of the health state.
+	Message string `json:"message"`
+
+	// Reason A closed, generic classification of a resource's health — the raw health
+	// condition reason, finer-grained than the coarse healthStatus. Owned by the
+	// platform and the same across all resources.
+	Reason HealthStatusReason `json:"reason"`
+}
+
+// HealthStatusReason A closed, generic classification of a resource's health — the raw health
+// condition reason, finer-grained than the coarse healthStatus. Owned by the
+// platform and the same across all resources.
+type HealthStatusReason string
+
+// InstanceLifecyclePhase The lifecycle phase of an instance. Once provisioning_status reaches
+// provisioned, this becomes the live readiness signal: API consumers
+// should treat Running (not provisioned) as the "ready to use" state.
+// Queued and Building are observed during create — Queued for
+// baremetal servers waiting on hardware, Building for servers the
+// provider is actively bringing up. Rebuilding means an already
+// provisioned server is being reimaged in place and is not usable until
+// it completes. Error means the provider reported the server in a
+// terminal error state.
+type InstanceLifecyclePhase string
+
+// KubernetesLabelValue A valid Kubernetes label value, typically used for resource names that can be
+// indexed in the database.
+type KubernetesLabelValue = string
+
+// OrganizationScopedResourceReadMetadata defines model for organizationScopedResourceReadMetadata.
+type OrganizationScopedResourceReadMetadata struct {
+	// CreatedBy The user who created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+
+	// CreationTime The time the resource was created.
+	CreationTime time.Time `json:"creationTime"`
+
+	// DeletionTime The time the resource was deleted.
+	DeletionTime *time.Time `json:"deletionTime,omitempty"`
+
+	// Description The resource description, this optionally augments the name with more context.
+	Description *string `json:"description,omitempty"`
+
+	// HealthStatus The health state of a resource.
+	HealthStatus ResourceHealthStatus `json:"healthStatus"`
+
+	// HealthStatusDetail Human-facing detail about the current health state: a machine-classifiable
+	// reason drawn from a closed vocabulary, and a user-safe human-readable
+	// message (e.g. "2/12 nodes are down"). Derived from the resource's status and
+	// supplements the coarse healthStatus; never stored.
+	HealthStatusDetail *HealthStatusDetail `json:"healthStatusDetail,omitempty"`
+
+	// Id The unique resource ID.
+	Id string `json:"id"`
+
+	// ModifiedBy The user who updated the resource.
+	ModifiedBy *string `json:"modifiedBy,omitempty"`
+
+	// ModifiedTime The time a resource was updated.
+	ModifiedTime *time.Time `json:"modifiedTime,omitempty"`
+
+	// Name A valid Kubernetes label value, typically used for resource names that can be
+	// indexed in the database.
+	Name KubernetesLabelValue `json:"name"`
+
+	// OrganizationId The organization identifier the resource belongs to.
+	OrganizationId string `json:"organizationId"`
+
+	// ProvisioningStatus The provisioning state of a resource.
+	ProvisioningStatus ResourceProvisioningStatus `json:"provisioningStatus"`
+
+	// ProvisioningStatusDetail Human-facing detail about the current provisioning state: a
+	// machine-classifiable reason drawn from a closed vocabulary, and a
+	// user-safe human-readable message. Derived from the resource's status and
+	// supplements the coarse provisioningStatus; never stored.
+	ProvisioningStatusDetail *ProvisioningStatusDetail `json:"provisioningStatusDetail,omitempty"`
+
+	// Tags A list of tags.
+	Tags *TagList `json:"tags,omitempty"`
+}
 
 // OrganizationTopologyV2Read Allocated topology visible to one organization.
 type OrganizationTopologyV2Read = []TopologyRegionV2
@@ -129,7 +295,7 @@ type PlacementServerSpecV2 struct {
 // PlacementServerV2Read A placement server.
 type PlacementServerV2Read struct {
 	// Metadata Metadata required by project scoped resource reads.
-	Metadata externalRef0.ProjectScopedResourceReadMetadata `json:"metadata"`
+	Metadata ProjectScopedResourceReadMetadata `json:"metadata"`
 
 	// Status Read only runtime status information about a placement server.
 	Status PlacementServerV2Status `json:"status"`
@@ -155,8 +321,11 @@ type PlacementServerV2Status struct {
 	// should treat Running (not provisioned) as the "ready to use" state.
 	// Queued and Building are observed during create — Queued for
 	// baremetal servers waiting on hardware, Building for servers the
-	// provider is actively bringing up.
-	PowerState *externalRef1.InstanceLifecyclePhase `json:"powerState,omitempty"`
+	// provider is actively bringing up. Rebuilding means an already
+	// provisioned server is being reimaged in place and is not usable until
+	// it completes. Error means the provider reported the server in a
+	// terminal error state.
+	PowerState *InstanceLifecyclePhase `json:"powerState,omitempty"`
 
 	// PrivateIP The private IP address of the server.
 	PrivateIP *string `json:"privateIP,omitempty"`
@@ -177,7 +346,7 @@ type PlacementServersV2Read = []PlacementServerV2Read
 // PlacementV2Create A placement creation request.
 type PlacementV2Create struct {
 	// Metadata Metadata required for all API resource reads and writes.
-	Metadata externalRef0.ResourceWriteMetadata `json:"metadata"`
+	Metadata ResourceMetadata `json:"metadata"`
 
 	// Spec A placement creation specification.
 	Spec PlacementV2CreateSpec `json:"spec"`
@@ -209,7 +378,7 @@ type PlacementV2CreateSpec struct {
 // PlacementV2Read A placement.
 type PlacementV2Read struct {
 	// Metadata Metadata required by project scoped resource reads.
-	Metadata externalRef0.ProjectScopedResourceReadMetadata `json:"metadata"`
+	Metadata ProjectScopedResourceReadMetadata `json:"metadata"`
 
 	// Spec A placement's specification.
 	Spec PlacementV2Spec `json:"spec"`
@@ -251,6 +420,123 @@ type PlacementV2Status struct {
 // PlacementsV2Read A list of placements.
 type PlacementsV2Read = []PlacementV2Read
 
+// ProjectScopedResourceReadMetadata defines model for projectScopedResourceReadMetadata.
+type ProjectScopedResourceReadMetadata struct {
+	// CreatedBy The user who created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+
+	// CreationTime The time the resource was created.
+	CreationTime time.Time `json:"creationTime"`
+
+	// DeletionTime The time the resource was deleted.
+	DeletionTime *time.Time `json:"deletionTime,omitempty"`
+
+	// Description The resource description, this optionally augments the name with more context.
+	Description *string `json:"description,omitempty"`
+
+	// HealthStatus The health state of a resource.
+	HealthStatus ResourceHealthStatus `json:"healthStatus"`
+
+	// HealthStatusDetail Human-facing detail about the current health state: a machine-classifiable
+	// reason drawn from a closed vocabulary, and a user-safe human-readable
+	// message (e.g. "2/12 nodes are down"). Derived from the resource's status and
+	// supplements the coarse healthStatus; never stored.
+	HealthStatusDetail *HealthStatusDetail `json:"healthStatusDetail,omitempty"`
+
+	// Id The unique resource ID.
+	Id string `json:"id"`
+
+	// ModifiedBy The user who updated the resource.
+	ModifiedBy *string `json:"modifiedBy,omitempty"`
+
+	// ModifiedTime The time a resource was updated.
+	ModifiedTime *time.Time `json:"modifiedTime,omitempty"`
+
+	// Name A valid Kubernetes label value, typically used for resource names that can be
+	// indexed in the database.
+	Name KubernetesLabelValue `json:"name"`
+
+	// OrganizationId The organization identifier the resource belongs to.
+	OrganizationId string `json:"organizationId"`
+
+	// ProjectId The project identifier the resource belongs to.
+	ProjectId string `json:"projectId"`
+
+	// ProvisioningStatus The provisioning state of a resource.
+	ProvisioningStatus ResourceProvisioningStatus `json:"provisioningStatus"`
+
+	// ProvisioningStatusDetail Human-facing detail about the current provisioning state: a
+	// machine-classifiable reason drawn from a closed vocabulary, and a
+	// user-safe human-readable message. Derived from the resource's status and
+	// supplements the coarse provisioningStatus; never stored.
+	ProvisioningStatusDetail *ProvisioningStatusDetail `json:"provisioningStatusDetail,omitempty"`
+
+	// Tags A list of tags.
+	Tags *TagList `json:"tags,omitempty"`
+}
+
+// ProvisioningStatusDetail Human-facing detail about the current provisioning state: a
+// machine-classifiable reason drawn from a closed vocabulary, and a
+// user-safe human-readable message. Derived from the resource's status and
+// supplements the coarse provisioningStatus; never stored.
+type ProvisioningStatusDetail struct {
+	// Message A user-safe, human-readable description of the provisioning state.
+	Message string `json:"message"`
+
+	// Reason A closed, generic classification of a resource's provisioning state,
+	// finer-grained than provisioningStatus. This vocabulary is owned by the
+	// platform and is the same across all resources; domain-specific state
+	// (e.g. an instance's lifecycle phase) is carried on other mechanisms and
+	// never appears here.
+	Reason ProvisioningStatusReason `json:"reason"`
+}
+
+// ProvisioningStatusReason A closed, generic classification of a resource's provisioning state,
+// finer-grained than provisioningStatus. This vocabulary is owned by the
+// platform and is the same across all resources; domain-specific state
+// (e.g. an instance's lifecycle phase) is carried on other mechanisms and
+// never appears here.
+type ProvisioningStatusReason string
+
+// ReleasedUnitV2 A reservation unit released by a release request.
+type ReleasedUnitV2 struct {
+	// Id Opaque, Reservation-scoped release unit ID that was released.
+	Id string `json:"id"`
+
+	// InfrastructureRefs Ironic node UUIDs of the hosts that were released.
+	InfrastructureRefs []string `json:"infrastructureRefs"`
+}
+
+// ReservationUnitBlockerV2 A requested reservation unit that could not be released.
+type ReservationUnitBlockerV2 struct {
+	// Consumers Blocking consumers visible to the caller. Empty when the unit is occupied but no blocking Placement details are readable.
+	Consumers []ReservationUnitConsumerV2 `json:"consumers"`
+
+	// UnitId Opaque, Reservation-scoped release unit ID that was blocked.
+	UnitId string `json:"unitId"`
+}
+
+// ReservationUnitConsumerV2 A readable Placement still holding hosts from a blocked release unit.
+type ReservationUnitConsumerV2 struct {
+	// ManagedBy Present when the consumer Placement is owned by another controller; omitted for directly-created Placements.
+	ManagedBy *struct {
+		Id   string `json:"id"`
+		Kind string `json:"kind"`
+	} `json:"managedBy,omitempty"`
+
+	// PlacementId The Placement ID holding hosts in this unit.
+	PlacementId string `json:"placementId"`
+
+	// ServerIds Public Placement server IDs occupying this unit. Empty when the caller can read the Placement but cannot read its servers.
+	ServerIds []string `json:"serverIds"`
+
+	// Type The kind of consumer holding the unit's hosts.
+	Type ReservationUnitConsumerV2Type `json:"type"`
+}
+
+// ReservationUnitConsumerV2Type The kind of consumer holding the unit's hosts.
+type ReservationUnitConsumerV2Type string
+
 // ReservationUnitGpuV2 GPU specification for one host in a reservation unit.
 type ReservationUnitGpuV2 struct {
 	// LogicalCount The logical number of GPUs available on one host.
@@ -284,6 +570,33 @@ type ReservationUnitHostV2 struct {
 	Memory int `json:"memory"`
 }
 
+// ReservationUnitReleaseBlockersV2 Structured reasons a release request could not proceed. Returned
+// instead of any partial release: if any requested unit is occupied,
+// no unit is released.
+type ReservationUnitReleaseBlockersV2 struct {
+	Blockers []ReservationUnitBlockerV2 `json:"blockers"`
+}
+
+// ReservationUnitReleaseRequest A request to release reservation units.
+type ReservationUnitReleaseRequest struct {
+	// Spec Reservation units to release.
+	Spec ReservationUnitReleaseSpec `json:"spec"`
+}
+
+// ReservationUnitReleaseResult The result of a reservation unit release request.
+type ReservationUnitReleaseResult struct {
+	ReleasedUnits []ReleasedUnitV2 `json:"releasedUnits"`
+
+	// Reservation A reservation.
+	Reservation ReservationV2Read `json:"reservation"`
+}
+
+// ReservationUnitReleaseSpec Reservation units to release.
+type ReservationUnitReleaseSpec struct {
+	// UnitIds Opaque, Reservation-scoped release unit IDs to release, as discovered from the readable Reservation overlay's units map in the topology API. Not provider inventory identifiers, device IDs, path labels, pod IDs, or domain IDs.
+	UnitIds []string `json:"unitIds"`
+}
+
 // ReservationUnitV2 A regional accelerator reservation unit offering.
 type ReservationUnitV2 struct {
 	// Accelerator Public accelerator model or family, for example GB300.
@@ -295,7 +608,7 @@ type ReservationUnitV2 struct {
 	// CpusPerUnit Total CPUs claimed by one reservation unit.
 	CpusPerUnit int `json:"cpusPerUnit"`
 
-	// DeviceTypeResourceClass Expected Fleet Manager device type resource class for selected hosts.
+	// DeviceTypeResourceClass Expected device type resource class for selected hosts.
 	DeviceTypeResourceClass string `json:"deviceTypeResourceClass"`
 
 	// GpuMemoryPerUnit Total GPU memory in GiB claimed by one reservation unit.
@@ -335,7 +648,7 @@ type ReservationUnitsV2 = []ReservationUnitV2
 // ReservationV2Create A reservation creation request.
 type ReservationV2Create struct {
 	// Metadata Metadata required for all API resource reads and writes.
-	Metadata externalRef0.ResourceWriteMetadata `json:"metadata"`
+	Metadata ResourceMetadata `json:"metadata"`
 
 	// Spec A reservation creation specification.
 	Spec ReservationV2CreateSpec `json:"spec"`
@@ -365,7 +678,7 @@ type ReservationV2CreateSpec struct {
 // ReservationV2Read A reservation.
 type ReservationV2Read struct {
 	// Metadata Metadata required by project scoped resource reads.
-	Metadata externalRef0.ProjectScopedResourceReadMetadata `json:"metadata"`
+	Metadata ProjectScopedResourceReadMetadata `json:"metadata"`
 
 	// Spec A reservation's specification.
 	Spec ReservationV2Spec `json:"spec"`
@@ -407,24 +720,149 @@ type ReservationV2Status struct {
 // ReservationsV2Read A list of reservations.
 type ReservationsV2Read = []ReservationV2Read
 
+// ResourceHealthStatus The health state of a resource.
+type ResourceHealthStatus string
+
+// ResourceMetadata Metadata required for all API resource reads and writes.
+type ResourceMetadata struct {
+	// Description The resource description, this optionally augments the name with more context.
+	Description *string `json:"description,omitempty"`
+
+	// Name A valid Kubernetes label value, typically used for resource names that can be
+	// indexed in the database.
+	Name KubernetesLabelValue `json:"name"`
+
+	// Tags A list of tags.
+	Tags *TagList `json:"tags,omitempty"`
+}
+
+// ResourceProvisioningStatus The provisioning state of a resource.
+type ResourceProvisioningStatus string
+
+// ResourceReadMetadata defines model for resourceReadMetadata.
+type ResourceReadMetadata struct {
+	// CreatedBy The user who created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+
+	// CreationTime The time the resource was created.
+	CreationTime time.Time `json:"creationTime"`
+
+	// DeletionTime The time the resource was deleted.
+	DeletionTime *time.Time `json:"deletionTime,omitempty"`
+
+	// Description The resource description, this optionally augments the name with more context.
+	Description *string `json:"description,omitempty"`
+
+	// HealthStatus The health state of a resource.
+	HealthStatus ResourceHealthStatus `json:"healthStatus"`
+
+	// HealthStatusDetail Human-facing detail about the current health state: a machine-classifiable
+	// reason drawn from a closed vocabulary, and a user-safe human-readable
+	// message (e.g. "2/12 nodes are down"). Derived from the resource's status and
+	// supplements the coarse healthStatus; never stored.
+	HealthStatusDetail *HealthStatusDetail `json:"healthStatusDetail,omitempty"`
+
+	// Id The unique resource ID.
+	Id string `json:"id"`
+
+	// ModifiedBy The user who updated the resource.
+	ModifiedBy *string `json:"modifiedBy,omitempty"`
+
+	// ModifiedTime The time a resource was updated.
+	ModifiedTime *time.Time `json:"modifiedTime,omitempty"`
+
+	// Name A valid Kubernetes label value, typically used for resource names that can be
+	// indexed in the database.
+	Name KubernetesLabelValue `json:"name"`
+
+	// ProvisioningStatus The provisioning state of a resource.
+	ProvisioningStatus ResourceProvisioningStatus `json:"provisioningStatus"`
+
+	// ProvisioningStatusDetail Human-facing detail about the current provisioning state: a
+	// machine-classifiable reason drawn from a closed vocabulary, and a
+	// user-safe human-readable message. Derived from the resource's status and
+	// supplements the coarse provisioningStatus; never stored.
+	ProvisioningStatusDetail *ProvisioningStatusDetail `json:"provisioningStatusDetail,omitempty"`
+
+	// Tags A list of tags.
+	Tags *TagList `json:"tags,omitempty"`
+}
+
+// StaticResourceMetadata defines model for staticResourceMetadata.
+type StaticResourceMetadata struct {
+	// CreatedBy The user who created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+
+	// CreationTime The time the resource was created.
+	CreationTime time.Time `json:"creationTime"`
+
+	// Description The resource description, this optionally augments the name with more context.
+	Description *string `json:"description,omitempty"`
+
+	// Id The unique resource ID.
+	Id string `json:"id"`
+
+	// ModifiedBy The user who updated the resource.
+	ModifiedBy *string `json:"modifiedBy,omitempty"`
+
+	// ModifiedTime The time a resource was updated.
+	ModifiedTime *time.Time `json:"modifiedTime,omitempty"`
+
+	// Name A valid Kubernetes label value, typically used for resource names that can be
+	// indexed in the database.
+	Name KubernetesLabelValue `json:"name"`
+
+	// Tags A list of tags.
+	Tags *TagList `json:"tags,omitempty"`
+}
+
+// Tag A tag mapping arbitrary names to values.  These have no special meaning
+// for any component are are intended for use by end users to add additional
+// context to a resource, for example to categorize it.
+type Tag struct {
+	// Name A unique tag name.
+	Name string `json:"name"`
+
+	// Value The value of the tag.
+	Value string `json:"value"`
+}
+
+// TagList A list of tags.
+type TagList = []Tag
+
+// TopologyAcceptedReservationUnitV2 defines model for topologyAcceptedReservationUnitV2.
+type TopologyAcceptedReservationUnitV2 struct {
+	// InfrastructureRefs Ironic node UUIDs of the hosts in this accepted unit.
+	InfrastructureRefs []string `json:"infrastructureRefs"`
+
+	// Occupied True when at least one Placement still holds a host in this accepted unit.
+	Occupied bool `json:"occupied"`
+}
+
 // TopologyDomainV2 defines model for topologyDomainV2.
 type TopologyDomainV2 struct {
 	Hosts []TopologyHostV2 `json:"hosts"`
 
 	// Id Opaque identifier for this NVLink domain. Clients should compare it for equality only; it does not expose provider topology group IDs or facility-internal naming.
 	Id string `json:"id"`
+
+	// Name Human-readable topology name for this NVLink domain when the provider supplies one, for example nvl-a7. Clients should use it as a response-local display coordinate, not as a provider object ID.
+	Name *string `json:"name,omitempty"`
 }
 
 // TopologyHostV2 defines model for topologyHostV2.
 type TopologyHostV2 struct {
-	// InfrastructureRef Ironic node UUID for this host.
+	// InfrastructureRef Ironic node UUID for this host. This identifies the host in the topology tree and is present regardless of Reservation or Placement state.
 	InfrastructureRef string `json:"infrastructureRef"`
 
-	// Placement A placement.
-	Placement *PlacementV2Read `json:"placement,omitempty"`
+	// PlacementRef Key into the projection's placements overlay. Present only when this host is placed and the caller can read the owning Placement.
+	PlacementRef *string `json:"placementRef,omitempty"`
 
-	// Reservation A reservation.
-	Reservation *ReservationV2Read `json:"reservation,omitempty"`
+	// ReservationRef Key into the projection's reservations overlay. Present only when this host is reserved and the caller can read the owning Reservation.
+	ReservationRef *string `json:"reservationRef,omitempty"`
+
+	// ReservationUnitRef Key into the owning Reservation overlay's units map. Present only when this host is reserved, the caller can read the owning Reservation, and accepted unit membership is available for that Reservation. When present, reservationRef is also present and gives the owning Reservation scope for this key.
+	ReservationUnitRef *string `json:"reservationUnitRef,omitempty"`
 
 	// Reserved Whether this host is claimed by any Reservation.
 	Reserved bool `json:"reserved"`
@@ -433,16 +871,29 @@ type TopologyHostV2 struct {
 	Server *PlacementServerV2Read `json:"server,omitempty"`
 }
 
+// TopologyOverlaysV2 defines model for topologyOverlaysV2.
+type TopologyOverlaysV2 struct {
+	// Placements Readable Placement overlays keyed by host placementRef values. Empty when no Placement overlays are visible in this projection.
+	Placements map[string]PlacementV2Read `json:"placements"`
+
+	// Reservations Readable Reservation overlays keyed by host reservationRef values. Empty when no Reservation overlays are visible in this projection.
+	Reservations map[string]TopologyReservationOverlayV2 `json:"reservations"`
+}
+
 // TopologyPodV2 defines model for topologyPodV2.
 type TopologyPodV2 struct {
 	Domains []TopologyDomainV2 `json:"domains"`
 
 	// Id Opaque identifier for this pod group. Clients should compare it for equality only; it does not expose provider topology group IDs or facility-internal naming.
 	Id string `json:"id"`
+
+	// Name Human-readable topology name for this pod when the provider supplies one, for example pod-1. Clients should use it as a response-local display coordinate, not as a provider object ID.
+	Name *string `json:"name,omitempty"`
 }
 
 // TopologyProjectionV2 defines model for topologyProjectionV2.
 type TopologyProjectionV2 struct {
+	Overlays        TopologyOverlaysV2        `json:"overlays"`
 	ReservationUnit TopologyReservationUnitV2 `json:"reservationUnit"`
 	Topology        []TopologyPodV2           `json:"topology"`
 }
@@ -455,12 +906,30 @@ type TopologyRegionV2 struct {
 	RegionId string `json:"regionId"`
 }
 
+// TopologyReservationOverlayV2 defines model for topologyReservationOverlayV2.
+type TopologyReservationOverlayV2 struct {
+	// Metadata Metadata required by project scoped resource reads.
+	Metadata ProjectScopedResourceReadMetadata `json:"metadata"`
+
+	// Spec A reservation's specification.
+	Spec ReservationV2Spec `json:"spec"`
+
+	// Status Read only status information about a reservation.
+	Status ReservationV2Status `json:"status"`
+
+	// TopologyEntityTag This Reservation's current accepted topology hash. Quote this value back as the release endpoint's If-Match precondition to guard against a concurrent topology change.
+	TopologyEntityTag *string `json:"topologyEntityTag,omitempty"`
+
+	// Units Accepted Reservation units keyed by opaque, Reservation-scoped unit ID. Present when the caller can read accepted unit membership for this Reservation; omitted when no unit data is available.
+	Units *map[string]TopologyAcceptedReservationUnitV2 `json:"units,omitempty"`
+}
+
 // TopologyReservationUnitV2 defines model for topologyReservationUnitV2.
 type TopologyReservationUnitV2 struct {
 	// Accelerator Public accelerator model or family for this projection.
 	Accelerator string `json:"accelerator"`
 
-	// DeviceTypeResourceClass Expected Fleet Manager device type resource class for this projection.
+	// DeviceTypeResourceClass Expected device type resource class for this projection.
 	DeviceTypeResourceClass string `json:"deviceTypeResourceClass"`
 
 	// HostsPerUnit Number of hosts claimed by one reservation unit.
@@ -482,6 +951,9 @@ type AcceleratorQueryParameter = []string
 
 // HardRebootParameter defines model for hardRebootParameter.
 type HardRebootParameter = bool
+
+// IfMatchParameter defines model for ifMatchParameter.
+type IfMatchParameter = string
 
 // NetworkIDQueryParameter defines model for networkIDQueryParameter.
 type NetworkIDQueryParameter = []string
@@ -513,6 +985,9 @@ type ReservationUnitQueryParameter = []string
 // ServerIDParameter An opaque public Placement server ID.
 type ServerIDParameter = PlacementServerIDParameter
 
+// TagSelectorParameter defines model for tagSelectorParameter.
+type TagSelectorParameter = []string
+
 // TopologyAcceleratorQueryParameter defines model for topologyAcceleratorQueryParameter.
 type TopologyAcceleratorQueryParameter = string
 
@@ -528,8 +1003,23 @@ type TopologyReservationIDQueryParameter = string
 // TopologyUnitQueryParameter defines model for topologyUnitQueryParameter.
 type TopologyUnitQueryParameter = string
 
+// BadRequestResponse Generic error message, compatible with oauth2.
+type BadRequestResponse = Error
+
+// ConflictResponse Generic error message, compatible with oauth2.
+type ConflictResponse = Error
+
+// ForbiddenResponse Generic error message, compatible with oauth2.
+type ForbiddenResponse = Error
+
 // InsufficientCapacityResponse Generic error message, compatible with oauth2.
-type InsufficientCapacityResponse = externalRef0.Error
+type InsufficientCapacityResponse = Error
+
+// InternalServerErrorResponse Generic error message, compatible with oauth2.
+type InternalServerErrorResponse = Error
+
+// NotFoundResponse Generic error message, compatible with oauth2.
+type NotFoundResponse = Error
 
 // OrganizationTopologyV2Response Allocated topology visible to one organization.
 type OrganizationTopologyV2Response = OrganizationTopologyV2Read
@@ -546,6 +1036,20 @@ type PlacementV2Response = PlacementV2Read
 // PlacementsV2Response A list of placements.
 type PlacementsV2Response = PlacementsV2Read
 
+// PreconditionFailedResponse Generic error message, compatible with oauth2.
+type PreconditionFailedResponse = Error
+
+// PreconditionRequiredResponse Generic error message, compatible with oauth2.
+type PreconditionRequiredResponse = Error
+
+// ReservationUnitReleaseBlockersResponse Structured reasons a release request could not proceed. Returned
+// instead of any partial release: if any requested unit is occupied,
+// no unit is released.
+type ReservationUnitReleaseBlockersResponse = ReservationUnitReleaseBlockersV2
+
+// ReservationUnitReleaseResponse The result of a reservation unit release request.
+type ReservationUnitReleaseResponse = ReservationUnitReleaseResult
+
 // ReservationUnitsV2Response A list of regional accelerator reservation unit offerings.
 type ReservationUnitsV2Response = ReservationUnitsV2
 
@@ -555,11 +1059,32 @@ type ReservationV2Response = ReservationV2Read
 // ReservationsV2Response A list of reservations.
 type ReservationsV2Response = ReservationsV2Read
 
+// UnauthorizedResponse Generic error message, compatible with oauth2.
+type UnauthorizedResponse = Error
+
+// UnprocessableContentResponse Generic error message, compatible with oauth2.
+type UnprocessableContentResponse = Error
+
 // PlacementV2CreateRequest A placement creation request.
 type PlacementV2CreateRequest = PlacementV2Create
 
+// ReservationUnitReleaseRequestBody A request to release reservation units.
+type ReservationUnitReleaseRequestBody = ReservationUnitReleaseRequest
+
 // ReservationV2CreateRequest A reservation creation request.
 type ReservationV2CreateRequest = ReservationV2Create
+
+// ListOrganizationReservationUnitsParams defines parameters for ListOrganizationReservationUnits.
+type ListOrganizationReservationUnitsParams struct {
+	// RegionID Allows resources to be filtered by region.
+	RegionID *RegionIDQueryParameter `form:"regionID,omitempty" json:"regionID,omitempty"`
+
+	// Accelerator Allows reservation units to be filtered by accelerator model or family.
+	Accelerator *AcceleratorQueryParameter `form:"accelerator,omitempty" json:"accelerator,omitempty"`
+
+	// Unit Allows reservation units to be filtered by reservation granularity.
+	Unit *ReservationUnitQueryParameter `form:"unit,omitempty" json:"unit,omitempty"`
+}
 
 // GetOrganizationTopologyParams defines parameters for GetOrganizationTopology.
 type GetOrganizationTopologyParams struct {
@@ -583,7 +1108,7 @@ type GetOrganizationTopologyParams struct {
 type ListPlacementsParams struct {
 	// Tag A set of tags to match against resources in the form "name=value",
 	// thus when encoded you get "?tag=foo%3Dcat&tag=bar%3Ddog".
-	Tag *externalRef0.TagSelectorParameter `form:"tag,omitempty" json:"tag,omitempty"`
+	Tag *TagSelectorParameter `form:"tag,omitempty" json:"tag,omitempty"`
 
 	// OrganizationID Allows resources to be filtered by organization.
 	OrganizationID *OrganizationIDQueryParameter `form:"organizationID,omitempty" json:"organizationID,omitempty"`
@@ -623,7 +1148,7 @@ type ListReservationUnitsParams struct {
 type ListReservationsParams struct {
 	// Tag A set of tags to match against resources in the form "name=value",
 	// thus when encoded you get "?tag=foo%3Dcat&tag=bar%3Ddog".
-	Tag *externalRef0.TagSelectorParameter `form:"tag,omitempty" json:"tag,omitempty"`
+	Tag *TagSelectorParameter `form:"tag,omitempty" json:"tag,omitempty"`
 
 	// OrganizationID Allows resources to be filtered by organization.
 	OrganizationID *OrganizationIDQueryParameter `form:"organizationID,omitempty" json:"organizationID,omitempty"`
@@ -635,11 +1160,20 @@ type ListReservationsParams struct {
 	RegionID *RegionIDQueryParameter `form:"regionID,omitempty" json:"regionID,omitempty"`
 }
 
+// ReleaseReservationUnitsParams defines parameters for ReleaseReservationUnits.
+type ReleaseReservationUnitsParams struct {
+	// IfMatch The entity tag of the current state the caller expects to mutate, quoted as a strong entity tag (for example the value of a prior response's ETag header). The endpoint requires it and rejects a request that omits it with 428, and one whose tag no longer matches the resource's current entity tag with 412. It is declared optional at the schema level deliberately: request validation runs before the handler, and a schema-level requirement would reject an absent header with a generic 400 before the endpoint could return the precise 428. The endpoint owns the precondition instead.
+	IfMatch *IfMatchParameter `json:"If-Match,omitempty"`
+}
+
 // CreatePlacementJSONRequestBody defines body for CreatePlacement for application/json ContentType.
 type CreatePlacementJSONRequestBody = PlacementV2Create
 
 // CreateReservationJSONRequestBody defines body for CreateReservation for application/json ContentType.
 type CreateReservationJSONRequestBody = ReservationV2Create
+
+// ReleaseReservationUnitsJSONRequestBody defines body for ReleaseReservationUnits for application/json ContentType.
+type ReleaseReservationUnitsJSONRequestBody = ReservationUnitReleaseRequest
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -714,6 +1248,9 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
+	// ListOrganizationReservationUnits request
+	ListOrganizationReservationUnits(ctx context.Context, organizationID OrganizationIDParameter, params *ListOrganizationReservationUnitsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetOrganizationTopology request
 	GetOrganizationTopology(ctx context.Context, organizationID OrganizationIDParameter, params *GetOrganizationTopologyParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -759,6 +1296,23 @@ type ClientInterface interface {
 
 	// GetReservation request
 	GetReservation(ctx context.Context, reservationID ReservationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ReleaseReservationUnitsWithBody request with any body
+	ReleaseReservationUnitsWithBody(ctx context.Context, reservationID ReservationIDParameter, params *ReleaseReservationUnitsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	ReleaseReservationUnits(ctx context.Context, reservationID ReservationIDParameter, params *ReleaseReservationUnitsParams, body ReleaseReservationUnitsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+func (c *Client) ListOrganizationReservationUnits(ctx context.Context, organizationID OrganizationIDParameter, params *ListOrganizationReservationUnitsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListOrganizationReservationUnitsRequest(c.Server, organizationID, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 func (c *Client) GetOrganizationTopology(ctx context.Context, organizationID OrganizationIDParameter, params *GetOrganizationTopologyParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -951,6 +1505,118 @@ func (c *Client) GetReservation(ctx context.Context, reservationID ReservationID
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+func (c *Client) ReleaseReservationUnitsWithBody(ctx context.Context, reservationID ReservationIDParameter, params *ReleaseReservationUnitsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewReleaseReservationUnitsRequestWithBody(c.Server, reservationID, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ReleaseReservationUnits(ctx context.Context, reservationID ReservationIDParameter, params *ReleaseReservationUnitsParams, body ReleaseReservationUnitsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewReleaseReservationUnitsRequest(c.Server, reservationID, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// NewListOrganizationReservationUnitsRequest generates requests for ListOrganizationReservationUnits
+func NewListOrganizationReservationUnitsRequest(server string, organizationID OrganizationIDParameter, params *ListOrganizationReservationUnitsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "organizationID", runtime.ParamLocationPath, organizationID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v2/organizations/%s/reservation-units", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.RegionID != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "regionID", runtime.ParamLocationQuery, *params.RegionID); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Accelerator != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "accelerator", runtime.ParamLocationQuery, *params.Accelerator); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Unit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "unit", runtime.ParamLocationQuery, *params.Unit); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
 }
 
 // NewGetOrganizationTopologyRequest generates requests for GetOrganizationTopology
@@ -1775,6 +2441,68 @@ func NewGetReservationRequest(server string, reservationID ReservationIDParamete
 	return req, nil
 }
 
+// NewReleaseReservationUnitsRequest calls the generic ReleaseReservationUnits builder with application/json body
+func NewReleaseReservationUnitsRequest(server string, reservationID ReservationIDParameter, params *ReleaseReservationUnitsParams, body ReleaseReservationUnitsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewReleaseReservationUnitsRequestWithBody(server, reservationID, params, "application/json", bodyReader)
+}
+
+// NewReleaseReservationUnitsRequestWithBody generates requests for ReleaseReservationUnits with any type of body
+func NewReleaseReservationUnitsRequestWithBody(server string, reservationID ReservationIDParameter, params *ReleaseReservationUnitsParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "reservationID", runtime.ParamLocationPath, reservationID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v2/reservations/%s/units/release", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	if params != nil {
+
+		if params.IfMatch != nil {
+			var headerParam0 string
+
+			headerParam0, err = runtime.StyleParamWithLocation("simple", false, "If-Match", runtime.ParamLocationHeader, *params.IfMatch)
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("If-Match", headerParam0)
+		}
+
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -1818,6 +2546,9 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
+	// ListOrganizationReservationUnitsWithResponse request
+	ListOrganizationReservationUnitsWithResponse(ctx context.Context, organizationID OrganizationIDParameter, params *ListOrganizationReservationUnitsParams, reqEditors ...RequestEditorFn) (*ListOrganizationReservationUnitsResponse, error)
+
 	// GetOrganizationTopologyWithResponse request
 	GetOrganizationTopologyWithResponse(ctx context.Context, organizationID OrganizationIDParameter, params *GetOrganizationTopologyParams, reqEditors ...RequestEditorFn) (*GetOrganizationTopologyResponse, error)
 
@@ -1863,16 +2594,47 @@ type ClientWithResponsesInterface interface {
 
 	// GetReservationWithResponse request
 	GetReservationWithResponse(ctx context.Context, reservationID ReservationIDParameter, reqEditors ...RequestEditorFn) (*GetReservationResponse, error)
+
+	// ReleaseReservationUnitsWithBodyWithResponse request with any body
+	ReleaseReservationUnitsWithBodyWithResponse(ctx context.Context, reservationID ReservationIDParameter, params *ReleaseReservationUnitsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ReleaseReservationUnitsResponse, error)
+
+	ReleaseReservationUnitsWithResponse(ctx context.Context, reservationID ReservationIDParameter, params *ReleaseReservationUnitsParams, body ReleaseReservationUnitsJSONRequestBody, reqEditors ...RequestEditorFn) (*ReleaseReservationUnitsResponse, error)
+}
+
+type ListOrganizationReservationUnitsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ReservationUnitsV2Response
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON500      *InternalServerErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r ListOrganizationReservationUnitsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListOrganizationReservationUnitsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 type GetOrganizationTopologyResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *OrganizationTopologyV2Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1895,10 +2657,10 @@ type ListPlacementsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *PlacementsV2Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1921,13 +2683,13 @@ type CreatePlacementResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON202      *PlacementV2Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON409      *externalRef0.ConflictResponse
-	JSON422      *externalRef0.UnprocessableContentResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON409      *ConflictResponse
+	JSON422      *UnprocessableContentResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1949,11 +2711,11 @@ func (r CreatePlacementResponse) StatusCode() int {
 type DeletePlacementResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -1976,11 +2738,11 @@ type GetPlacementResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *PlacementV2Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -2003,11 +2765,11 @@ type ListPlacementServersResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *PlacementServersV2Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -2030,11 +2792,11 @@ type GetPlacementServerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *PlacementServerV2Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -2056,12 +2818,12 @@ func (r GetPlacementServerResponse) StatusCode() int {
 type RebootPlacementServerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON409      *externalRef0.ConflictResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON409      *ConflictResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -2083,12 +2845,12 @@ func (r RebootPlacementServerResponse) StatusCode() int {
 type StopPlacementServerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON409      *externalRef0.ConflictResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON409      *ConflictResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -2111,10 +2873,10 @@ type ListReservationUnitsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ReservationUnitsV2Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -2137,10 +2899,10 @@ type ListReservationsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ReservationsV2Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -2163,11 +2925,11 @@ type CreateReservationResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON202      *ReservationV2Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 	JSON507      *InsufficientCapacityResponse
 }
 
@@ -2190,11 +2952,11 @@ func (r CreateReservationResponse) StatusCode() int {
 type DeleteReservationResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -2217,11 +2979,11 @@ type GetReservationResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ReservationV2Response
-	JSON400      *externalRef0.BadRequestResponse
-	JSON401      *externalRef0.UnauthorizedResponse
-	JSON403      *externalRef0.ForbiddenResponse
-	JSON404      *externalRef0.NotFoundResponse
-	JSON500      *externalRef0.InternalServerErrorResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON500      *InternalServerErrorResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -2238,6 +3000,46 @@ func (r GetReservationResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+type ReleaseReservationUnitsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ReservationUnitReleaseResponse
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON409      *ConflictResponse
+	JSON412      *PreconditionFailedResponse
+	JSON422      *ReservationUnitReleaseBlockersResponse
+	JSON428      *PreconditionRequiredResponse
+	JSON500      *InternalServerErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r ReleaseReservationUnitsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ReleaseReservationUnitsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ListOrganizationReservationUnitsWithResponse request returning *ListOrganizationReservationUnitsResponse
+func (c *ClientWithResponses) ListOrganizationReservationUnitsWithResponse(ctx context.Context, organizationID OrganizationIDParameter, params *ListOrganizationReservationUnitsParams, reqEditors ...RequestEditorFn) (*ListOrganizationReservationUnitsResponse, error) {
+	rsp, err := c.ListOrganizationReservationUnits(ctx, organizationID, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListOrganizationReservationUnitsResponse(rsp)
 }
 
 // GetOrganizationTopologyWithResponse request returning *GetOrganizationTopologyResponse
@@ -2382,6 +3184,77 @@ func (c *ClientWithResponses) GetReservationWithResponse(ctx context.Context, re
 	return ParseGetReservationResponse(rsp)
 }
 
+// ReleaseReservationUnitsWithBodyWithResponse request with arbitrary body returning *ReleaseReservationUnitsResponse
+func (c *ClientWithResponses) ReleaseReservationUnitsWithBodyWithResponse(ctx context.Context, reservationID ReservationIDParameter, params *ReleaseReservationUnitsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ReleaseReservationUnitsResponse, error) {
+	rsp, err := c.ReleaseReservationUnitsWithBody(ctx, reservationID, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseReleaseReservationUnitsResponse(rsp)
+}
+
+func (c *ClientWithResponses) ReleaseReservationUnitsWithResponse(ctx context.Context, reservationID ReservationIDParameter, params *ReleaseReservationUnitsParams, body ReleaseReservationUnitsJSONRequestBody, reqEditors ...RequestEditorFn) (*ReleaseReservationUnitsResponse, error) {
+	rsp, err := c.ReleaseReservationUnits(ctx, reservationID, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseReleaseReservationUnitsResponse(rsp)
+}
+
+// ParseListOrganizationReservationUnitsResponse parses an HTTP response from a ListOrganizationReservationUnitsWithResponse call
+func ParseListOrganizationReservationUnitsResponse(rsp *http.Response) (*ListOrganizationReservationUnitsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListOrganizationReservationUnitsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ReservationUnitsV2Response
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequestResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest UnauthorizedResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ForbiddenResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseGetOrganizationTopologyResponse parses an HTTP response from a GetOrganizationTopologyWithResponse call
 func ParseGetOrganizationTopologyResponse(rsp *http.Response) (*GetOrganizationTopologyResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -2404,28 +3277,28 @@ func ParseGetOrganizationTopologyResponse(rsp *http.Response) (*GetOrganizationT
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2458,28 +3331,28 @@ func ParseListPlacementsResponse(rsp *http.Response) (*ListPlacementsResponse, e
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2512,49 +3385,49 @@ func ParseCreatePlacementResponse(rsp *http.Response) (*CreatePlacementResponse,
 		response.JSON202 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest externalRef0.ConflictResponse
+		var dest ConflictResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON409 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
-		var dest externalRef0.UnprocessableContentResponse
+		var dest UnprocessableContentResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON422 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2580,35 +3453,35 @@ func ParseDeletePlacementResponse(rsp *http.Response) (*DeletePlacementResponse,
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2641,35 +3514,35 @@ func ParseGetPlacementResponse(rsp *http.Response) (*GetPlacementResponse, error
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2702,35 +3575,35 @@ func ParseListPlacementServersResponse(rsp *http.Response) (*ListPlacementServer
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2763,35 +3636,35 @@ func ParseGetPlacementServerResponse(rsp *http.Response) (*GetPlacementServerRes
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2817,42 +3690,42 @@ func ParseRebootPlacementServerResponse(rsp *http.Response) (*RebootPlacementSer
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest externalRef0.ConflictResponse
+		var dest ConflictResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON409 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2878,42 +3751,42 @@ func ParseStopPlacementServerResponse(rsp *http.Response) (*StopPlacementServerR
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
-		var dest externalRef0.ConflictResponse
+		var dest ConflictResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON409 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2946,28 +3819,28 @@ func ParseListReservationUnitsResponse(rsp *http.Response) (*ListReservationUnit
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -3000,28 +3873,28 @@ func ParseListReservationsResponse(rsp *http.Response) (*ListReservationsRespons
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -3054,35 +3927,35 @@ func ParseCreateReservationResponse(rsp *http.Response) (*CreateReservationRespo
 		response.JSON202 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -3115,35 +3988,35 @@ func ParseDeleteReservationResponse(rsp *http.Response) (*DeleteReservationRespo
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -3176,35 +4049,124 @@ func ParseGetReservationResponse(rsp *http.Response) (*GetReservationResponse, e
 		response.JSON200 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.BadRequestResponse
+		var dest BadRequestResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.UnauthorizedResponse
+		var dest UnauthorizedResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.ForbiddenResponse
+		var dest ForbiddenResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.NotFoundResponse
+		var dest NotFoundResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON404 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.InternalServerErrorResponse
+		var dest InternalServerErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseReleaseReservationUnitsResponse parses an HTTP response from a ReleaseReservationUnitsWithResponse call
+func ParseReleaseReservationUnitsResponse(rsp *http.Response) (*ReleaseReservationUnitsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ReleaseReservationUnitsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ReservationUnitReleaseResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequestResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest UnauthorizedResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ForbiddenResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFoundResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ConflictResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 412:
+		var dest PreconditionFailedResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON412 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest ReservationUnitReleaseBlockersResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON422 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 428:
+		var dest PreconditionRequiredResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON428 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
