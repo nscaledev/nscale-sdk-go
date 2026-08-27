@@ -7,7 +7,7 @@ Each subdirectory is one service. Every client is generated from the canonical s
 | Package     | Import path                                      | Spec source                |
 | ----------- | ------------------------------------------------ | -------------------------- |
 | Identity    | `github.com/nscaledev/nscale-sdk-go/identity`    | `identity/latest`          |
-| Region      | `github.com/nscaledev/nscale-sdk-go/region`      | `region/latest`            |
+| Region      | `github.com/nscaledev/nscale-sdk-go/region`      | `region/main@b15b9a17`     |
 | Storage     | `github.com/nscaledev/nscale-sdk-go/storage`     | `storage/latest`           |
 | Compute     | `github.com/nscaledev/nscale-sdk-go/compute`     | `compute/latest`           |
 | Kubernetes  | `github.com/nscaledev/nscale-sdk-go/kubernetes`  | `nks-core/main`            |
