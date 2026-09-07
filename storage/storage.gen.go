@@ -23,29 +23,29 @@ const (
 
 // Defines values for BearerMethod.
 const (
-	Body   BearerMethod = "body"
-	Header BearerMethod = "header"
-	Query  BearerMethod = "query"
+	BearerMethodBody   BearerMethod = "body"
+	BearerMethodHeader BearerMethod = "header"
+	BearerMethodQuery  BearerMethod = "query"
 )
 
 // Defines values for ErrorError.
 const (
-	AccessDenied          ErrorError = "access_denied"
-	Conflict              ErrorError = "conflict"
-	Forbidden             ErrorError = "forbidden"
-	InvalidRequest        ErrorError = "invalid_request"
-	MethodNotAllowed      ErrorError = "method_not_allowed"
-	NotFound              ErrorError = "not_found"
-	RequestEntityTooLarge ErrorError = "request_entity_too_large"
-	ServerError           ErrorError = "server_error"
-	UnprocessableContent  ErrorError = "unprocessable_content"
-	UnsupportedMediaType  ErrorError = "unsupported_media_type"
+	ErrorErrorAccessDenied          ErrorError = "access_denied"
+	ErrorErrorConflict              ErrorError = "conflict"
+	ErrorErrorForbidden             ErrorError = "forbidden"
+	ErrorErrorInvalidRequest        ErrorError = "invalid_request"
+	ErrorErrorMethodNotAllowed      ErrorError = "method_not_allowed"
+	ErrorErrorNotFound              ErrorError = "not_found"
+	ErrorErrorRequestEntityTooLarge ErrorError = "request_entity_too_large"
+	ErrorErrorServerError           ErrorError = "server_error"
+	ErrorErrorUnprocessableContent  ErrorError = "unprocessable_content"
+	ErrorErrorUnsupportedMediaType  ErrorError = "unsupported_media_type"
 )
 
 // Defines values for ObjectStorageEndpointClassSupportedEndpointType.
 const (
-	Private ObjectStorageEndpointClassSupportedEndpointType = "private"
-	Public  ObjectStorageEndpointClassSupportedEndpointType = "public"
+	ObjectStorageEndpointClassSupportedEndpointTypePrivate ObjectStorageEndpointClassSupportedEndpointType = "private"
+	ObjectStorageEndpointClassSupportedEndpointTypePublic  ObjectStorageEndpointClassSupportedEndpointType = "public"
 )
 
 // Defines values for ResourceHealthStatus.

@@ -24,24 +24,24 @@ const (
 
 // Defines values for AclOperation.
 const (
-	Create AclOperation = "create"
-	Delete AclOperation = "delete"
-	Read   AclOperation = "read"
-	Update AclOperation = "update"
+	AclOperationCreate AclOperation = "create"
+	AclOperationDelete AclOperation = "delete"
+	AclOperationRead   AclOperation = "read"
+	AclOperationUpdate AclOperation = "update"
 )
 
 // Defines values for AuthClaimsAcctype.
 const (
-	Service AuthClaimsAcctype = "service"
-	System  AuthClaimsAcctype = "system"
-	User    AuthClaimsAcctype = "user"
+	AuthClaimsAcctypeService AuthClaimsAcctype = "service"
+	AuthClaimsAcctypeSystem  AuthClaimsAcctype = "system"
+	AuthClaimsAcctypeUser    AuthClaimsAcctype = "user"
 )
 
 // Defines values for AuthMethod.
 const (
-	ClientSecretBasic AuthMethod = "client_secret_basic"
-	ClientSecretPost  AuthMethod = "client_secret_post"
-	TlsClientAuth     AuthMethod = "tls_client_auth"
+	AuthMethodClientSecretBasic AuthMethod = "client_secret_basic"
+	AuthMethodClientSecretPost  AuthMethod = "client_secret_post"
+	AuthMethodTlsClientAuth     AuthMethod = "tls_client_auth"
 )
 
 // Defines values for BearerMethod.
@@ -69,8 +69,8 @@ const (
 
 // Defines values for CodeChallengeMethod.
 const (
-	Plain CodeChallengeMethod = "plain"
-	S256  CodeChallengeMethod = "S256"
+	CodeChallengeMethodPlain CodeChallengeMethod = "plain"
+	CodeChallengeMethodS256  CodeChallengeMethod = "S256"
 )
 
 // Defines values for ErrorError.
@@ -89,10 +89,10 @@ const (
 
 // Defines values for GrantType.
 const (
-	AuthorizationCode                        GrantType = "authorization_code"
-	ClientCredentials                        GrantType = "client_credentials"
-	RefreshToken                             GrantType = "refresh_token"
-	UrnIetfParamsOauthGrantTypeTokenExchange GrantType = "urn:ietf:params:oauth:grant-type:token-exchange"
+	GrantTypeAuthorizationCode                        GrantType = "authorization_code"
+	GrantTypeClientCredentials                        GrantType = "client_credentials"
+	GrantTypeRefreshToken                             GrantType = "refresh_token"
+	GrantTypeUrnIetfParamsOauthGrantTypeTokenExchange GrantType = "urn:ietf:params:oauth:grant-type:token-exchange"
 )
 
 // Defines values for Oauth2ErrorError.
@@ -111,21 +111,21 @@ const (
 
 // Defines values for Oauth2ProviderType.
 const (
-	Github    Oauth2ProviderType = "github"
-	Google    Oauth2ProviderType = "google"
-	Microsoft Oauth2ProviderType = "microsoft"
+	Oauth2ProviderTypeGithub    Oauth2ProviderType = "github"
+	Oauth2ProviderTypeGoogle    Oauth2ProviderType = "google"
+	Oauth2ProviderTypeMicrosoft Oauth2ProviderType = "microsoft"
 )
 
 // Defines values for OrganizationType.
 const (
-	Adhoc  OrganizationType = "adhoc"
-	Domain OrganizationType = "domain"
+	OrganizationTypeAdhoc  OrganizationType = "adhoc"
+	OrganizationTypeDomain OrganizationType = "domain"
 )
 
 // Defines values for ProviderScope.
 const (
-	Global       ProviderScope = "global"
-	Organization ProviderScope = "organization"
+	ProviderScopeGlobal       ProviderScope = "global"
+	ProviderScopeOrganization ProviderScope = "organization"
 )
 
 // Defines values for ResourceHealthStatus.
@@ -173,14 +173,14 @@ const (
 
 // Defines values for SigningAlgorithm.
 const (
-	ES512 SigningAlgorithm = "ES512"
+	SigningAlgorithmES512 SigningAlgorithm = "ES512"
 )
 
 // Defines values for UserState.
 const (
-	Active    UserState = "active"
-	Pending   UserState = "pending"
-	Suspended UserState = "suspended"
+	UserStateActive    UserState = "active"
+	UserStatePending   UserState = "pending"
+	UserStateSuspended UserState = "suspended"
 )
 
 // Acl A list of access control scopes and permissions.

@@ -31,18 +31,26 @@ const (
 	ClusterAddonComponentStatusV1Upgrading  ClusterAddonComponentStatusV1 = "upgrading"
 )
 
+// Defines values for ClusterRoleBindingV1ClusterRole.
+const (
+	ClusterRoleBindingV1ClusterRoleAdmin        ClusterRoleBindingV1ClusterRole = "admin"
+	ClusterRoleBindingV1ClusterRoleClusterAdmin ClusterRoleBindingV1ClusterRole = "cluster-admin"
+	ClusterRoleBindingV1ClusterRoleEdit         ClusterRoleBindingV1ClusterRole = "edit"
+	ClusterRoleBindingV1ClusterRoleView         ClusterRoleBindingV1ClusterRole = "view"
+)
+
 // Defines values for ErrorError.
 const (
-	AccessDenied          ErrorError = "access_denied"
-	Conflict              ErrorError = "conflict"
-	Forbidden             ErrorError = "forbidden"
-	InvalidRequest        ErrorError = "invalid_request"
-	MethodNotAllowed      ErrorError = "method_not_allowed"
-	NotFound              ErrorError = "not_found"
-	RequestEntityTooLarge ErrorError = "request_entity_too_large"
-	ServerError           ErrorError = "server_error"
-	UnprocessableContent  ErrorError = "unprocessable_content"
-	UnsupportedMediaType  ErrorError = "unsupported_media_type"
+	ErrorErrorAccessDenied          ErrorError = "access_denied"
+	ErrorErrorConflict              ErrorError = "conflict"
+	ErrorErrorForbidden             ErrorError = "forbidden"
+	ErrorErrorInvalidRequest        ErrorError = "invalid_request"
+	ErrorErrorMethodNotAllowed      ErrorError = "method_not_allowed"
+	ErrorErrorNotFound              ErrorError = "not_found"
+	ErrorErrorRequestEntityTooLarge ErrorError = "request_entity_too_large"
+	ErrorErrorServerError           ErrorError = "server_error"
+	ErrorErrorUnprocessableContent  ErrorError = "unprocessable_content"
+	ErrorErrorUnsupportedMediaType  ErrorError = "unsupported_media_type"
 )
 
 // Defines values for HealthStatusReason.
@@ -54,37 +62,31 @@ const (
 
 // Defines values for NodePoolProvisioningModeV1.
 const (
-	Compute     NodePoolProvisioningModeV1 = "compute"
-	Reservation NodePoolProvisioningModeV1 = "reservation"
+	NodePoolProvisioningModeV1Compute     NodePoolProvisioningModeV1 = "compute"
+	NodePoolProvisioningModeV1Reservation NodePoolProvisioningModeV1 = "reservation"
 )
 
 // Defines values for NodePoolTaintV1Effect.
 const (
-	NoExecute        NodePoolTaintV1Effect = "NoExecute"
-	NoSchedule       NodePoolTaintV1Effect = "NoSchedule"
-	PreferNoSchedule NodePoolTaintV1Effect = "PreferNoSchedule"
-)
-
-// Defines values for NodePoolTaintV1Propagation.
-const (
-	Always           NodePoolTaintV1Propagation = "Always"
-	OnInitialization NodePoolTaintV1Propagation = "OnInitialization"
+	NodePoolTaintV1EffectNoExecute        NodePoolTaintV1Effect = "NoExecute"
+	NodePoolTaintV1EffectNoSchedule       NodePoolTaintV1Effect = "NoSchedule"
+	NodePoolTaintV1EffectPreferNoSchedule NodePoolTaintV1Effect = "PreferNoSchedule"
 )
 
 // Defines values for PlatformReleaseArchitectureV1.
 const (
-	Aarch64 PlatformReleaseArchitectureV1 = "aarch64"
-	X8664   PlatformReleaseArchitectureV1 = "x86_64"
+	PlatformReleaseArchitectureV1Aarch64 PlatformReleaseArchitectureV1 = "aarch64"
+	PlatformReleaseArchitectureV1X8664   PlatformReleaseArchitectureV1 = "x86_64"
 )
 
 // Defines values for PlatformReleaseWithdrawalReasonV1.
 const (
-	CompatibilityIssue   PlatformReleaseWithdrawalReasonV1 = "CompatibilityIssue"
-	ComplianceIssue      PlatformReleaseWithdrawalReasonV1 = "ComplianceIssue"
-	FunctionalRegression PlatformReleaseWithdrawalReasonV1 = "FunctionalRegression"
-	OperationalIssue     PlatformReleaseWithdrawalReasonV1 = "OperationalIssue"
-	Other                PlatformReleaseWithdrawalReasonV1 = "Other"
-	SecurityIssue        PlatformReleaseWithdrawalReasonV1 = "SecurityIssue"
+	PlatformReleaseWithdrawalReasonV1CompatibilityIssue   PlatformReleaseWithdrawalReasonV1 = "CompatibilityIssue"
+	PlatformReleaseWithdrawalReasonV1ComplianceIssue      PlatformReleaseWithdrawalReasonV1 = "ComplianceIssue"
+	PlatformReleaseWithdrawalReasonV1FunctionalRegression PlatformReleaseWithdrawalReasonV1 = "FunctionalRegression"
+	PlatformReleaseWithdrawalReasonV1OperationalIssue     PlatformReleaseWithdrawalReasonV1 = "OperationalIssue"
+	PlatformReleaseWithdrawalReasonV1Other                PlatformReleaseWithdrawalReasonV1 = "Other"
+	PlatformReleaseWithdrawalReasonV1SecurityIssue        PlatformReleaseWithdrawalReasonV1 = "SecurityIssue"
 )
 
 // Defines values for ProvisioningStatusReason.
@@ -97,6 +99,12 @@ const (
 	ProvisioningStatusReasonErrored            ProvisioningStatusReason = "Errored"
 	ProvisioningStatusReasonProvisioned        ProvisioningStatusReason = "Provisioned"
 	ProvisioningStatusReasonProvisioning       ProvisioningStatusReason = "Provisioning"
+)
+
+// Defines values for RbacSubjectV1Kind.
+const (
+	RbacSubjectV1KindGroup RbacSubjectV1Kind = "Group"
+	RbacSubjectV1KindUser  RbacSubjectV1Kind = "User"
 )
 
 // Defines values for ResourceHealthStatus.
@@ -137,6 +145,12 @@ type ClusterAddonComponentV1 struct {
 	Version string `json:"version"`
 }
 
+// ClusterAddonProfileCreateV1 Requested configuration for a single addon profile.
+type ClusterAddonProfileCreateV1 struct {
+	// Enabled Whether the addon profile is enabled. Defaults to true when omitted.
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
 // ClusterAddonProfileStatusV1 Observed addon profile rollout state.
 type ClusterAddonProfileStatusV1 struct {
 	// Components Observed addon component rollout states.
@@ -152,10 +166,16 @@ type ClusterAddonProfileStatusV1 struct {
 	Status ClusterAddonComponentStatusV1 `json:"status"`
 }
 
+// ClusterAddonProfileV1 Configuration for a single addon profile.
+type ClusterAddonProfileV1 struct {
+	// Enabled Whether the addon profile is enabled.
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
 // ClusterAddonsCreateV1 Addon profiles requested during cluster creation.
 type ClusterAddonsCreateV1 struct {
-	// Hardware Whether the optional hardware addon profile is enabled. Defaults to true when omitted during cluster creation.
-	Hardware *bool `json:"hardware,omitempty"`
+	// Hardware Requested configuration for a single addon profile.
+	Hardware *ClusterAddonProfileCreateV1 `json:"hardware,omitempty"`
 }
 
 // ClusterAddonsStatusV1 Observed addon rollout state grouped by profile. Hardware remains visible while a previous installation is being removed and is omitted only after removal is confirmed.
@@ -169,8 +189,8 @@ type ClusterAddonsStatusV1 struct {
 
 // ClusterAddonsV1 Addon profiles configured for a cluster.
 type ClusterAddonsV1 struct {
-	// Hardware Whether the optional hardware addon profile is enabled.
-	Hardware *bool `json:"hardware,omitempty"`
+	// Hardware Configuration for a single addon profile.
+	Hardware *ClusterAddonProfileV1 `json:"hardware,omitempty"`
 }
 
 // ClusterApiServerAccessV1 API server network exposure requested for a cluster.
@@ -178,8 +198,29 @@ type ClusterApiServerAccessV1 struct {
 	// AllowedCidrs Source IPv4 CIDR allowlist for the cluster API endpoint, including private endpoints. If publicIP is true and this field is omitted, the API server is reachable from 0.0.0.0/0.
 	AllowedCidrs *[]string `json:"allowedCidrs,omitempty"`
 
+	// Authentication Kubernetes API server authentication configured for a cluster. Fixed at creation; immutable for the cluster's lifetime, including whether each field is set.
+	Authentication *ClusterApiServerAuthenticationV1 `json:"authentication,omitempty"`
+
+	// Authorization Tenant ClusterRoles bound to caller-specified subjects.
+	Authorization *ClusterApiServerAuthorizationV1 `json:"authorization,omitempty"`
+
 	// PublicIP Whether to expose the API server through a public endpoint.
 	PublicIP *bool `json:"publicIP,omitempty"`
+}
+
+// ClusterApiServerAuthenticationV1 Kubernetes API server authentication configured for a cluster. Fixed at creation; immutable for the cluster's lifetime, including whether each field is set.
+type ClusterApiServerAuthenticationV1 struct {
+	// ExternalIssuers Additional external JWT/OIDC issuers the cluster's API server trusts.
+	ExternalIssuers *[]ClusterExternalIssuerV1 `json:"externalIssuers,omitempty"`
+
+	// NscaleWebhook Per-cluster override of the cell-wide Nscale authentication webhook enablement decision.
+	NscaleWebhook *ClusterNscaleWebhookAuthenticationV1 `json:"nscaleWebhook,omitempty"`
+}
+
+// ClusterApiServerAuthorizationV1 Tenant ClusterRoles bound to caller-specified subjects.
+type ClusterApiServerAuthorizationV1 struct {
+	// ClusterRoleBindings Bindings from a built-in tenant ClusterRole to caller-specified subjects, one binding per role.
+	ClusterRoleBindings []ClusterRoleBindingV1 `json:"clusterRoleBindings"`
 }
 
 // ClusterApiServerEndpointStatusV1 Customer-facing Kubernetes API server endpoint.
@@ -209,6 +250,18 @@ type ClusterApiServerStatusV1 struct {
 	Endpoints ClusterApiServerEndpointsStatusV1 `json:"endpoints"`
 }
 
+// ClusterAuthorizationStatusV1 Observed API server authorization binding state. Present only when bindings are configured.
+type ClusterAuthorizationStatusV1 struct {
+	// Message Human-readable customer-safe message for the authorization state.
+	Message *string `json:"message,omitempty"`
+
+	// Reason Stable machine-readable reason for the authorization state.
+	Reason *string `json:"reason,omitempty"`
+
+	// Status Observed addon component rollout status.
+	Status ClusterAddonComponentStatusV1 `json:"status"`
+}
+
 // ClusterControlPlaneSummaryV1 Observed control plane summary.
 type ClusterControlPlaneSummaryV1 struct {
 	// DesiredReplicas Desired number of control plane replicas.
@@ -234,6 +287,33 @@ type ClusterCreateSpecV1 struct {
 
 	// PlatformReleaseId Platform release selected for the cluster.
 	PlatformReleaseId string `json:"platformReleaseId"`
+
+	// SshCertificateAuthorityId Optional region SSH certificate authority trusted for cluster workers.
+	SshCertificateAuthorityId *string `json:"sshCertificateAuthorityId,omitempty"`
+}
+
+// ClusterExternalIssuerV1 An external JWT/OIDC issuer the cluster's API server trusts.
+type ClusterExternalIssuerV1 struct {
+	// Audiences Acceptable token audiences for this issuer.
+	Audiences []string `json:"audiences"`
+
+	// CaCertificate PEM-encoded CA certificate used to verify the issuer, when it is not signed by a well-known CA.
+	CaCertificate *string `json:"caCertificate,omitempty"`
+
+	// GroupsClaim JWT claim mapped to the authenticated group list.
+	GroupsClaim *string `json:"groupsClaim,omitempty"`
+
+	// GroupsPrefix Prepended to each groups claim value. Required when groupsClaim is set; when set, must be non-empty and must not itself start with, or be a prefix of, a reserved prefix (system:, kubeadm:, nks-management:).
+	GroupsPrefix *string `json:"groupsPrefix,omitempty"`
+
+	// IssuerURL Issuer URL clients present tokens from.
+	IssuerURL string `json:"issuerURL"`
+
+	// UsernameClaim JWT claim mapped to the authenticated username.
+	UsernameClaim *string `json:"usernameClaim,omitempty"`
+
+	// UsernamePrefix Prepended to the username claim value. Required, non-empty, and must not itself start with, or be a prefix of, a reserved prefix (system:, kubeadm:, nks-management:).
+	UsernamePrefix string `json:"usernamePrefix"`
 }
 
 // ClusterKubernetesVersionStatusV1 Kubernetes versions in the applied control-plane template and observed managed control plane.
@@ -241,7 +321,7 @@ type ClusterKubernetesVersionStatusV1 struct {
 	// Observed Kubernetes version reported by the managed control plane.
 	Observed *string `json:"observed,omitempty"`
 
-	// Target Kubernetes version in the applied remote ManagedControlPlane template.
+	// Target Kubernetes version applied to the cluster's control plane.
 	Target *string `json:"target,omitempty"`
 }
 
@@ -269,6 +349,12 @@ type ClusterNodePoolSummaryV1 struct {
 	TotalReadyReplicas *int `json:"totalReadyReplicas,omitempty"`
 }
 
+// ClusterNscaleWebhookAuthenticationV1 Per-cluster override of the cell-wide Nscale authentication webhook enablement decision.
+type ClusterNscaleWebhookAuthenticationV1 struct {
+	// Enabled Overrides the cell-wide decision to enable the Nscale authentication webhook for this cluster. Omit to inherit the cell-wide default.
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
 // ClusterReleaseStatusV1 Applied platform release and observed upgrade eligibility.
 type ClusterReleaseStatusV1 struct {
 	// AppliedId Platform release last observed as applied to the remote cluster.
@@ -289,9 +375,21 @@ type ClusterReleaseStatusV1 struct {
 	// WithdrawalReason Stable machine-readable reason operators withdrew a platform release.
 	WithdrawalReason *PlatformReleaseWithdrawalReasonV1 `json:"withdrawalReason,omitempty"`
 
-	// Withdrawn Whether operators have withdrawn the applied platform release. Deprecation is derived from the release catalog, whereas withdrawal is an explicit operator decision and is reversible.
+	// Withdrawn Whether operators have withdrawn the applied platform release. Like deprecation it is an explicit, reversible operator decision, but withdrawal also carries a reason and message.
 	Withdrawn *bool `json:"withdrawn,omitempty"`
 }
+
+// ClusterRoleBindingV1 Binds a built-in tenant ClusterRole to caller-specified subjects.
+type ClusterRoleBindingV1 struct {
+	// ClusterRole Built-in tenant ClusterRole to bind.
+	ClusterRole ClusterRoleBindingV1ClusterRole `json:"clusterRole"`
+
+	// Subjects User/Group subjects bound to the role.
+	Subjects []RbacSubjectV1 `json:"subjects"`
+}
+
+// ClusterRoleBindingV1ClusterRole Built-in tenant ClusterRole to bind.
+type ClusterRoleBindingV1ClusterRole string
 
 // ClusterSpecV1 Desired cluster state.
 type ClusterSpecV1 struct {
@@ -309,6 +407,9 @@ type ClusterSpecV1 struct {
 
 	// PlatformReleaseId Platform release selected for the cluster.
 	PlatformReleaseId string `json:"platformReleaseId"`
+
+	// SshCertificateAuthorityId Optional region SSH certificate authority trusted for cluster workers.
+	SshCertificateAuthorityId *string `json:"sshCertificateAuthorityId,omitempty"`
 }
 
 // ClusterStatusV1 Product-specific observed cluster state.
@@ -318,6 +419,9 @@ type ClusterStatusV1 struct {
 
 	// ApiServer Credential-free Kubernetes API server connection data.
 	ApiServer *ClusterApiServerStatusV1 `json:"apiServer,omitempty"`
+
+	// Authorization Observed API server authorization binding state. Present only when bindings are configured.
+	Authorization *ClusterAuthorizationStatusV1 `json:"authorization,omitempty"`
 
 	// ControlPlane Observed control plane summary.
 	ControlPlane *ClusterControlPlaneSummaryV1 `json:"controlPlane,omitempty"`
@@ -354,6 +458,9 @@ type ClusterUpdateSpecV1 struct {
 
 	// PlatformReleaseId Platform release selected for the cluster.
 	PlatformReleaseId string `json:"platformReleaseId"`
+
+	// SshCertificateAuthorityId Optional region SSH certificate authority trusted for cluster workers. Immutable after creation, including whether it is set.
+	SshCertificateAuthorityId *string `json:"sshCertificateAuthorityId,omitempty"`
 }
 
 // ClusterV1Create A cluster creation request.
@@ -436,8 +543,32 @@ type NodePoolComputeV1 struct {
 // NodePoolCreateSpecV1 Desired node pool state for write requests.
 type NodePoolCreateSpecV1 = NodePoolRequestSpecV1
 
+// NodePoolLabelsV1 Kubernetes labels applied to node pool workers as they join the cluster. Labels are not continuously reconciled onto running nodes, so a change applies to newly created workers only and rolls the pool's existing workers so the new labels take effect.
+type NodePoolLabelsV1 map[string]string
+
 // NodePoolProvisioningModeV1 Capacity source used to provision node pool workers.
 type NodePoolProvisioningModeV1 string
+
+// NodePoolReleaseStatusV1 Pinned platform release's identity, deprecation, and withdrawal state.
+type NodePoolReleaseStatusV1 struct {
+	// AppliedId Pinned platform release ID.
+	AppliedId string `json:"appliedId"`
+
+	// Deprecated Whether the pinned platform release is currently deprecated.
+	Deprecated *bool `json:"deprecated,omitempty"`
+
+	// KubernetesVersion Pinned platform release's Kubernetes version.
+	KubernetesVersion string `json:"kubernetesVersion"`
+
+	// WithdrawalMessage Customer-safe explanation of why operators withdrew the pinned platform release.
+	WithdrawalMessage *string `json:"withdrawalMessage,omitempty"`
+
+	// WithdrawalReason Stable machine-readable reason operators withdrew a platform release.
+	WithdrawalReason *PlatformReleaseWithdrawalReasonV1 `json:"withdrawalReason,omitempty"`
+
+	// Withdrawn Whether operators have withdrawn the pinned platform release.
+	Withdrawn *bool `json:"withdrawn,omitempty"`
+}
 
 // NodePoolRequestSpecV1 Desired node pool state for write requests.
 type NodePoolRequestSpecV1 struct {
@@ -446,6 +577,9 @@ type NodePoolRequestSpecV1 struct {
 
 	// Compute Compute-backed worker capacity selector.
 	Compute *NodePoolComputeV1 `json:"compute,omitempty"`
+
+	// Labels Kubernetes labels applied to node pool workers as they join the cluster. Labels are not continuously reconciled onto running nodes, so a change applies to newly created workers only and rolls the pool's existing workers so the new labels take effect.
+	Labels *NodePoolLabelsV1 `json:"labels,omitempty"`
 
 	// ProvisioningMode Capacity source used to provision node pool workers.
 	ProvisioningMode NodePoolProvisioningModeV1 `json:"provisioningMode"`
@@ -456,7 +590,7 @@ type NodePoolRequestSpecV1 struct {
 	// Reservation Reservation-backed worker capacity selector.
 	Reservation *NodePoolReservationV1 `json:"reservation,omitempty"`
 
-	// Taints Kubernetes taints applied to node pool workers.
+	// Taints Kubernetes taints applied to node pool workers as they join the cluster. Taints are not continuously reconciled onto running nodes, so a change applies to newly created workers only and rolls the pool's existing workers so the new taints take effect.
 	Taints *[]NodePoolTaintV1 `json:"taints,omitempty"`
 }
 
@@ -483,6 +617,9 @@ type NodePoolSpecV1 struct {
 	// Compute Compute-backed worker capacity selector.
 	Compute *NodePoolComputeV1 `json:"compute,omitempty"`
 
+	// Labels Kubernetes labels applied to node pool workers as they join the cluster. Labels are not continuously reconciled onto running nodes, so a change applies to newly created workers only and rolls the pool's existing workers so the new labels take effect.
+	Labels *NodePoolLabelsV1 `json:"labels,omitempty"`
+
 	// ProvisioningMode Capacity source used to provision node pool workers.
 	ProvisioningMode NodePoolProvisioningModeV1 `json:"provisioningMode"`
 
@@ -492,7 +629,7 @@ type NodePoolSpecV1 struct {
 	// Reservation Reservation-backed worker capacity selector.
 	Reservation *NodePoolReservationV1 `json:"reservation,omitempty"`
 
-	// Taints Kubernetes taints applied to node pool workers.
+	// Taints Kubernetes taints applied to node pool workers as they join the cluster. Taints are not continuously reconciled onto running nodes, so a change applies to newly created workers only and rolls the pool's existing workers so the new taints take effect.
 	Taints *[]NodePoolTaintV1 `json:"taints,omitempty"`
 }
 
@@ -501,10 +638,10 @@ type NodePoolStatusV1 struct {
 	// CurrentReplicas Current worker replica count.
 	CurrentReplicas *int `json:"currentReplicas,omitempty"`
 
-	// DesiredReplicas Desired worker replica count observed in the applied remote MachineDeployment.
+	// DesiredReplicas Desired worker replica count for the node pool.
 	DesiredReplicas *int `json:"desiredReplicas,omitempty"`
 
-	// KubernetesVersion Kubernetes version in the applied remote MachineDeployment template.
+	// KubernetesVersion Kubernetes version applied to the node pool's workers.
 	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
 
 	// ObservedGeneration Most recent resource generation coherently projected into status. Omitted until a status projection completes.
@@ -516,14 +653,17 @@ type NodePoolStatusV1 struct {
 	// RegionId Resolved region inherited from the parent cluster.
 	RegionId string `json:"regionId"`
 
+	// Release Pinned platform release's identity, deprecation, and withdrawal state.
+	Release *NodePoolReleaseStatusV1 `json:"release,omitempty"`
+
 	// Reservation Observed reservation-backed worker capacity.
 	Reservation *NodePoolReservationStatusV1 `json:"reservation,omitempty"`
 
-	// UpToDateReplicas Worker replica count using the current MachineDeployment template.
+	// UpToDateReplicas Worker replica count running the current node pool template.
 	UpToDateReplicas *int `json:"upToDateReplicas,omitempty"`
 }
 
-// NodePoolTaintV1 Kubernetes taint applied to node pool workers.
+// NodePoolTaintV1 Kubernetes taint applied to a node pool worker as it joins the cluster. The taint is applied during worker node registration, so it takes effect once during node initialization and is not reconciled onto running nodes afterwards.
 type NodePoolTaintV1 struct {
 	// Effect Taint effect.
 	Effect NodePoolTaintV1Effect `json:"effect"`
@@ -531,18 +671,12 @@ type NodePoolTaintV1 struct {
 	// Key Taint key.
 	Key string `json:"key"`
 
-	// Propagation Taint propagation behavior.
-	Propagation NodePoolTaintV1Propagation `json:"propagation"`
-
 	// Value Taint value.
 	Value *string `json:"value,omitempty"`
 }
 
 // NodePoolTaintV1Effect Taint effect.
 type NodePoolTaintV1Effect string
-
-// NodePoolTaintV1Propagation Taint propagation behavior.
-type NodePoolTaintV1Propagation string
 
 // NodePoolUpdateSpecV1 Desired node pool state for write requests.
 type NodePoolUpdateSpecV1 = NodePoolRequestSpecV1
@@ -607,7 +741,7 @@ type PlatformReleaseComponentV1 struct {
 	Version string `json:"version"`
 }
 
-// PlatformReleaseStatusV1 Product-specific observed platform release state. A release is selectable in a region when that region is present in availableRegionIds and deprecated and withdrawn are both false.
+// PlatformReleaseStatusV1 Product-specific observed platform release state. A release is selectable in a region when that region is present in availableRegionIds and deprecated and withdrawn are both false. usableOrganizationIds lists which of the caller's own organizations may select the release.
 type PlatformReleaseStatusV1 struct {
 	// Addons Component versions grouped by platform release addon profile.
 	Addons PlatformReleaseAddonsV1 `json:"addons"`
@@ -615,17 +749,20 @@ type PlatformReleaseStatusV1 struct {
 	// AvailableRegionIds Region IDs where this release is available.
 	AvailableRegionIds []string `json:"availableRegionIds"`
 
-	// Deprecated Whether existing clusters should upgrade away from this release. Once true, this remains true for the lifetime of the release resource.
+	// Deprecated Whether existing clusters should upgrade away from this release. Deprecation is an explicit operator decision and may be reversed.
 	Deprecated bool `json:"deprecated"`
 
 	// KubernetesVersion Kubernetes version provided by the release.
 	KubernetesVersion string `json:"kubernetesVersion"`
 
-	// Prerelease Whether the release Kubernetes version is a semver prerelease, such as v1.37.0-beta.0. Prerelease releases are selectable and are offered as upgrade targets, but they do not occupy a slot in the supported Kubernetes minor version window, and they are deprecated as soon as a newer prerelease or an actual release supersedes them.
+	// Prerelease Whether the release Kubernetes version is a semver prerelease, such as v1.37.0-beta.0. Prerelease releases are selectable and are offered as upgrade targets.
 	Prerelease bool `json:"prerelease"`
 
 	// SupportedArchitectures CPU architectures supported by the release compute images.
 	SupportedArchitectures []PlatformReleaseArchitectureV1 `json:"supportedArchitectures"`
+
+	// UsableOrganizationIds Organization IDs, among the caller's own organizations, that may select this platform release.
+	UsableOrganizationIds []string `json:"usableOrganizationIds"`
 
 	// WithdrawalMessage Customer-safe explanation of why operators withdrew the release.
 	WithdrawalMessage *string `json:"withdrawalMessage,omitempty"`
@@ -644,7 +781,7 @@ type PlatformReleaseV1Read struct {
 	// metadata format.
 	Metadata StaticResourceMetadata `json:"metadata"`
 
-	// Status Product-specific observed platform release state. A release is selectable in a region when that region is present in availableRegionIds and deprecated and withdrawn are both false.
+	// Status Product-specific observed platform release state. A release is selectable in a region when that region is present in availableRegionIds and deprecated and withdrawn are both false. usableOrganizationIds lists which of the caller's own organizations may select the release.
 	Status PlatformReleaseStatusV1 `json:"status"`
 }
 
@@ -734,6 +871,18 @@ type ProvisioningStatusDetail struct {
 // (e.g. an instance's lifecycle phase) is carried on other mechanisms and
 // never appears here.
 type ProvisioningStatusReason string
+
+// RbacSubjectV1 One RBAC subject bound to a tenant ClusterRole.
+type RbacSubjectV1 struct {
+	// Kind Subject kind.
+	Kind RbacSubjectV1Kind `json:"kind"`
+
+	// Name Subject name.
+	Name string `json:"name"`
+}
+
+// RbacSubjectV1Kind Subject kind.
+type RbacSubjectV1Kind string
 
 // ResourceHealthStatus The health state of a resource.
 type ResourceHealthStatus string
@@ -890,6 +1039,9 @@ type PlatformReleaseV1Response = PlatformReleaseV1Read
 // PlatformReleasesV1Response A list of platform releases.
 type PlatformReleasesV1Response = PlatformReleasesV1Read
 
+// RequestEntityTooLargeResponse Generic error message, compatible with oauth2.
+type RequestEntityTooLargeResponse = Error
+
 // UnauthorizedResponse Generic error message, compatible with oauth2.
 type UnauthorizedResponse = Error
 
@@ -972,6 +1124,9 @@ type ListNodePoolsParams struct {
 
 // ListPlatformReleasesParams defines parameters for ListPlatformReleases.
 type ListPlatformReleasesParams struct {
+	// OrganizationID Allows resources to be filtered by organization.
+	OrganizationID *OrganizationIDQueryParameter `form:"organizationID,omitempty" json:"organizationID,omitempty"`
+
 	// RegionID Allows resources to be filtered by region. For platform releases, matches releases available in any supplied region.
 	RegionID *RegionIDQueryParameter `form:"regionID,omitempty" json:"regionID,omitempty"`
 
@@ -1996,6 +2151,22 @@ func NewListPlatformReleasesRequest(server string, params *ListPlatformReleasesP
 	if params != nil {
 		queryValues := queryURL.Query()
 
+		if params.OrganizationID != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "organizationID", runtime.ParamLocationQuery, *params.OrganizationID); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
 		if params.RegionID != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "regionID", runtime.ParamLocationQuery, *params.RegionID); err != nil {
@@ -2242,6 +2413,7 @@ type CreateClusterResponse struct {
 	JSON400      *BadRequestResponse
 	JSON401      *UnauthorizedResponse
 	JSON403      *ForbiddenResponse
+	JSON413      *RequestEntityTooLargeResponse
 	JSON422      *UnprocessableContentResponse
 	JSON500      *InternalServerErrorResponse
 }
@@ -2324,6 +2496,7 @@ type UpdateClusterResponse struct {
 	JSON403      *ForbiddenResponse
 	JSON404      *NotFoundResponse
 	JSON409      *ConflictResponse
+	JSON413      *RequestEntityTooLargeResponse
 	JSON422      *UnprocessableContentResponse
 	JSON500      *InternalServerErrorResponse
 }
@@ -2377,6 +2550,7 @@ type CreateNodePoolResponse struct {
 	JSON400      *BadRequestResponse
 	JSON401      *UnauthorizedResponse
 	JSON403      *ForbiddenResponse
+	JSON413      *RequestEntityTooLargeResponse
 	JSON422      *UnprocessableContentResponse
 	JSON500      *InternalServerErrorResponse
 }
@@ -2459,6 +2633,7 @@ type UpdateNodePoolResponse struct {
 	JSON403      *ForbiddenResponse
 	JSON404      *NotFoundResponse
 	JSON409      *ConflictResponse
+	JSON413      *RequestEntityTooLargeResponse
 	JSON422      *UnprocessableContentResponse
 	JSON500      *InternalServerErrorResponse
 }
@@ -2768,6 +2943,13 @@ func ParseCreateClusterResponse(rsp *http.Response) (*CreateClusterResponse, err
 		}
 		response.JSON403 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 413:
+		var dest RequestEntityTooLargeResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON413 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
 		var dest UnprocessableContentResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -2958,6 +3140,13 @@ func ParseUpdateClusterResponse(rsp *http.Response) (*UpdateClusterResponse, err
 		}
 		response.JSON409 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 413:
+		var dest RequestEntityTooLargeResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON413 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
 		var dest UnprocessableContentResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -3072,6 +3261,13 @@ func ParseCreateNodePoolResponse(rsp *http.Response) (*CreateNodePoolResponse, e
 			return nil, err
 		}
 		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 413:
+		var dest RequestEntityTooLargeResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON413 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
 		var dest UnprocessableContentResponse
@@ -3262,6 +3458,13 @@ func ParseUpdateNodePoolResponse(rsp *http.Response) (*UpdateNodePoolResponse, e
 			return nil, err
 		}
 		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 413:
+		var dest RequestEntityTooLargeResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON413 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
 		var dest UnprocessableContentResponse

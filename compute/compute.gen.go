@@ -24,47 +24,47 @@ const (
 
 // Defines values for Architecture.
 const (
-	Aarch64 Architecture = "aarch64"
-	X8664   Architecture = "x86_64"
+	ArchitectureAarch64 Architecture = "aarch64"
+	ArchitectureX8664   Architecture = "x86_64"
 )
 
 // Defines values for BearerMethod.
 const (
-	Body   BearerMethod = "body"
-	Header BearerMethod = "header"
-	Query  BearerMethod = "query"
+	BearerMethodBody   BearerMethod = "body"
+	BearerMethodHeader BearerMethod = "header"
+	BearerMethodQuery  BearerMethod = "query"
 )
 
 // Defines values for ErrorError.
 const (
-	AccessDenied          ErrorError = "access_denied"
-	Conflict              ErrorError = "conflict"
-	Forbidden             ErrorError = "forbidden"
-	InvalidRequest        ErrorError = "invalid_request"
-	MethodNotAllowed      ErrorError = "method_not_allowed"
-	NotFound              ErrorError = "not_found"
-	RequestEntityTooLarge ErrorError = "request_entity_too_large"
-	ServerError           ErrorError = "server_error"
-	UnprocessableContent  ErrorError = "unprocessable_content"
-	UnsupportedMediaType  ErrorError = "unsupported_media_type"
+	ErrorErrorAccessDenied          ErrorError = "access_denied"
+	ErrorErrorConflict              ErrorError = "conflict"
+	ErrorErrorForbidden             ErrorError = "forbidden"
+	ErrorErrorInvalidRequest        ErrorError = "invalid_request"
+	ErrorErrorMethodNotAllowed      ErrorError = "method_not_allowed"
+	ErrorErrorNotFound              ErrorError = "not_found"
+	ErrorErrorRequestEntityTooLarge ErrorError = "request_entity_too_large"
+	ErrorErrorServerError           ErrorError = "server_error"
+	ErrorErrorUnprocessableContent  ErrorError = "unprocessable_content"
+	ErrorErrorUnsupportedMediaType  ErrorError = "unsupported_media_type"
 )
 
 // Defines values for FirewallRuleDirection.
 const (
-	Egress  FirewallRuleDirection = "egress"
-	Ingress FirewallRuleDirection = "ingress"
+	FirewallRuleDirectionEgress  FirewallRuleDirection = "egress"
+	FirewallRuleDirectionIngress FirewallRuleDirection = "ingress"
 )
 
 // Defines values for FirewallRuleProtocol.
 const (
-	Tcp FirewallRuleProtocol = "tcp"
-	Udp FirewallRuleProtocol = "udp"
+	FirewallRuleProtocolTcp FirewallRuleProtocol = "tcp"
+	FirewallRuleProtocolUdp FirewallRuleProtocol = "udp"
 )
 
 // Defines values for GpuVendor.
 const (
-	AMD    GpuVendor = "AMD"
-	NVIDIA GpuVendor = "NVIDIA"
+	GpuVendorAMD    GpuVendor = "AMD"
+	GpuVendorNVIDIA GpuVendor = "NVIDIA"
 )
 
 // Defines values for ImageState.
@@ -77,9 +77,9 @@ const (
 
 // Defines values for ImageVirtualization.
 const (
-	Any         ImageVirtualization = "any"
-	Baremetal   ImageVirtualization = "baremetal"
-	Virtualized ImageVirtualization = "virtualized"
+	ImageVirtualizationAny         ImageVirtualization = "any"
+	ImageVirtualizationBaremetal   ImageVirtualization = "baremetal"
+	ImageVirtualizationVirtualized ImageVirtualization = "virtualized"
 )
 
 // Defines values for InstanceLifecyclePhase.
@@ -94,14 +94,14 @@ const (
 
 // Defines values for OsKernel.
 const (
-	Linux OsKernel = "linux"
+	OsKernelLinux OsKernel = "linux"
 )
 
 // Defines values for RegionType.
 const (
-	Kubernetes RegionType = "kubernetes"
-	Openstack  RegionType = "openstack"
-	Simulated  RegionType = "simulated"
+	RegionTypeKubernetes RegionType = "kubernetes"
+	RegionTypeOpenstack  RegionType = "openstack"
+	RegionTypeSimulated  RegionType = "simulated"
 )
 
 // Defines values for ResourceHealthStatus.

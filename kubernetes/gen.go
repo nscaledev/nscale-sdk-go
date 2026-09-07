@@ -1,6 +1,7 @@
 // Package kubernetes is the Go client for the Nscale Kubernetes service (NKS).
 // The vendored openapi.yaml is copied verbatim from nscaledev/openapi
-// (nks-core/main/openapi.yaml). Do not hand-edit it or kubernetes.gen.go.
+// (nks-core/main/openapi.yaml). Do not hand-edit it or kubernetes.gen.go;
+// refresh both with `just update kubernetes` from the repo root.
 //
 // NKS has not cut a stable release yet, so this client tracks the source
 // service's main branch rather than a tagged version: unlike the other
