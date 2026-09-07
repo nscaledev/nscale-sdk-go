@@ -59,6 +59,8 @@ paths:
           $ref: "#/components/responses/unauthorizedResponse"
         "403":
           $ref: "#/components/responses/forbiddenResponse"
+        "413":
+          $ref: "#/components/responses/requestEntityTooLargeResponse"
         "422":
           $ref: "#/components/responses/unprocessableContentResponse"
         "500":
@@ -111,6 +113,8 @@ paths:
           $ref: "#/components/responses/notFoundResponse"
         "409":
           $ref: "#/components/responses/conflictResponse"
+        "413":
+          $ref: "#/components/responses/requestEntityTooLargeResponse"
         "422":
           $ref: "#/components/responses/unprocessableContentResponse"
         "500":
@@ -189,6 +193,8 @@ paths:
           $ref: "#/components/responses/unauthorizedResponse"
         "403":
           $ref: "#/components/responses/forbiddenResponse"
+        "413":
+          $ref: "#/components/responses/requestEntityTooLargeResponse"
         "422":
           $ref: "#/components/responses/unprocessableContentResponse"
         "500":
@@ -241,6 +247,8 @@ paths:
           $ref: "#/components/responses/notFoundResponse"
         "409":
           $ref: "#/components/responses/conflictResponse"
+        "413":
+          $ref: "#/components/responses/requestEntityTooLargeResponse"
         "422":
           $ref: "#/components/responses/unprocessableContentResponse"
         "500":
@@ -277,6 +285,7 @@ paths:
       security:
         - oauth2Authentication: []
       parameters:
+        - $ref: "#/components/parameters/organizationIDQueryParameter"
         - $ref: "#/components/parameters/regionIDQueryParameter"
         - $ref: "#/components/parameters/platformReleaseArchitectureQueryParameter"
         - $ref: "#/components/parameters/prereleaseQueryParameter"
@@ -525,7 +534,8 @@ components:
               taints:
                 - key: nvidia.com/gpu
                   effect: NoSchedule
-                  propagation: Always
+              labels:
+                accelerator: nvidia-h100
     nodePoolV1UpdateRequest:
       description: Node pool update request.
       required: true
@@ -545,7 +555,8 @@ components:
               taints:
                 - key: nvidia.com/gpu
                   effect: NoSchedule
-                  propagation: Always
+              labels:
+                accelerator: nvidia-h100
   responses:
     clustersV1Response:
       description: A list of clusters.
@@ -578,7 +589,8 @@ components:
                 apiServer:
                   publicIP: false
                 addons:
-                  hardware: true
+                  hardware:
+                    enabled: true
               status:
                 regionId: uk-lon-1
                 observedGeneration: 3
@@ -647,7 +659,8 @@ components:
               apiServer:
                 publicIP: false
               addons:
-                hardware: true
+                hardware:
+                  enabled: true
             status:
               regionId: uk-lon-1
               observedGeneration: 3
@@ -716,7 +729,8 @@ components:
               apiServer:
                 publicIP: false
               addons:
-                hardware: true
+                hardware:
+                  enabled: true
             status:
               regionId: uk-lon-1
     nodePoolsV1Response:
@@ -753,7 +767,8 @@ components:
                 taints:
                   - key: nvidia.com/gpu
                     effect: NoSchedule
-                    propagation: Always
+                labels:
+                  accelerator: nvidia-h100
               status:
                 regionId: uk-lon-1
                 observedGeneration: 5
@@ -790,7 +805,8 @@ components:
               taints:
                 - key: nvidia.com/gpu
                   effect: NoSchedule
-                  propagation: Always
+              labels:
+                accelerator: nvidia-h100
             status:
               regionId: uk-lon-1
               observedGeneration: 5
@@ -887,6 +903,16 @@ components:
         The request has been accepted and will be fulfilled asynchronously.
         You may poll the resource and monitor its provisioning and health status
         to await completion of the operation.
+    requestEntityTooLargeResponse:
+      description: The request body exceeds the maximum accepted size.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+          example:
+            error: request_entity_too_large
+            error_description: request body exceeds the maximum allowed size
+            trace_id: 57bc14d9bd461f0b5a72db830149b67a
     badRequestResponse:
       description: |-
         Request body failed schema validation, or the request does not contain
@@ -1072,22 +1098,174 @@ components:
           items:
             type: string
             pattern: ^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/([0-9]|[12][0-9]|3[0-2])$
+        authorization:
+          description: Tenant ClusterRoles bound to caller-specified subjects. Immutable
+            after creation, including whether it is set.
+          $ref: "#/components/schemas/clusterApiServerAuthorizationV1"
+        authentication:
+          $ref: "#/components/schemas/clusterApiServerAuthenticationV1"
+    clusterApiServerAuthorizationV1:
+      description: Tenant ClusterRoles bound to caller-specified subjects.
+      type: object
+      additionalProperties: false
+      required:
+        - clusterRoleBindings
+      properties:
+        clusterRoleBindings:
+          description: Bindings from a built-in tenant ClusterRole to caller-specified
+            subjects, one binding per role.
+          type: array
+          minItems: 1
+          maxItems: 4
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/clusterRoleBindingV1"
+    clusterRoleBindingV1:
+      description: Binds a built-in tenant ClusterRole to caller-specified subjects.
+      type: object
+      additionalProperties: false
+      required:
+        - clusterRole
+        - subjects
+      properties:
+        clusterRole:
+          description: Built-in tenant ClusterRole to bind.
+          type: string
+          enum:
+            - cluster-admin
+            - admin
+            - edit
+            - view
+        subjects:
+          description: User/Group subjects bound to the role.
+          type: array
+          minItems: 1
+          maxItems: 32
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/rbacSubjectV1"
+    rbacSubjectV1:
+      description: One RBAC subject bound to a tenant ClusterRole.
+      type: object
+      additionalProperties: false
+      required:
+        - kind
+        - name
+      properties:
+        kind:
+          description: Subject kind.
+          type: string
+          enum:
+            - User
+            - Group
+        name:
+          description: Subject name.
+          type: string
+          minLength: 1
+          maxLength: 2048
+    clusterApiServerAuthenticationV1:
+      description: Kubernetes API server authentication configured for a cluster.
+        Fixed at creation; immutable for the cluster's lifetime, including
+        whether each field is set.
+      type: object
+      properties:
+        nscaleWebhook:
+          $ref: "#/components/schemas/clusterNscaleWebhookAuthenticationV1"
+        externalIssuers:
+          description: Additional external JWT/OIDC issuers the cluster's API server trusts.
+          type: array
+          maxItems: 8
+          items:
+            $ref: "#/components/schemas/clusterExternalIssuerV1"
+    clusterNscaleWebhookAuthenticationV1:
+      description: Per-cluster override of the cell-wide Nscale authentication webhook
+        enablement decision.
+      type: object
+      properties:
+        enabled:
+          description: Overrides the cell-wide decision to enable the Nscale
+            authentication webhook for this cluster. Omit to inherit the
+            cell-wide default.
+          type: boolean
+    clusterExternalIssuerV1:
+      description: An external JWT/OIDC issuer the cluster's API server trusts.
+      type: object
+      required:
+        - issuerURL
+        - audiences
+        - usernamePrefix
+      properties:
+        issuerURL:
+          description: Issuer URL clients present tokens from.
+          type: string
+          minLength: 1
+          maxLength: 2048
+        audiences:
+          description: Acceptable token audiences for this issuer.
+          type: array
+          minItems: 1
+          maxItems: 8
+          uniqueItems: true
+          items:
+            type: string
+            minLength: 1
+            maxLength: 256
+        usernameClaim:
+          description: JWT claim mapped to the authenticated username.
+          type: string
+          maxLength: 256
+          default: sub
+        usernamePrefix:
+          description: Prepended to the username claim value. Required, non-empty, and
+            must not itself start with, or be a prefix of, a reserved prefix
+            (system:, kubeadm:, nks-management:).
+          type: string
+          minLength: 1
+          maxLength: 256
+        groupsClaim:
+          description: JWT claim mapped to the authenticated group list.
+          type: string
+          maxLength: 256
+        groupsPrefix:
+          description: Prepended to each groups claim value. Required when groupsClaim is
+            set; when set, must be non-empty and must not itself start with, or
+            be a prefix of, a reserved prefix (system:, kubeadm:,
+            nks-management:).
+          type: string
+          minLength: 1
+          maxLength: 256
+        caCertificate:
+          description: PEM-encoded CA certificate used to verify the issuer, when it is
+            not signed by a well-known CA.
+          type: string
+          maxLength: 8192
+    clusterAddonProfileV1:
+      description: Configuration for a single addon profile.
+      type: object
+      properties:
+        enabled:
+          description: Whether the addon profile is enabled.
+          type: boolean
+    clusterAddonProfileCreateV1:
+      description: Requested configuration for a single addon profile.
+      type: object
+      properties:
+        enabled:
+          description: Whether the addon profile is enabled. Defaults to true when omitted.
+          type: boolean
+          default: true
     clusterAddonsV1:
       description: Addon profiles configured for a cluster.
       type: object
       properties:
         hardware:
-          description: Whether the optional hardware addon profile is enabled.
-          type: boolean
+          $ref: "#/components/schemas/clusterAddonProfileV1"
     clusterAddonsCreateV1:
       description: Addon profiles requested during cluster creation.
       type: object
       properties:
         hardware:
-          description: Whether the optional hardware addon profile is enabled. Defaults to
-            true when omitted during cluster creation.
-          type: boolean
-          default: true
+          $ref: "#/components/schemas/clusterAddonProfileCreateV1"
     clusterNetworkV1:
       description: Kubernetes cluster pod and service network configuration.
       type: object
@@ -1201,6 +1379,21 @@ components:
           $ref: "#/components/schemas/clusterAddonProfileStatusV1"
         hardware:
           $ref: "#/components/schemas/clusterAddonProfileStatusV1"
+    clusterAuthorizationStatusV1:
+      description: Observed API server authorization binding state. Present only when
+        bindings are configured.
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          $ref: "#/components/schemas/clusterAddonComponentStatusV1"
+        reason:
+          description: Stable machine-readable reason for the authorization state.
+          type: string
+        message:
+          description: Human-readable customer-safe message for the authorization state.
+          type: string
     clusterSpecV1:
       description: Desired cluster state.
       type: object
@@ -1213,6 +1406,10 @@ components:
           type: string
         platformReleaseId:
           description: Platform release selected for the cluster.
+          type: string
+        sshCertificateAuthorityId:
+          description: Optional region SSH certificate authority trusted for cluster
+            workers.
           type: string
         clusterNetwork:
           $ref: "#/components/schemas/clusterNetworkV1"
@@ -1234,6 +1431,10 @@ components:
         platformReleaseId:
           description: Platform release selected for the cluster.
           type: string
+        sshCertificateAuthorityId:
+          description: Optional region SSH certificate authority trusted for cluster
+            workers.
+          type: string
         clusterNetwork:
           $ref: "#/components/schemas/clusterNetworkV1"
         apiServer:
@@ -1254,6 +1455,10 @@ components:
         platformReleaseId:
           description: Platform release selected for the cluster.
           type: string
+        sshCertificateAuthorityId:
+          description: Optional region SSH certificate authority trusted for cluster
+            workers. Immutable after creation, including whether it is set.
+          type: string
         clusterNetwork:
           $ref: "#/components/schemas/clusterNetworkV1"
         apiServer:
@@ -1267,8 +1472,7 @@ components:
       additionalProperties: false
       properties:
         target:
-          description: Kubernetes version in the applied remote ManagedControlPlane
-            template.
+          description: Kubernetes version applied to the cluster's control plane.
           type: string
         observed:
           description: Kubernetes version reported by the managed control plane.
@@ -1331,9 +1535,9 @@ components:
           description: Whether the applied platform release is currently deprecated.
           type: boolean
         withdrawn:
-          description: Whether operators have withdrawn the applied platform release.
-            Deprecation is derived from the release catalog, whereas withdrawal
-            is an explicit operator decision and is reversible.
+          description: Whether operators have withdrawn the applied platform release. Like
+            deprecation it is an explicit, reversible operator decision, but
+            withdrawal also carries a reason and message.
           type: boolean
         withdrawalReason:
           description: Stable machine-readable reason operators withdrew the applied
@@ -1379,6 +1583,8 @@ components:
           $ref: "#/components/schemas/clusterNodePoolSummaryV1"
         addons:
           $ref: "#/components/schemas/clusterAddonsStatusV1"
+        authorization:
+          $ref: "#/components/schemas/clusterAuthorizationStatusV1"
         release:
           $ref: "#/components/schemas/clusterReleaseStatusV1"
     clusterV1Read:
@@ -1429,12 +1635,14 @@ components:
         - compute
         - reservation
     nodePoolTaintV1:
-      description: Kubernetes taint applied to node pool workers.
+      description: Kubernetes taint applied to a node pool worker as it joins the
+        cluster. The taint is applied during worker node registration, so it
+        takes effect once during node initialization and is not reconciled onto
+        running nodes afterwards.
       type: object
       required:
         - key
         - effect
-        - propagation
       properties:
         key:
           description: Taint key.
@@ -1454,12 +1662,19 @@ components:
             - NoSchedule
             - PreferNoSchedule
             - NoExecute
-        propagation:
-          description: Taint propagation behavior.
-          type: string
-          enum:
-            - Always
-            - OnInitialization
+    nodePoolLabelsV1:
+      description: Kubernetes labels applied to node pool workers as they join the
+        cluster. Labels are not continuously reconciled onto running nodes, so a
+        change applies to newly created workers only and rolls the pool's
+        existing workers so the new labels take effect.
+      type: object
+      maxProperties: 64
+      additionalProperties:
+        description: Label value. Kubernetes permits an empty value, so an omitted value
+          registers the label with the empty string.
+        type: string
+        maxLength: 63
+        pattern: ^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$
     nodePoolReservationV1:
       description: Reservation-backed worker capacity selector.
       type: object
@@ -1501,11 +1716,16 @@ components:
         reservation:
           $ref: "#/components/schemas/nodePoolReservationV1"
         taints:
-          description: Kubernetes taints applied to node pool workers.
+          description: Kubernetes taints applied to node pool workers as they join the
+            cluster. Taints are not continuously reconciled onto running nodes,
+            so a change applies to newly created workers only and rolls the
+            pool's existing workers so the new taints take effect.
           type: array
           maxItems: 64
           items:
             $ref: "#/components/schemas/nodePoolTaintV1"
+        labels:
+          $ref: "#/components/schemas/nodePoolLabelsV1"
     nodePoolCreateSpecV1:
       description: Desired node pool state for creation.
       allOf:
@@ -1538,11 +1758,16 @@ components:
         reservation:
           $ref: "#/components/schemas/nodePoolReservationV1"
         taints:
-          description: Kubernetes taints applied to node pool workers.
+          description: Kubernetes taints applied to node pool workers as they join the
+            cluster. Taints are not continuously reconciled onto running nodes,
+            so a change applies to newly created workers only and rolls the
+            pool's existing workers so the new taints take effect.
           type: array
           maxItems: 64
           items:
             $ref: "#/components/schemas/nodePoolTaintV1"
+        labels:
+          $ref: "#/components/schemas/nodePoolLabelsV1"
     nodePoolReservationStatusV1:
       description: Observed reservation-backed worker capacity.
       type: object
@@ -1553,6 +1778,35 @@ components:
         placementId:
           description: Node-pool-managed Reservation placement ID.
           type: string
+    nodePoolReleaseStatusV1:
+      description: Pinned platform release's identity, deprecation, and withdrawal state.
+      type: object
+      additionalProperties: false
+      required:
+        - appliedId
+        - kubernetesVersion
+      properties:
+        appliedId:
+          description: Pinned platform release ID.
+          type: string
+        kubernetesVersion:
+          description: Pinned platform release's Kubernetes version.
+          type: string
+        deprecated:
+          description: Whether the pinned platform release is currently deprecated.
+          type: boolean
+        withdrawn:
+          description: Whether operators have withdrawn the pinned platform release.
+          type: boolean
+        withdrawalReason:
+          description: Stable machine-readable reason operators withdrew the pinned
+            platform release.
+          $ref: "#/components/schemas/platformReleaseWithdrawalReasonV1"
+        withdrawalMessage:
+          description: Customer-safe explanation of why operators withdrew the pinned
+            platform release.
+          type: string
+          maxLength: 32768
     nodePoolStatusV1:
       description: Product-specific resolved placement and observed node pool state.
       type: object
@@ -1569,11 +1823,10 @@ components:
           format: int64
           minimum: 0
         kubernetesVersion:
-          description: Kubernetes version in the applied remote MachineDeployment template.
+          description: Kubernetes version applied to the node pool's workers.
           type: string
         desiredReplicas:
-          description: Desired worker replica count observed in the applied remote
-            MachineDeployment.
+          description: Desired worker replica count for the node pool.
           type: integer
           minimum: 0
         currentReplicas:
@@ -1585,11 +1838,13 @@ components:
           type: integer
           minimum: 0
         upToDateReplicas:
-          description: Worker replica count using the current MachineDeployment template.
+          description: Worker replica count running the current node pool template.
           type: integer
           minimum: 0
         reservation:
           $ref: "#/components/schemas/nodePoolReservationStatusV1"
+        release:
+          $ref: "#/components/schemas/nodePoolReleaseStatusV1"
     nodePoolV1Read:
       description: A cluster node pool.
       type: object
@@ -1685,11 +1940,13 @@ components:
     platformReleaseStatusV1:
       description: Product-specific observed platform release state. A release is
         selectable in a region when that region is present in availableRegionIds
-        and deprecated and withdrawn are both false.
+        and deprecated and withdrawn are both false. usableOrganizationIds lists
+        which of the caller's own organizations may select the release.
       type: object
       required:
         - kubernetesVersion
         - availableRegionIds
+        - usableOrganizationIds
         - supportedArchitectures
         - prerelease
         - deprecated
@@ -1704,6 +1961,12 @@ components:
           type: array
           items:
             type: string
+        usableOrganizationIds:
+          description: Organization IDs, among the caller's own organizations, that may
+            select this platform release.
+          type: array
+          items:
+            type: string
         supportedArchitectures:
           description: CPU architectures supported by the release compute images.
           type: array
@@ -1712,14 +1975,11 @@ components:
         prerelease:
           description: Whether the release Kubernetes version is a semver prerelease, such
             as v1.37.0-beta.0. Prerelease releases are selectable and are
-            offered as upgrade targets, but they do not occupy a slot in the
-            supported Kubernetes minor version window, and they are deprecated
-            as soon as a newer prerelease or an actual release supersedes them.
+            offered as upgrade targets.
           type: boolean
         deprecated:
           description: Whether existing clusters should upgrade away from this release.
-            Once true, this remains true for the lifetime of the release
-            resource.
+            Deprecation is an explicit operator decision and may be reversed.
           type: boolean
         withdrawn:
           description: Whether operators have withdrawn the release from selection.
