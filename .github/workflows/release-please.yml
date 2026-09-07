@@ -4,18 +4,21 @@ name: release-please
 # landing on main. Merging it tags the release and publishes GitHub release
 # notes; pkg.go.dev picks the tag up on its own.
 #
-# Prerequisite: a RELEASE_PLEASE_TOKEN secret — a PAT or GitHub App token with
-# `contents: write` and `pull-requests: write` on this repo — provisioned by a
-# human, the same way nscaledev/openapi provisions OPENAPI_PUBLISH_TOKEN.
+# No secrets needed: GITHUB_TOKEN is enough, matching nscaledev/billing-service,
+# ai-crds and byom.
 #
-# It is not optional here. GitHub suppresses workflow runs for events authored
-# by GITHUB_TOKEN, so a release PR opened by the default token never triggers
-# the `ci` workflow. The `main` ruleset requires the `build` check, so that PR
-# would sit unmergeable forever with a check that can never report. A separate
-# token makes the PR look human-authored, and `ci` runs normally.
+# One manual step per release, though. The `main` ruleset requires the `build`
+# check, and because the release PR is authored by github-actions[bot] its `ci`
+# run is created in the `action_required` state with no jobs, awaiting approval.
+# Click "Approve and run" on the PR's Checks tab; `build` then reports and the
+# PR becomes mergeable. Since the ruleset already requires a human approving
+# review before merge, this costs one extra click rather than blocking anything.
 #
-# The fallback below keeps this workflow functional before the secret lands:
-# the release PR still opens, it just cannot be merged until the token exists.
+# To remove that click, swap GITHUB_TOKEN for a GitHub App token as
+# nscaledev/alfred, arkham and fleet-manager do — App-authored PRs are not
+# treated as bot-authored for this purpose, so `ci` runs unattended. That needs
+# an App ID and private key provisioned as secrets, which is why it is not the
+# default here.
 #
 # Also required: Settings > Actions > General > "Allow GitHub Actions to create
 # and approve pull requests" (already enabled on this repo).
@@ -38,6 +41,6 @@ jobs:
     steps:
       - uses: googleapis/release-please-action@v5
         with:
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
