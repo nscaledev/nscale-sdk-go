@@ -17,5 +17,7 @@ jobs:
         with:
           go-version: 'stable'
           cache: true
-      - run: go build ./...
-      - run: go test ./... -count=1
+      - uses: extractions/setup-just@v4
+      # Builds, tests, and re-runs oapi-codegen to confirm the committed
+      # *.gen.go files match the vendored specs. Hermetic: no network.
+      - run: just check
