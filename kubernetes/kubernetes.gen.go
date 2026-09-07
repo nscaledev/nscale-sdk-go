@@ -33,24 +33,24 @@ const (
 
 // Defines values for ClusterRoleBindingV1ClusterRole.
 const (
-	Admin        ClusterRoleBindingV1ClusterRole = "admin"
-	ClusterAdmin ClusterRoleBindingV1ClusterRole = "cluster-admin"
-	Edit         ClusterRoleBindingV1ClusterRole = "edit"
-	View         ClusterRoleBindingV1ClusterRole = "view"
+	ClusterRoleBindingV1ClusterRoleAdmin        ClusterRoleBindingV1ClusterRole = "admin"
+	ClusterRoleBindingV1ClusterRoleClusterAdmin ClusterRoleBindingV1ClusterRole = "cluster-admin"
+	ClusterRoleBindingV1ClusterRoleEdit         ClusterRoleBindingV1ClusterRole = "edit"
+	ClusterRoleBindingV1ClusterRoleView         ClusterRoleBindingV1ClusterRole = "view"
 )
 
 // Defines values for ErrorError.
 const (
-	AccessDenied          ErrorError = "access_denied"
-	Conflict              ErrorError = "conflict"
-	Forbidden             ErrorError = "forbidden"
-	InvalidRequest        ErrorError = "invalid_request"
-	MethodNotAllowed      ErrorError = "method_not_allowed"
-	NotFound              ErrorError = "not_found"
-	RequestEntityTooLarge ErrorError = "request_entity_too_large"
-	ServerError           ErrorError = "server_error"
-	UnprocessableContent  ErrorError = "unprocessable_content"
-	UnsupportedMediaType  ErrorError = "unsupported_media_type"
+	ErrorErrorAccessDenied          ErrorError = "access_denied"
+	ErrorErrorConflict              ErrorError = "conflict"
+	ErrorErrorForbidden             ErrorError = "forbidden"
+	ErrorErrorInvalidRequest        ErrorError = "invalid_request"
+	ErrorErrorMethodNotAllowed      ErrorError = "method_not_allowed"
+	ErrorErrorNotFound              ErrorError = "not_found"
+	ErrorErrorRequestEntityTooLarge ErrorError = "request_entity_too_large"
+	ErrorErrorServerError           ErrorError = "server_error"
+	ErrorErrorUnprocessableContent  ErrorError = "unprocessable_content"
+	ErrorErrorUnsupportedMediaType  ErrorError = "unsupported_media_type"
 )
 
 // Defines values for HealthStatusReason.
@@ -62,31 +62,31 @@ const (
 
 // Defines values for NodePoolProvisioningModeV1.
 const (
-	Compute     NodePoolProvisioningModeV1 = "compute"
-	Reservation NodePoolProvisioningModeV1 = "reservation"
+	NodePoolProvisioningModeV1Compute     NodePoolProvisioningModeV1 = "compute"
+	NodePoolProvisioningModeV1Reservation NodePoolProvisioningModeV1 = "reservation"
 )
 
 // Defines values for NodePoolTaintV1Effect.
 const (
-	NoExecute        NodePoolTaintV1Effect = "NoExecute"
-	NoSchedule       NodePoolTaintV1Effect = "NoSchedule"
-	PreferNoSchedule NodePoolTaintV1Effect = "PreferNoSchedule"
+	NodePoolTaintV1EffectNoExecute        NodePoolTaintV1Effect = "NoExecute"
+	NodePoolTaintV1EffectNoSchedule       NodePoolTaintV1Effect = "NoSchedule"
+	NodePoolTaintV1EffectPreferNoSchedule NodePoolTaintV1Effect = "PreferNoSchedule"
 )
 
 // Defines values for PlatformReleaseArchitectureV1.
 const (
-	Aarch64 PlatformReleaseArchitectureV1 = "aarch64"
-	X8664   PlatformReleaseArchitectureV1 = "x86_64"
+	PlatformReleaseArchitectureV1Aarch64 PlatformReleaseArchitectureV1 = "aarch64"
+	PlatformReleaseArchitectureV1X8664   PlatformReleaseArchitectureV1 = "x86_64"
 )
 
 // Defines values for PlatformReleaseWithdrawalReasonV1.
 const (
-	CompatibilityIssue   PlatformReleaseWithdrawalReasonV1 = "CompatibilityIssue"
-	ComplianceIssue      PlatformReleaseWithdrawalReasonV1 = "ComplianceIssue"
-	FunctionalRegression PlatformReleaseWithdrawalReasonV1 = "FunctionalRegression"
-	OperationalIssue     PlatformReleaseWithdrawalReasonV1 = "OperationalIssue"
-	Other                PlatformReleaseWithdrawalReasonV1 = "Other"
-	SecurityIssue        PlatformReleaseWithdrawalReasonV1 = "SecurityIssue"
+	PlatformReleaseWithdrawalReasonV1CompatibilityIssue   PlatformReleaseWithdrawalReasonV1 = "CompatibilityIssue"
+	PlatformReleaseWithdrawalReasonV1ComplianceIssue      PlatformReleaseWithdrawalReasonV1 = "ComplianceIssue"
+	PlatformReleaseWithdrawalReasonV1FunctionalRegression PlatformReleaseWithdrawalReasonV1 = "FunctionalRegression"
+	PlatformReleaseWithdrawalReasonV1OperationalIssue     PlatformReleaseWithdrawalReasonV1 = "OperationalIssue"
+	PlatformReleaseWithdrawalReasonV1Other                PlatformReleaseWithdrawalReasonV1 = "Other"
+	PlatformReleaseWithdrawalReasonV1SecurityIssue        PlatformReleaseWithdrawalReasonV1 = "SecurityIssue"
 )
 
 // Defines values for ProvisioningStatusReason.
@@ -103,8 +103,8 @@ const (
 
 // Defines values for RbacSubjectV1Kind.
 const (
-	Group RbacSubjectV1Kind = "Group"
-	User  RbacSubjectV1Kind = "User"
+	RbacSubjectV1KindGroup RbacSubjectV1Kind = "Group"
+	RbacSubjectV1KindUser  RbacSubjectV1Kind = "User"
 )
 
 // Defines values for ResourceHealthStatus.
