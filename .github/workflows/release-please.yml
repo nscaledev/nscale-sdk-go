@@ -4,13 +4,21 @@ name: release-please
 # landing on main. Merging it tags the release and publishes GitHub release
 # notes; pkg.go.dev picks the tag up on its own.
 #
-# Two repo settings this needs:
-#   - Settings > Actions > General > "Allow GitHub Actions to create and
-#     approve pull requests" must be enabled.
-#   - The release PR is opened by GITHUB_TOKEN, so it does not trigger the `ci`
-#     workflow (GitHub suppresses workflow runs for token-authored events). The
-#     PR only touches CHANGELOG.md and .release-please-manifest.json, so that is
-#     acceptable; swap in a PAT via the `token` input if CI on it is wanted.
+# Prerequisite: a RELEASE_PLEASE_TOKEN secret — a PAT or GitHub App token with
+# `contents: write` and `pull-requests: write` on this repo — provisioned by a
+# human, the same way nscaledev/openapi provisions OPENAPI_PUBLISH_TOKEN.
+#
+# It is not optional here. GitHub suppresses workflow runs for events authored
+# by GITHUB_TOKEN, so a release PR opened by the default token never triggers
+# the `ci` workflow. The `main` ruleset requires the `build` check, so that PR
+# would sit unmergeable forever with a check that can never report. A separate
+# token makes the PR look human-authored, and `ci` runs normally.
+#
+# The fallback below keeps this workflow functional before the secret lands:
+# the release PR still opens, it just cannot be merged until the token exists.
+#
+# Also required: Settings > Actions > General > "Allow GitHub Actions to create
+# and approve pull requests" (already enabled on this repo).
 
 on:
   push:
@@ -30,5 +38,6 @@ jobs:
     steps:
       - uses: googleapis/release-please-action@v5
         with:
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
