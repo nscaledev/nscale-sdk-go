@@ -22,6 +22,14 @@ name: release-please
 #
 # Also required: Settings > Actions > General > "Allow GitHub Actions to create
 # and approve pull requests" (already enabled on this repo).
+#
+# Do not set `separate-pull-requests` or `pull-request-title-pattern` in
+# release-please-config.json. With a single package the former defaults to true;
+# forcing it false turns on the Merge plugin, which opens the release PR on the
+# component-less `release-please--branches--main` branch. On merge, release-please
+# then fails to match the PR's component against `package-name`, skips the tag and
+# GitHub release, and blocks every later release PR with "There are untagged,
+# merged release PRs outstanding". That is what happened to v0.4.0 (PR #18).
 
 on:
   push:
