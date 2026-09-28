@@ -60,6 +60,18 @@ const (
 	HealthStatusReasonUnknown  HealthStatusReason = "Unknown"
 )
 
+// Defines values for NodePoolPlacementConstraintsV1Policy.
+const (
+	NodePoolPlacementConstraintsV1PolicyPack   NodePoolPlacementConstraintsV1Policy = "pack"
+	NodePoolPlacementConstraintsV1PolicySpread NodePoolPlacementConstraintsV1Policy = "spread"
+)
+
+// Defines values for NodePoolPlacementConstraintsV1WhenUnsatisfiable.
+const (
+	NodePoolPlacementConstraintsV1WhenUnsatisfiableBestEffort NodePoolPlacementConstraintsV1WhenUnsatisfiable = "bestEffort"
+	NodePoolPlacementConstraintsV1WhenUnsatisfiableFail       NodePoolPlacementConstraintsV1WhenUnsatisfiable = "fail"
+)
+
 // Defines values for NodePoolProvisioningModeV1.
 const (
 	NodePoolProvisioningModeV1Compute     NodePoolProvisioningModeV1 = "compute"
@@ -176,21 +188,30 @@ type ClusterAddonProfileV1 struct {
 type ClusterAddonsCreateV1 struct {
 	// Hardware Requested configuration for a single addon profile.
 	Hardware *ClusterAddonProfileCreateV1 `json:"hardware,omitempty"`
+
+	// NodeHealth Requested configuration for a single addon profile.
+	NodeHealth *ClusterAddonProfileCreateV1 `json:"nodeHealth,omitempty"`
 }
 
-// ClusterAddonsStatusV1 Observed addon rollout state grouped by profile. Hardware remains visible while a previous installation is being removed and is omitted only after removal is confirmed.
+// ClusterAddonsStatusV1 Observed addon rollout state grouped by profile. Hardware and nodeHealth remain visible while a previous installation is being removed and are omitted only after removal is confirmed. nodeHealth is also omitted while the applied release provides no node-health profile.
 type ClusterAddonsStatusV1 struct {
 	// Core Observed addon profile rollout state.
 	Core ClusterAddonProfileStatusV1 `json:"core"`
 
 	// Hardware Observed addon profile rollout state.
 	Hardware *ClusterAddonProfileStatusV1 `json:"hardware,omitempty"`
+
+	// NodeHealth Observed addon profile rollout state.
+	NodeHealth *ClusterAddonProfileStatusV1 `json:"nodeHealth,omitempty"`
 }
 
 // ClusterAddonsV1 Addon profiles configured for a cluster.
 type ClusterAddonsV1 struct {
 	// Hardware Configuration for a single addon profile.
 	Hardware *ClusterAddonProfileV1 `json:"hardware,omitempty"`
+
+	// NodeHealth Configuration for a single addon profile.
+	NodeHealth *ClusterAddonProfileV1 `json:"nodeHealth,omitempty"`
 }
 
 // ClusterApiServerAccessV1 API server network exposure requested for a cluster.
@@ -414,7 +435,7 @@ type ClusterSpecV1 struct {
 
 // ClusterStatusV1 Product-specific observed cluster state.
 type ClusterStatusV1 struct {
-	// Addons Observed addon rollout state grouped by profile. Hardware remains visible while a previous installation is being removed and is omitted only after removal is confirmed.
+	// Addons Observed addon rollout state grouped by profile. Hardware and nodeHealth remain visible while a previous installation is being removed and are omitted only after removal is confirmed. nodeHealth is also omitted while the applied release provides no node-health profile.
 	Addons *ClusterAddonsStatusV1 `json:"addons,omitempty"`
 
 	// ApiServer Credential-free Kubernetes API server connection data.
@@ -546,6 +567,27 @@ type NodePoolCreateSpecV1 = NodePoolRequestSpecV1
 // NodePoolLabelsV1 Kubernetes labels applied to node pool workers as they join the cluster. Labels are not continuously reconciled onto running nodes, so a change applies to newly created workers only and rolls the pool's existing workers so the new labels take effect.
 type NodePoolLabelsV1 map[string]string
 
+// NodePoolPlacementConstraintsV1 Immutable topology placement policy for a reservation-backed node pool.
+type NodePoolPlacementConstraintsV1 struct {
+	// MaxSkew Maximum difference in host count between domains. Valid only for spread.
+	MaxSkew *int `json:"maxSkew,omitempty"`
+
+	// MinDomains Minimum topology domains receiving a host. Valid only for spread.
+	MinDomains *int `json:"minDomains,omitempty"`
+
+	// Policy Pack fills domains sequentially; spread distributes hosts across domains.
+	Policy NodePoolPlacementConstraintsV1Policy `json:"policy"`
+
+	// WhenUnsatisfiable Fail rejects an unsatisfied spread; bestEffort chooses the closest layout.
+	WhenUnsatisfiable *NodePoolPlacementConstraintsV1WhenUnsatisfiable `json:"whenUnsatisfiable,omitempty"`
+}
+
+// NodePoolPlacementConstraintsV1Policy Pack fills domains sequentially; spread distributes hosts across domains.
+type NodePoolPlacementConstraintsV1Policy string
+
+// NodePoolPlacementConstraintsV1WhenUnsatisfiable Fail rejects an unsatisfied spread; bestEffort chooses the closest layout.
+type NodePoolPlacementConstraintsV1WhenUnsatisfiable string
+
 // NodePoolProvisioningModeV1 Capacity source used to provision node pool workers.
 type NodePoolProvisioningModeV1 string
 
@@ -605,6 +647,9 @@ type NodePoolReservationStatusV1 struct {
 
 // NodePoolReservationV1 Reservation-backed worker capacity selector.
 type NodePoolReservationV1 struct {
+	// Constraints Immutable topology placement policy for a reservation-backed node pool.
+	Constraints *NodePoolPlacementConstraintsV1 `json:"constraints,omitempty"`
+
 	// ReservationId Reservation ID to consume capacity from. Required when provisioningMode is reservation.
 	ReservationId *string `json:"reservationId,omitempty"`
 }
@@ -727,6 +772,9 @@ type PlatformReleaseAddonsV1 struct {
 
 	// Hardware Component versions included in one platform release profile.
 	Hardware PlatformReleaseAddonProfileV1 `json:"hardware"`
+
+	// NodeHealth Component versions included in one platform release profile.
+	NodeHealth *PlatformReleaseAddonProfileV1 `json:"nodeHealth,omitempty"`
 }
 
 // PlatformReleaseArchitectureV1 CPU architecture supported by a platform release.
@@ -1130,7 +1178,7 @@ type ListPlatformReleasesParams struct {
 	// RegionID Allows resources to be filtered by region. For platform releases, matches releases available in any supplied region.
 	RegionID *RegionIDQueryParameter `form:"regionID,omitempty" json:"regionID,omitempty"`
 
-	// Architecture Allows platform releases to be filtered by supported architecture.
+	// Architecture Allows platform releases to be filtered by supported architecture. When combined with regionID, matches only a release that has actually resolved a compute image for the requested architecture in one of the requested regions, not merely one that declares the architecture and is available in the region for a different architecture.
 	Architecture *PlatformReleaseArchitectureQueryParameter `form:"architecture,omitempty" json:"architecture,omitempty"`
 
 	// Prerelease Allows platform releases to be filtered by prerelease state.
