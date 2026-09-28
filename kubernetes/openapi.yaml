@@ -451,6 +451,10 @@ components:
       name: architecture
       in: query
       description: Allows platform releases to be filtered by supported architecture.
+        When combined with regionID, matches only a release that has actually
+        resolved a compute image for the requested architecture in one of the
+        requested regions, not merely one that declares the architecture and is
+        available in the region for a different architecture.
       schema:
         type: array
         items:
@@ -591,6 +595,8 @@ components:
                 addons:
                   hardware:
                     enabled: true
+                  nodeHealth:
+                    enabled: true
               status:
                 regionId: uk-lon-1
                 observedGeneration: 3
@@ -661,6 +667,8 @@ components:
               addons:
                 hardware:
                   enabled: true
+                nodeHealth:
+                  enabled: true
             status:
               regionId: uk-lon-1
               observedGeneration: 3
@@ -730,6 +738,8 @@ components:
                 publicIP: false
               addons:
                 hardware:
+                  enabled: true
+                nodeHealth:
                   enabled: true
             status:
               regionId: uk-lon-1
@@ -1260,11 +1270,15 @@ components:
       properties:
         hardware:
           $ref: "#/components/schemas/clusterAddonProfileV1"
+        nodeHealth:
+          $ref: "#/components/schemas/clusterAddonProfileV1"
     clusterAddonsCreateV1:
       description: Addon profiles requested during cluster creation.
       type: object
       properties:
         hardware:
+          $ref: "#/components/schemas/clusterAddonProfileCreateV1"
+        nodeHealth:
           $ref: "#/components/schemas/clusterAddonProfileCreateV1"
     clusterNetworkV1:
       description: Kubernetes cluster pod and service network configuration.
@@ -1368,9 +1382,10 @@ components:
           items:
             $ref: "#/components/schemas/clusterAddonComponentV1"
     clusterAddonsStatusV1:
-      description: Observed addon rollout state grouped by profile. Hardware remains
-        visible while a previous installation is being removed and is omitted
-        only after removal is confirmed.
+      description: Observed addon rollout state grouped by profile. Hardware and
+        nodeHealth remain visible while a previous installation is being removed
+        and are omitted only after removal is confirmed. nodeHealth is also
+        omitted while the applied release provides no node-health profile.
       type: object
       required:
         - core
@@ -1378,6 +1393,8 @@ components:
         core:
           $ref: "#/components/schemas/clusterAddonProfileStatusV1"
         hardware:
+          $ref: "#/components/schemas/clusterAddonProfileStatusV1"
+        nodeHealth:
           $ref: "#/components/schemas/clusterAddonProfileStatusV1"
     clusterAuthorizationStatusV1:
       description: Observed API server authorization binding state. Present only when
@@ -1683,6 +1700,40 @@ components:
           description: Reservation ID to consume capacity from. Required when
             provisioningMode is reservation.
           type: string
+        constraints:
+          $ref: "#/components/schemas/nodePoolPlacementConstraintsV1"
+    nodePoolPlacementConstraintsV1:
+      description: Immutable topology placement policy for a reservation-backed node pool.
+      type: object
+      additionalProperties: false
+      required:
+        - policy
+      properties:
+        policy:
+          description: Pack fills domains sequentially; spread distributes hosts across
+            domains.
+          type: string
+          enum:
+            - pack
+            - spread
+        maxSkew:
+          description: Maximum difference in host count between domains. Valid only for
+            spread.
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        minDomains:
+          description: Minimum topology domains receiving a host. Valid only for spread.
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        whenUnsatisfiable:
+          description: Fail rejects an unsatisfied spread; bestEffort chooses the closest
+            layout.
+          type: string
+          enum:
+            - fail
+            - bestEffort
     nodePoolComputeV1:
       description: Compute-backed worker capacity selector.
       type: object
@@ -1936,6 +1987,8 @@ components:
         core:
           $ref: "#/components/schemas/platformReleaseAddonProfileV1"
         hardware:
+          $ref: "#/components/schemas/platformReleaseAddonProfileV1"
+        nodeHealth:
           $ref: "#/components/schemas/platformReleaseAddonProfileV1"
     platformReleaseStatusV1:
       description: Product-specific observed platform release state. A release is
