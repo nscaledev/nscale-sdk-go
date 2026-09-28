@@ -22,7 +22,5 @@
         { "type": "style", "section": "Styles", "hidden": true }
       ]
     }
-  },
-  "separate-pull-requests": false,
-  "pull-request-title-pattern": "chore: release ${version}"
+  }
 }
