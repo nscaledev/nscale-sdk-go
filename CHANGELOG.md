@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.0](https://github.com/nscaledev/nscale-sdk-go/compare/v0.4.0...v0.5.0) (2026-09-28)
+
+
+### Features
+
+* **kubernetes:** refresh client from nks-core main ([#20](https://github.com/nscaledev/nscale-sdk-go/issues/20)) ([43ea340](https://github.com/nscaledev/nscale-sdk-go/commit/43ea340ba581d7902ff0a6a8a0e9956fe336b260))
+
+
+### Bug Fixes
+
+* **ci:** let release-please tag single-package releases ([#19](https://github.com/nscaledev/nscale-sdk-go/issues/19)) ([fd96838](https://github.com/nscaledev/nscale-sdk-go/commit/fd9683890aa429a1d97ee74a16f9e2e8a18ed473))
+
 ## [0.4.0](https://github.com/nscaledev/nscale-sdk-go/compare/v0.3.0...v0.4.0) (2026-09-07)
 
 
