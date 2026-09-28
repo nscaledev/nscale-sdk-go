@@ -23,23 +23,23 @@ const (
 
 // Defines values for ErrorError.
 const (
-	AccessDenied          ErrorError = "access_denied"
-	Conflict              ErrorError = "conflict"
-	Forbidden             ErrorError = "forbidden"
-	InvalidRequest        ErrorError = "invalid_request"
-	MethodNotAllowed      ErrorError = "method_not_allowed"
-	NotFound              ErrorError = "not_found"
-	RequestEntityTooLarge ErrorError = "request_entity_too_large"
-	ServerError           ErrorError = "server_error"
-	UnprocessableContent  ErrorError = "unprocessable_content"
-	UnsupportedMediaType  ErrorError = "unsupported_media_type"
+	ErrorErrorAccessDenied          ErrorError = "access_denied"
+	ErrorErrorConflict              ErrorError = "conflict"
+	ErrorErrorForbidden             ErrorError = "forbidden"
+	ErrorErrorInvalidRequest        ErrorError = "invalid_request"
+	ErrorErrorMethodNotAllowed      ErrorError = "method_not_allowed"
+	ErrorErrorNotFound              ErrorError = "not_found"
+	ErrorErrorRequestEntityTooLarge ErrorError = "request_entity_too_large"
+	ErrorErrorServerError           ErrorError = "server_error"
+	ErrorErrorUnprocessableContent  ErrorError = "unprocessable_content"
+	ErrorErrorUnsupportedMediaType  ErrorError = "unsupported_media_type"
 )
 
 // Defines values for GpuVendorV2.
 const (
-	AMD     GpuVendorV2 = "AMD"
-	NVIDIA  GpuVendorV2 = "NVIDIA"
-	UNKNOWN GpuVendorV2 = "UNKNOWN"
+	GpuVendorV2AMD     GpuVendorV2 = "AMD"
+	GpuVendorV2NVIDIA  GpuVendorV2 = "NVIDIA"
+	GpuVendorV2UNKNOWN GpuVendorV2 = "UNKNOWN"
 )
 
 // Defines values for HealthStatusReason.
@@ -63,32 +63,32 @@ const (
 
 // Defines values for PlacementPolicyV2.
 const (
-	Pack   PlacementPolicyV2 = "pack"
-	Spread PlacementPolicyV2 = "spread"
+	PlacementPolicyV2Pack   PlacementPolicyV2 = "pack"
+	PlacementPolicyV2Spread PlacementPolicyV2 = "spread"
 )
 
 // Defines values for PlacementReadinessModeV2.
 const (
-	Ignore  PlacementReadinessModeV2 = "Ignore"
-	Prefer  PlacementReadinessModeV2 = "Prefer"
-	Require PlacementReadinessModeV2 = "Require"
+	PlacementReadinessModeV2Ignore  PlacementReadinessModeV2 = "Ignore"
+	PlacementReadinessModeV2Prefer  PlacementReadinessModeV2 = "Prefer"
+	PlacementReadinessModeV2Require PlacementReadinessModeV2 = "Require"
 )
 
 // Defines values for ProvisioningStatusReason.
 const (
-	DependencyFailed   ProvisioningStatusReason = "DependencyFailed"
-	DependencyNotFound ProvisioningStatusReason = "DependencyNotFound"
-	DependencyNotReady ProvisioningStatusReason = "DependencyNotReady"
-	Deprovisioned      ProvisioningStatusReason = "Deprovisioned"
-	Deprovisioning     ProvisioningStatusReason = "Deprovisioning"
-	Errored            ProvisioningStatusReason = "Errored"
-	Provisioned        ProvisioningStatusReason = "Provisioned"
-	Provisioning       ProvisioningStatusReason = "Provisioning"
+	ProvisioningStatusReasonDependencyFailed   ProvisioningStatusReason = "DependencyFailed"
+	ProvisioningStatusReasonDependencyNotFound ProvisioningStatusReason = "DependencyNotFound"
+	ProvisioningStatusReasonDependencyNotReady ProvisioningStatusReason = "DependencyNotReady"
+	ProvisioningStatusReasonDeprovisioned      ProvisioningStatusReason = "Deprovisioned"
+	ProvisioningStatusReasonDeprovisioning     ProvisioningStatusReason = "Deprovisioning"
+	ProvisioningStatusReasonErrored            ProvisioningStatusReason = "Errored"
+	ProvisioningStatusReasonProvisioned        ProvisioningStatusReason = "Provisioned"
+	ProvisioningStatusReasonProvisioning       ProvisioningStatusReason = "Provisioning"
 )
 
 // Defines values for ReservationUnitConsumerV2Type.
 const (
-	Placement ReservationUnitConsumerV2Type = "placement"
+	ReservationUnitConsumerV2TypePlacement ReservationUnitConsumerV2Type = "placement"
 )
 
 // Defines values for ResourceHealthStatus.
@@ -110,8 +110,8 @@ const (
 
 // Defines values for WhenUnsatisfiableV2.
 const (
-	BestEffort WhenUnsatisfiableV2 = "bestEffort"
-	Fail       WhenUnsatisfiableV2 = "fail"
+	WhenUnsatisfiableV2BestEffort WhenUnsatisfiableV2 = "bestEffort"
+	WhenUnsatisfiableV2Fail       WhenUnsatisfiableV2 = "fail"
 )
 
 // Error Generic error message, compatible with oauth2.
