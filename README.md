@@ -11,7 +11,7 @@ Each subdirectory is one service. Every client is generated from the canonical s
 | Storage     | `github.com/nscaledev/nscale-sdk-go/storage`     | `storage/latest`           |
 | Compute     | `github.com/nscaledev/nscale-sdk-go/compute`     | `compute/latest`           |
 | Kubernetes  | `github.com/nscaledev/nscale-sdk-go/kubernetes`  | `nks-core/main`            |
-| Reservation | `github.com/nscaledev/nscale-sdk-go/reservation` | `reservation/latest`       |
+| Reservation | `github.com/nscaledev/nscale-sdk-go/reservation` | `reservation/main`         |
 
 Published specs are bundled — every `$ref` is dereferenced before publication — so each package is self-contained and shares no types with the others. There is no `common` package.
 
