@@ -21,6 +21,13 @@ const (
 	Oauth2AuthenticationScopes = "oauth2Authentication.Scopes"
 )
 
+// Defines values for ArchitectureV2.
+const (
+	ArchitectureV2Aarch64 ArchitectureV2 = "aarch64"
+	ArchitectureV2UNKNOWN ArchitectureV2 = "UNKNOWN"
+	ArchitectureV2X8664   ArchitectureV2 = "x86_64"
+)
+
 // Defines values for ErrorError.
 const (
 	ErrorErrorAccessDenied          ErrorError = "access_denied"
@@ -74,6 +81,42 @@ const (
 	PlacementReadinessModeV2Require PlacementReadinessModeV2 = "Require"
 )
 
+// Defines values for PlacementServerDriftStateV2.
+const (
+	PlacementServerDriftStateV2Converging PlacementServerDriftStateV2 = "Converging"
+	PlacementServerDriftStateV2Drifted    PlacementServerDriftStateV2 = "Drifted"
+	PlacementServerDriftStateV2UpToDate   PlacementServerDriftStateV2 = "UpToDate"
+)
+
+// Defines values for PlacementServerV2StatusDesiredState.
+const (
+	PlacementServerV2StatusDesiredStateDrained PlacementServerV2StatusDesiredState = "Drained"
+	PlacementServerV2StatusDesiredStateRunning PlacementServerV2StatusDesiredState = "Running"
+)
+
+// Defines values for PlacementServerV2StatusHostReadiness.
+const (
+	PlacementServerV2StatusHostReadinessNotReady   PlacementServerV2StatusHostReadiness = "NotReady"
+	PlacementServerV2StatusHostReadinessReady      PlacementServerV2StatusHostReadiness = "Ready"
+	PlacementServerV2StatusHostReadinessUnknown    PlacementServerV2StatusHostReadiness = "Unknown"
+	PlacementServerV2StatusHostReadinessUnresolved PlacementServerV2StatusHostReadiness = "Unresolved"
+)
+
+// Defines values for PlacementServerV2StatusLifecycleState.
+const (
+	PlacementServerV2StatusLifecycleStateDrained      PlacementServerV2StatusLifecycleState = "Drained"
+	PlacementServerV2StatusLifecycleStateDraining     PlacementServerV2StatusLifecycleState = "Draining"
+	PlacementServerV2StatusLifecycleStateFailed       PlacementServerV2StatusLifecycleState = "Failed"
+	PlacementServerV2StatusLifecycleStateProvisioning PlacementServerV2StatusLifecycleState = "Provisioning"
+	PlacementServerV2StatusLifecycleStateRunning      PlacementServerV2StatusLifecycleState = "Running"
+)
+
+// Defines values for PlacementUpdateStrategyTypeV2.
+const (
+	PlacementUpdateStrategyTypeV2Manual        PlacementUpdateStrategyTypeV2 = "Manual"
+	PlacementUpdateStrategyTypeV2RollingUpdate PlacementUpdateStrategyTypeV2 = "RollingUpdate"
+)
+
 // Defines values for ProvisioningStatusReason.
 const (
 	ProvisioningStatusReasonDependencyFailed   ProvisioningStatusReason = "DependencyFailed"
@@ -113,6 +156,9 @@ const (
 	WhenUnsatisfiableV2BestEffort WhenUnsatisfiableV2 = "bestEffort"
 	WhenUnsatisfiableV2Fail       WhenUnsatisfiableV2 = "fail"
 )
+
+// ArchitectureV2 A CPU architecture.
+type ArchitectureV2 string
 
 // Error Generic error message, compatible with oauth2.
 type Error struct {
@@ -258,6 +304,27 @@ type PlacementReadinessPolicyV2 struct {
 	Mode PlacementReadinessModeV2 `json:"mode"`
 }
 
+// PlacementRollingUpdateV2 Tuning for the RollingUpdate strategy.
+type PlacementRollingUpdateV2 struct {
+	// MaxUnavailable Servers that may converge at once: a count ("1") or a percentage of
+	// count ("25%", rounded up); default 1. Must resolve to at least one
+	// server for either type. A service-side ceiling also bounds it.
+	MaxUnavailable *string `json:"maxUnavailable,omitempty"`
+}
+
+// PlacementServerDriftStateV2 The server's image-convergence state relative to the placement's
+// declared image. UpToDate: image matches and the server is provisioned.
+// Drifted: the image differs and reconciliation has not been accepted.
+// Converging: reconciliation has been accepted but the server is not yet
+// provisioned, whether because it is still converging or because its
+// provisioning has errored (the two cannot be distinguished from the
+// read, so the busier state is reported conservatively; the error itself
+// remains visible in the server's provisioningStatus and healthStatus,
+// and an errored convergence recovers only through a further image
+// change on the placement). Only Converging indicates work may be in
+// progress; Drifted may persist until reconciliation is accepted.
+type PlacementServerDriftStateV2 string
+
 // PlacementServerIDParameter An opaque public Placement server ID.
 type PlacementServerIDParameter = string
 
@@ -303,15 +370,60 @@ type PlacementServerV2Read struct {
 
 // PlacementServerV2Status Read only runtime status information about a placement server.
 type PlacementServerV2Status struct {
+	// DesiredState The accepted member intent, omitted until lifecycle initialization.
+	DesiredState *PlacementServerV2StatusDesiredState `json:"desiredState,omitempty"`
+
+	// DriftState The server's image-convergence state relative to the placement's
+	// declared image. UpToDate: image matches and the server is provisioned.
+	// Drifted: the image differs and reconciliation has not been accepted.
+	// Converging: reconciliation has been accepted but the server is not yet
+	// provisioned, whether because it is still converging or because its
+	// provisioning has errored (the two cannot be distinguished from the
+	// read, so the busier state is reported conservatively; the error itself
+	// remains visible in the server's provisioningStatus and healthStatus,
+	// and an errored convergence recovers only through a further image
+	// change on the placement). Only Converging indicates work may be in
+	// progress; Drifted may persist until reconciliation is accepted.
+	DriftState *PlacementServerDriftStateV2 `json:"driftState,omitempty"`
+
+	// HostReadiness Whether the host this server is bound to currently permits new boot
+	// work. Only Ready permits it. NotReady means the host refuses new
+	// boot work. Unresolved means the server's binding no longer resolves
+	// to a host. Unknown means the service has no verdict. The service
+	// refreshes this value periodically, so a change to the host appears
+	// after the next refresh rather than on each read.
+	HostReadiness PlacementServerV2StatusHostReadiness `json:"hostReadiness"`
+
+	// HostReadinessReason Why the host has its current readiness, omitted when there is no
+	// reason to report.
+	HostReadinessReason *string `json:"hostReadinessReason,omitempty"`
+
 	// InfrastructureRef The normalized infrastructure reference Reservation used as the
 	// pinned Region Server boot target.
 	InfrastructureRef string `json:"infrastructureRef"`
+
+	// LifecycleRevision The revision of the member lifecycle snapshot.
+	LifecycleRevision *int64 `json:"lifecycleRevision,omitempty"`
+
+	// LifecycleState The persisted member lifecycle projection, omitted until lifecycle initialization.
+	LifecycleState *PlacementServerV2StatusLifecycleState `json:"lifecycleState,omitempty"`
 
 	// MacAddress The MAC address of the server.
 	MacAddress *string `json:"macAddress,omitempty"`
 
 	// NetworkId The network the placement server belongs to.
 	NetworkId string `json:"networkId"`
+
+	// ObservedGeneration The latest completed member operation generation.
+	ObservedGeneration *int64 `json:"observedGeneration,omitempty"`
+
+	// OperationGeneration The latest accepted member operation generation.
+	OperationGeneration *int64 `json:"operationGeneration,omitempty"`
+
+	// Ordinal The zero-based position of this server within its Placement,
+	// assigned once at allocation and stable for the lifetime of the
+	// slot. Unique within the Placement.
+	Ordinal int `json:"ordinal"`
 
 	// PlacementId The placement that owns this server.
 	PlacementId string `json:"placementId"`
@@ -333,15 +445,66 @@ type PlacementServerV2Status struct {
 	// PublicIP The public IP address of the server.
 	PublicIP *string `json:"publicIP,omitempty"`
 
+	// ReconcileETag Opaque, quoted strong action tag binding this member lifecycle
+	// revision and the owning Placement spec generation. Omitted until
+	// lifecycle initialization. Prepared for conditional reconciliation;
+	// this release rejects token-bearing reconcile requests with 409
+	// until conditional execution is available.
+	ReconcileETag *string `json:"reconcileETag,omitempty"`
+
 	// RegionId The region the placement server belongs to.
 	RegionId string `json:"regionId"`
 
 	// ReservationId The reservation the placement server allocates from.
 	ReservationId string `json:"reservationId"`
+
+	// TopologyPath Ordered physical topology level names for the host backing this
+	// server, from the host outward: the NVLink domain first, then its
+	// pod, then its spine group, and so on. Provided so a caller can
+	// label the corresponding node with its topology without a separate
+	// topology call. Names are display coordinates, not provider object
+	// identifiers; the caller assigns its own label keys per position.
+	// The path length varies by provider and the field is omitted when
+	// the host has no topology path.
+	TopologyPath *[]string `json:"topologyPath,omitempty"`
 }
+
+// PlacementServerV2StatusDesiredState The accepted member intent, omitted until lifecycle initialization.
+type PlacementServerV2StatusDesiredState string
+
+// PlacementServerV2StatusHostReadiness Whether the host this server is bound to currently permits new boot
+// work. Only Ready permits it. NotReady means the host refuses new
+// boot work. Unresolved means the server's binding no longer resolves
+// to a host. Unknown means the service has no verdict. The service
+// refreshes this value periodically, so a change to the host appears
+// after the next refresh rather than on each read.
+type PlacementServerV2StatusHostReadiness string
+
+// PlacementServerV2StatusLifecycleState The persisted member lifecycle projection, omitted until lifecycle initialization.
+type PlacementServerV2StatusLifecycleState string
 
 // PlacementServersV2Read A list of placement servers.
 type PlacementServersV2Read = []PlacementServerV2Read
+
+// PlacementUpdateStrategyTypeV2 How servers converge to the placement's desired image after the image
+// changes. Manual leaves convergence to explicit per-server reconcile
+// actions. RollingUpdate lets the service converge drifted servers
+// automatically, capped at maxUnavailable in flight.
+type PlacementUpdateStrategyTypeV2 string
+
+// PlacementUpdateStrategyV2 Controls how a placement's servers converge to the desired image after
+// an image change. Defaults to Manual. Omitted on update, the stored
+// strategy is kept; send type Manual to switch back.
+type PlacementUpdateStrategyV2 struct {
+	// RollingUpdate Tuning for the RollingUpdate strategy.
+	RollingUpdate *PlacementRollingUpdateV2 `json:"rollingUpdate,omitempty"`
+
+	// Type How servers converge to the placement's desired image after the image
+	// changes. Manual leaves convergence to explicit per-server reconcile
+	// actions. RollingUpdate lets the service converge drifted servers
+	// automatically, capped at maxUnavailable in flight.
+	Type PlacementUpdateStrategyTypeV2 `json:"type"`
+}
 
 // PlacementV2Create A placement creation request.
 type PlacementV2Create struct {
@@ -373,6 +536,11 @@ type PlacementV2CreateSpec struct {
 
 	// ServerSpec Region server options applied to each pinned server.
 	ServerSpec PlacementServerSpecV2 `json:"serverSpec"`
+
+	// UpdateStrategy Controls how a placement's servers converge to the desired image after
+	// an image change. Defaults to Manual. Omitted on update, the stored
+	// strategy is kept; send type Manual to switch back.
+	UpdateStrategy *PlacementUpdateStrategyV2 `json:"updateStrategy,omitempty"`
 }
 
 // PlacementV2Read A placement.
@@ -400,10 +568,24 @@ type PlacementV2Spec struct {
 
 	// ServerSpec Region server options applied to each pinned server.
 	ServerSpec PlacementServerSpecV2 `json:"serverSpec"`
+
+	// UpdateStrategy Controls how a placement's servers converge to the desired image after
+	// an image change. Defaults to Manual. Omitted on update, the stored
+	// strategy is kept; send type Manual to switch back.
+	UpdateStrategy *PlacementUpdateStrategyV2 `json:"updateStrategy,omitempty"`
 }
 
 // PlacementV2Status Read only status information about a placement.
 type PlacementV2Status struct {
+	// DriftedHostCount Number of servers not yet converged on the placement's desired image, including servers whose image has been pushed but that are still re-provisioning. Only meaningful when statusCurrent is true.
+	DriftedHostCount *int `json:"driftedHostCount,omitempty"`
+
+	// InFlightCount Number of servers that are not provisioned, whatever the cause, each holding a slot of the rollout budget. A subset of driftedHostCount. Only meaningful when statusCurrent is true.
+	InFlightCount *int `json:"inFlightCount,omitempty"`
+
+	// MaxUnavailable The rollout budget resolved from updateStrategy for the current spec, i.e. the maximum number of servers allowed in flight at once. Zero in Manual mode. Only meaningful when statusCurrent is true.
+	MaxUnavailable *int `json:"maxUnavailable,omitempty"`
+
 	// NetworkId The network the placement belongs to.
 	NetworkId string `json:"networkId"`
 
@@ -415,6 +597,28 @@ type PlacementV2Status struct {
 
 	// ReservationId The reservation the placement allocates from.
 	ReservationId string `json:"reservationId"`
+
+	// StalledCount Number of in-flight servers whose provisioning has errored, surfacing a RollingUpdate that cannot make progress. A subset of inFlightCount. Only meaningful when statusCurrent is true.
+	StalledCount *int `json:"stalledCount,omitempty"`
+
+	// StatusCurrent Whether the observed status, including updatedHostCount and
+	// driftedHostCount, reflects the placement's current spec. It is false
+	// between a spec change (such as an image update) and the next
+	// reconcile that re-observes the servers, during which the image
+	// convergence counts must not be trusted.
+	StatusCurrent bool `json:"statusCurrent"`
+
+	// UpdatedHostCount Number of servers fully converged on the placement's desired image, i.e. running that image and provisioned. Only meaningful when statusCurrent is true.
+	UpdatedHostCount *int `json:"updatedHostCount,omitempty"`
+}
+
+// PlacementV2Update A placement update request. Only spec.serverSpec.imageId and spec.updateStrategy may change.
+type PlacementV2Update struct {
+	// Metadata Metadata required for all API resource reads and writes.
+	Metadata ResourceMetadata `json:"metadata"`
+
+	// Spec A placement's specification.
+	Spec PlacementV2Spec `json:"spec"`
 }
 
 // PlacementsV2Read A list of placements.
@@ -557,6 +761,9 @@ type ReservationUnitGpuV2 struct {
 
 // ReservationUnitHostV2 Region flavor capacity for one host in a reservation unit.
 type ReservationUnitHostV2 struct {
+	// Architecture A CPU architecture.
+	Architecture ArchitectureV2 `json:"architecture"`
+
 	// Cpus The number of CPUs on one host.
 	Cpus int `json:"cpus"`
 
@@ -707,6 +914,9 @@ type ReservationV2Status struct {
 	// ClaimedUnitCount Number of reservation units successfully claimed.
 	ClaimedUnitCount int `json:"claimedUnitCount"`
 
+	// Host Region flavor capacity for one host in a reservation unit.
+	Host ReservationUnitHostV2 `json:"host"`
+
 	// MachineFlavorId Resolved Region machine flavor used for pinned servers.
 	MachineFlavorId string `json:"machineFlavorId"`
 
@@ -786,6 +996,16 @@ type ResourceReadMetadata struct {
 
 	// Tags A list of tags.
 	Tags *TagList `json:"tags,omitempty"`
+}
+
+// ServiceVersionRead Build version information for the running service, stamped into the
+// binary at release time.  Developer builds report version 0.0.0.
+type ServiceVersionRead struct {
+	// Name The service application name.
+	Name string `json:"name"`
+
+	// Version The service release version, e.g. v1.2.3.
+	Version string `json:"version"`
 }
 
 // StaticResourceMetadata defines model for staticResourceMetadata.
@@ -970,6 +1190,9 @@ type PlacementIDParameter = string
 // ProjectIDQueryParameter defines model for projectIDQueryParameter.
 type ProjectIDQueryParameter = []string
 
+// ReconcileIfMatchParameter defines model for reconcileIfMatchParameter.
+type ReconcileIfMatchParameter = string
+
 // RegionIDQueryParameter defines model for regionIDQueryParameter.
 type RegionIDQueryParameter = []string
 
@@ -1059,6 +1282,10 @@ type ReservationV2Response = ReservationV2Read
 // ReservationsV2Response A list of reservations.
 type ReservationsV2Response = ReservationsV2Read
 
+// ServiceVersionResponse Build version information for the running service, stamped into the
+// binary at release time.  Developer builds report version 0.0.0.
+type ServiceVersionResponse = ServiceVersionRead
+
 // UnauthorizedResponse Generic error message, compatible with oauth2.
 type UnauthorizedResponse = Error
 
@@ -1067,6 +1294,9 @@ type UnprocessableContentResponse = Error
 
 // PlacementV2CreateRequest A placement creation request.
 type PlacementV2CreateRequest = PlacementV2Create
+
+// PlacementV2UpdateRequest A placement update request. Only spec.serverSpec.imageId and spec.updateStrategy may change.
+type PlacementV2UpdateRequest = PlacementV2Update
 
 // ReservationUnitReleaseRequestBody A request to release reservation units.
 type ReservationUnitReleaseRequestBody = ReservationUnitReleaseRequest
@@ -1132,6 +1362,17 @@ type RebootPlacementServerParams struct {
 	Hard *HardRebootParameter `form:"hard,omitempty" json:"hard,omitempty"`
 }
 
+// ReconcilePlacementServerParams defines parameters for ReconcilePlacementServer.
+type ReconcilePlacementServerParams struct {
+	// IfMatch The original server-issued status.reconcileETag from a member read,
+	// including its double quotes. Retry with the same value; never refresh
+	// it automatically after a conflict. Conditional admission will require
+	// one strong entity tag (missing: 428, stale: 412, malformed: 400).
+	// It remains optional for Legacy compatibility; this release rejects
+	// token-bearing requests with 409 because conditional execution is inactive.
+	IfMatch *ReconcileIfMatchParameter `json:"If-Match,omitempty"`
+}
+
 // ListReservationUnitsParams defines parameters for ListReservationUnits.
 type ListReservationUnitsParams struct {
 	// RegionID Allows resources to be filtered by region.
@@ -1168,6 +1409,9 @@ type ReleaseReservationUnitsParams struct {
 
 // CreatePlacementJSONRequestBody defines body for CreatePlacement for application/json ContentType.
 type CreatePlacementJSONRequestBody = PlacementV2Create
+
+// UpdatePlacementJSONRequestBody defines body for UpdatePlacement for application/json ContentType.
+type UpdatePlacementJSONRequestBody = PlacementV2Update
 
 // CreateReservationJSONRequestBody defines body for CreateReservation for application/json ContentType.
 type CreateReservationJSONRequestBody = ReservationV2Create
@@ -1268,6 +1512,11 @@ type ClientInterface interface {
 	// GetPlacement request
 	GetPlacement(ctx context.Context, placementID PlacementIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// UpdatePlacementWithBody request with any body
+	UpdatePlacementWithBody(ctx context.Context, placementID PlacementIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	UpdatePlacement(ctx context.Context, placementID PlacementIDParameter, body UpdatePlacementJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListPlacementServers request
 	ListPlacementServers(ctx context.Context, placementID PlacementIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -1276,6 +1525,9 @@ type ClientInterface interface {
 
 	// RebootPlacementServer request
 	RebootPlacementServer(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, params *RebootPlacementServerParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ReconcilePlacementServer request
+	ReconcilePlacementServer(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, params *ReconcilePlacementServerParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// StopPlacementServer request
 	StopPlacementServer(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1301,6 +1553,9 @@ type ClientInterface interface {
 	ReleaseReservationUnitsWithBody(ctx context.Context, reservationID ReservationIDParameter, params *ReleaseReservationUnitsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	ReleaseReservationUnits(ctx context.Context, reservationID ReservationIDParameter, params *ReleaseReservationUnitsParams, body ReleaseReservationUnitsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetVersion request
+	GetVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) ListOrganizationReservationUnits(ctx context.Context, organizationID OrganizationIDParameter, params *ListOrganizationReservationUnitsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -1387,6 +1642,30 @@ func (c *Client) GetPlacement(ctx context.Context, placementID PlacementIDParame
 	return c.Client.Do(req)
 }
 
+func (c *Client) UpdatePlacementWithBody(ctx context.Context, placementID PlacementIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdatePlacementRequestWithBody(c.Server, placementID, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) UpdatePlacement(ctx context.Context, placementID PlacementIDParameter, body UpdatePlacementJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewUpdatePlacementRequest(c.Server, placementID, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 func (c *Client) ListPlacementServers(ctx context.Context, placementID PlacementIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListPlacementServersRequest(c.Server, placementID)
 	if err != nil {
@@ -1413,6 +1692,18 @@ func (c *Client) GetPlacementServer(ctx context.Context, placementID PlacementID
 
 func (c *Client) RebootPlacementServer(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, params *RebootPlacementServerParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewRebootPlacementServerRequest(c.Server, placementID, serverID, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) ReconcilePlacementServer(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, params *ReconcilePlacementServerParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewReconcilePlacementServerRequest(c.Server, placementID, serverID, params)
 	if err != nil {
 		return nil, err
 	}
@@ -1521,6 +1812,18 @@ func (c *Client) ReleaseReservationUnitsWithBody(ctx context.Context, reservatio
 
 func (c *Client) ReleaseReservationUnits(ctx context.Context, reservationID ReservationIDParameter, params *ReleaseReservationUnitsParams, body ReleaseReservationUnitsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewReleaseReservationUnitsRequest(c.Server, reservationID, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetVersion(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetVersionRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -1976,6 +2279,53 @@ func NewGetPlacementRequest(server string, placementID PlacementIDParameter) (*h
 	return req, nil
 }
 
+// NewUpdatePlacementRequest calls the generic UpdatePlacement builder with application/json body
+func NewUpdatePlacementRequest(server string, placementID PlacementIDParameter, body UpdatePlacementJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewUpdatePlacementRequestWithBody(server, placementID, "application/json", bodyReader)
+}
+
+// NewUpdatePlacementRequestWithBody generates requests for UpdatePlacement with any type of body
+func NewUpdatePlacementRequestWithBody(server string, placementID PlacementIDParameter, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "placementID", runtime.ParamLocationPath, placementID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v2/placements/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PUT", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewListPlacementServersRequest generates requests for ListPlacementServers
 func NewListPlacementServersRequest(server string, placementID PlacementIDParameter) (*http.Request, error) {
 	var err error
@@ -2109,6 +2459,62 @@ func NewRebootPlacementServerRequest(server string, placementID PlacementIDParam
 	req, err := http.NewRequest("POST", queryURL.String(), nil)
 	if err != nil {
 		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewReconcilePlacementServerRequest generates requests for ReconcilePlacementServer
+func NewReconcilePlacementServerRequest(server string, placementID PlacementIDParameter, serverID ServerIDParameter, params *ReconcilePlacementServerParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "placementID", runtime.ParamLocationPath, placementID)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "serverID", runtime.ParamLocationPath, serverID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v2/placements/%s/servers/%s/reconcile", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+
+		if params.IfMatch != nil {
+			var headerParam0 string
+
+			headerParam0, err = runtime.StyleParamWithLocation("simple", false, "If-Match", runtime.ParamLocationHeader, *params.IfMatch)
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("If-Match", headerParam0)
+		}
+
 	}
 
 	return req, nil
@@ -2503,6 +2909,33 @@ func NewReleaseReservationUnitsRequestWithBody(server string, reservationID Rese
 	return req, nil
 }
 
+// NewGetVersionRequest generates requests for GetVersion
+func NewGetVersionRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/version")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -2566,6 +2999,11 @@ type ClientWithResponsesInterface interface {
 	// GetPlacementWithResponse request
 	GetPlacementWithResponse(ctx context.Context, placementID PlacementIDParameter, reqEditors ...RequestEditorFn) (*GetPlacementResponse, error)
 
+	// UpdatePlacementWithBodyWithResponse request with any body
+	UpdatePlacementWithBodyWithResponse(ctx context.Context, placementID PlacementIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdatePlacementResponse, error)
+
+	UpdatePlacementWithResponse(ctx context.Context, placementID PlacementIDParameter, body UpdatePlacementJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdatePlacementResponse, error)
+
 	// ListPlacementServersWithResponse request
 	ListPlacementServersWithResponse(ctx context.Context, placementID PlacementIDParameter, reqEditors ...RequestEditorFn) (*ListPlacementServersResponse, error)
 
@@ -2574,6 +3012,9 @@ type ClientWithResponsesInterface interface {
 
 	// RebootPlacementServerWithResponse request
 	RebootPlacementServerWithResponse(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, params *RebootPlacementServerParams, reqEditors ...RequestEditorFn) (*RebootPlacementServerResponse, error)
+
+	// ReconcilePlacementServerWithResponse request
+	ReconcilePlacementServerWithResponse(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, params *ReconcilePlacementServerParams, reqEditors ...RequestEditorFn) (*ReconcilePlacementServerResponse, error)
 
 	// StopPlacementServerWithResponse request
 	StopPlacementServerWithResponse(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, reqEditors ...RequestEditorFn) (*StopPlacementServerResponse, error)
@@ -2599,6 +3040,9 @@ type ClientWithResponsesInterface interface {
 	ReleaseReservationUnitsWithBodyWithResponse(ctx context.Context, reservationID ReservationIDParameter, params *ReleaseReservationUnitsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ReleaseReservationUnitsResponse, error)
 
 	ReleaseReservationUnitsWithResponse(ctx context.Context, reservationID ReservationIDParameter, params *ReleaseReservationUnitsParams, body ReleaseReservationUnitsJSONRequestBody, reqEditors ...RequestEditorFn) (*ReleaseReservationUnitsResponse, error)
+
+	// GetVersionWithResponse request
+	GetVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetVersionResponse, error)
 }
 
 type ListOrganizationReservationUnitsResponse struct {
@@ -2761,6 +3205,34 @@ func (r GetPlacementResponse) StatusCode() int {
 	return 0
 }
 
+type UpdatePlacementResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *PlacementV2Response
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON409      *ConflictResponse
+	JSON500      *InternalServerErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r UpdatePlacementResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r UpdatePlacementResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type ListPlacementServersResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -2836,6 +3308,36 @@ func (r RebootPlacementServerResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r RebootPlacementServerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type ReconcilePlacementServerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON400      *BadRequestResponse
+	JSON401      *UnauthorizedResponse
+	JSON403      *ForbiddenResponse
+	JSON404      *NotFoundResponse
+	JSON409      *ConflictResponse
+	JSON412      *Error
+	JSON422      *UnprocessableContentResponse
+	JSON428      *Error
+	JSON500      *InternalServerErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r ReconcilePlacementServerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ReconcilePlacementServerResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -3033,6 +3535,30 @@ func (r ReleaseReservationUnitsResponse) StatusCode() int {
 	return 0
 }
 
+type GetVersionResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ServiceVersionResponse
+	JSON401      *UnauthorizedResponse
+	JSON500      *InternalServerErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetVersionResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetVersionResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 // ListOrganizationReservationUnitsWithResponse request returning *ListOrganizationReservationUnitsResponse
 func (c *ClientWithResponses) ListOrganizationReservationUnitsWithResponse(ctx context.Context, organizationID OrganizationIDParameter, params *ListOrganizationReservationUnitsParams, reqEditors ...RequestEditorFn) (*ListOrganizationReservationUnitsResponse, error) {
 	rsp, err := c.ListOrganizationReservationUnits(ctx, organizationID, params, reqEditors...)
@@ -3095,6 +3621,23 @@ func (c *ClientWithResponses) GetPlacementWithResponse(ctx context.Context, plac
 	return ParseGetPlacementResponse(rsp)
 }
 
+// UpdatePlacementWithBodyWithResponse request with arbitrary body returning *UpdatePlacementResponse
+func (c *ClientWithResponses) UpdatePlacementWithBodyWithResponse(ctx context.Context, placementID PlacementIDParameter, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdatePlacementResponse, error) {
+	rsp, err := c.UpdatePlacementWithBody(ctx, placementID, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdatePlacementResponse(rsp)
+}
+
+func (c *ClientWithResponses) UpdatePlacementWithResponse(ctx context.Context, placementID PlacementIDParameter, body UpdatePlacementJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdatePlacementResponse, error) {
+	rsp, err := c.UpdatePlacement(ctx, placementID, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdatePlacementResponse(rsp)
+}
+
 // ListPlacementServersWithResponse request returning *ListPlacementServersResponse
 func (c *ClientWithResponses) ListPlacementServersWithResponse(ctx context.Context, placementID PlacementIDParameter, reqEditors ...RequestEditorFn) (*ListPlacementServersResponse, error) {
 	rsp, err := c.ListPlacementServers(ctx, placementID, reqEditors...)
@@ -3120,6 +3663,15 @@ func (c *ClientWithResponses) RebootPlacementServerWithResponse(ctx context.Cont
 		return nil, err
 	}
 	return ParseRebootPlacementServerResponse(rsp)
+}
+
+// ReconcilePlacementServerWithResponse request returning *ReconcilePlacementServerResponse
+func (c *ClientWithResponses) ReconcilePlacementServerWithResponse(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, params *ReconcilePlacementServerParams, reqEditors ...RequestEditorFn) (*ReconcilePlacementServerResponse, error) {
+	rsp, err := c.ReconcilePlacementServer(ctx, placementID, serverID, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseReconcilePlacementServerResponse(rsp)
 }
 
 // StopPlacementServerWithResponse request returning *StopPlacementServerResponse
@@ -3199,6 +3751,15 @@ func (c *ClientWithResponses) ReleaseReservationUnitsWithResponse(ctx context.Co
 		return nil, err
 	}
 	return ParseReleaseReservationUnitsResponse(rsp)
+}
+
+// GetVersionWithResponse request returning *GetVersionResponse
+func (c *ClientWithResponses) GetVersionWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetVersionResponse, error) {
+	rsp, err := c.GetVersion(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetVersionResponse(rsp)
 }
 
 // ParseListOrganizationReservationUnitsResponse parses an HTTP response from a ListOrganizationReservationUnitsWithResponse call
@@ -3553,6 +4114,74 @@ func ParseGetPlacementResponse(rsp *http.Response) (*GetPlacementResponse, error
 	return response, nil
 }
 
+// ParseUpdatePlacementResponse parses an HTTP response from a UpdatePlacementWithResponse call
+func ParseUpdatePlacementResponse(rsp *http.Response) (*UpdatePlacementResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &UpdatePlacementResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PlacementV2Response
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequestResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest UnauthorizedResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ForbiddenResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFoundResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ConflictResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListPlacementServersResponse parses an HTTP response from a ListPlacementServersWithResponse call
 func ParseListPlacementServersResponse(rsp *http.Response) (*ListPlacementServersResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -3723,6 +4352,88 @@ func ParseRebootPlacementServerResponse(rsp *http.Response) (*RebootPlacementSer
 			return nil, err
 		}
 		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseReconcilePlacementServerResponse parses an HTTP response from a ReconcilePlacementServerWithResponse call
+func ParseReconcilePlacementServerResponse(rsp *http.Response) (*ReconcilePlacementServerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ReconcilePlacementServerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequestResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest UnauthorizedResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ForbiddenResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFoundResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ConflictResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 412:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON412 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest UnprocessableContentResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON422 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 428:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON428 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest InternalServerErrorResponse
@@ -4164,6 +4875,46 @@ func ParseReleaseReservationUnitsResponse(rsp *http.Response) (*ReleaseReservati
 			return nil, err
 		}
 		response.JSON428 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetVersionResponse parses an HTTP response from a GetVersionWithResponse call
+func ParseGetVersionResponse(rsp *http.Response) (*GetVersionResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetVersionResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ServiceVersionResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest UnauthorizedResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest InternalServerErrorResponse
