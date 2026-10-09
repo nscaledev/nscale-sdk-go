@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/nscaledev/nscale-sdk-go/compare/v0.5.0...v0.6.0) (2026-10-09)
+
+
+### Features
+
+* **reservation:** track reservation main ([#22](https://github.com/nscaledev/nscale-sdk-go/issues/22)) ([2b6c9b8](https://github.com/nscaledev/nscale-sdk-go/commit/2b6c9b870b1cef2b71dfb5bc1a1ba82b3e231cd7))
+
 ## [0.5.0](https://github.com/nscaledev/nscale-sdk-go/compare/v0.4.0...v0.5.0) (2026-09-28)
 
 
