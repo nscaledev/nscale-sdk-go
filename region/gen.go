@@ -1,6 +1,6 @@
 // Package region is the Go client for the Nscale Region service.
 // The vendored openapi.yaml is copied verbatim from nscaledev/openapi
-// (region/main/openapi.yaml). Do not hand-edit it or region.gen.go;
+// (region/latest/openapi.yaml). Do not hand-edit it or region.gen.go;
 // refresh both with `just update region` from the repo root.
 package region
 
