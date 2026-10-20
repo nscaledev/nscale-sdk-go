@@ -7,7 +7,7 @@ Each subdirectory is one service. Every client is generated from the canonical s
 | Package     | Import path                                      | Spec source                |
 | ----------- | ------------------------------------------------ | -------------------------- |
 | Identity    | `github.com/nscaledev/nscale-sdk-go/identity`    | `identity/latest`          |
-| Region      | `github.com/nscaledev/nscale-sdk-go/region`      | `region/latest`            |
+| Region      | `github.com/nscaledev/nscale-sdk-go/region`      | `region/main`              |
 | Storage     | `github.com/nscaledev/nscale-sdk-go/storage`     | `storage/latest`           |
 | Compute     | `github.com/nscaledev/nscale-sdk-go/compute`     | `compute/latest`           |
 | Kubernetes  | `github.com/nscaledev/nscale-sdk-go/kubernetes`  | `nks-core/main`            |
@@ -17,7 +17,7 @@ Published specs are bundled — every `$ref` is dereferenced before publication 
 
 **⚠️ Alpha:** The Reservation organization topology API is in alpha. Its endpoints and types may change without notice, so expect bugs and breaking changes.
 
-**⚠️ Unstable:** The Kubernetes client tracks NKS's `main` branch, because NKS has not cut a stable release yet. Every other package tracks a tagged release. Expect the Kubernetes surface to change without a version bump.
+**⚠️ Unstable:** The Kubernetes and Region clients track their services' `main` branches: NKS has not cut a stable release yet, and Region exposes APIs ahead of its next release. Identity, Storage and Compute track tagged releases. Expect the Kubernetes and Region surfaces to change without a version bump.
 
 ## Install
 

@@ -25,8 +25,10 @@ openapi_ref := env("OPENAPI_REF", "main")
 #
 # <service>/latest/ always mirrors that service's newest stable release, so a
 # sync picks up new releases without editing this list. nks-core has not cut a
-# stable release yet, so the Kubernetes client tracks its main branch.
-specs := "identity:identity/latest region:region/latest storage:storage/latest compute:compute/latest kubernetes:nks-core/main reservation:reservation/main"
+# stable release yet, so the Kubernetes client tracks its main branch. Region
+# tracks main too, to expose APIs (file storage snapshots, flavors, region
+# listing) ahead of the next region release.
+specs := "identity:identity/latest region:region/main storage:storage/latest compute:compute/latest kubernetes:nks-core/main reservation:reservation/main"
 
 _raw := "https://raw.githubusercontent.com/" + openapi_repo + "/" + openapi_ref
 
