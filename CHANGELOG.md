@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/nscaledev/nscale-sdk-go/compare/v0.6.0...v0.7.0) (2026-10-27)
+
+
+### Features
+
+* **region:** refresh client from region v1.27.0 ([#27](https://github.com/nscaledev/nscale-sdk-go/issues/27)) ([27f2e9f](https://github.com/nscaledev/nscale-sdk-go/commit/27f2e9feb9e0c070de2989326aaee6a73612de6e))
+
 ## [0.6.0](https://github.com/nscaledev/nscale-sdk-go/compare/v0.5.0...v0.6.0) (2026-10-09)
 
 
