@@ -219,7 +219,7 @@ type ClusterApiServerAccessV1 struct {
 	// AllowedCidrs Source IPv4 CIDR allowlist for the cluster API endpoint, including private endpoints. If publicIP is true and this field is omitted, the API server is reachable from 0.0.0.0/0.
 	AllowedCidrs *[]string `json:"allowedCidrs,omitempty"`
 
-	// Authentication Kubernetes API server authentication configured for a cluster. Fixed at creation; immutable for the cluster's lifetime, including whether each field is set.
+	// Authentication Kubernetes API server authentication configured for a cluster. After creation, external issuers may only be removed, and removing them needs create permission on the cluster's project; whether authentication is set, and the nscaleWebhook override, are fixed for the cluster's lifetime.
 	Authentication *ClusterApiServerAuthenticationV1 `json:"authentication,omitempty"`
 
 	// Authorization Tenant ClusterRoles bound to caller-specified subjects.
@@ -229,7 +229,7 @@ type ClusterApiServerAccessV1 struct {
 	PublicIP *bool `json:"publicIP,omitempty"`
 }
 
-// ClusterApiServerAuthenticationV1 Kubernetes API server authentication configured for a cluster. Fixed at creation; immutable for the cluster's lifetime, including whether each field is set.
+// ClusterApiServerAuthenticationV1 Kubernetes API server authentication configured for a cluster. After creation, external issuers may only be removed, and removing them needs create permission on the cluster's project; whether authentication is set, and the nscaleWebhook override, are fixed for the cluster's lifetime.
 type ClusterApiServerAuthenticationV1 struct {
 	// ExternalIssuers Additional external JWT/OIDC issuers the cluster's API server trusts.
 	ExternalIssuers *[]ClusterExternalIssuerV1 `json:"externalIssuers,omitempty"`
@@ -324,7 +324,7 @@ type ClusterExternalIssuerV1 struct {
 	// GroupsClaim JWT claim mapped to the authenticated group list.
 	GroupsClaim *string `json:"groupsClaim,omitempty"`
 
-	// GroupsPrefix Prepended to each groups claim value. Required when groupsClaim is set; when set, must be non-empty and must not itself start with, or be a prefix of, a reserved prefix (system:, kubeadm:, nks-management:).
+	// GroupsPrefix Prepended to each groups claim value. Required when groupsClaim is set; when set, must be non-empty and must not itself start with, or be a prefix of, a reserved prefix (system:, kubeadm:, nks-management:, nks:, nscale.com/).
 	GroupsPrefix *string `json:"groupsPrefix,omitempty"`
 
 	// IssuerURL Issuer URL clients present tokens from.
@@ -333,7 +333,7 @@ type ClusterExternalIssuerV1 struct {
 	// UsernameClaim JWT claim mapped to the authenticated username.
 	UsernameClaim *string `json:"usernameClaim,omitempty"`
 
-	// UsernamePrefix Prepended to the username claim value. Required, non-empty, and must not itself start with, or be a prefix of, a reserved prefix (system:, kubeadm:, nks-management:).
+	// UsernamePrefix Prepended to the username claim value. Required, non-empty, and must not itself start with, or be a prefix of, a reserved prefix (system:, kubeadm:, nks-management:, nks:, nscale.com/).
 	UsernamePrefix string `json:"usernamePrefix"`
 }
 
@@ -384,7 +384,7 @@ type ClusterReleaseStatusV1 struct {
 	// Deprecated Whether the applied platform release is currently deprecated.
 	Deprecated *bool `json:"deprecated,omitempty"`
 
-	// EligibleTargets Eligible platform release IDs in upgrade order. Present as an empty array when eligibility was observed and no upgrade is available.
+	// EligibleTargets Eligible platform release IDs in upgrade order, limited to releases the cluster's organization may select. Present as an empty array when eligibility was observed and no upgrade is available.
 	EligibleTargets *[]string `json:"eligibleTargets,omitempty"`
 
 	// UpgradeAvailable Whether at least one eligible target was observed.
@@ -461,6 +461,9 @@ type ClusterStatusV1 struct {
 
 	// Release Applied platform release and observed upgrade eligibility.
 	Release *ClusterReleaseStatusV1 `json:"release,omitempty"`
+
+	// ServiceAccountIssuer The public OIDC issuer URL of the cluster's ServiceAccount tokens. Use it to configure external relying parties. It appears once the cell records the cluster's public issuer. It is absent when the cluster uses only its in-cluster issuer.
+	ServiceAccountIssuer *string `json:"serviceAccountIssuer,omitempty"`
 }
 
 // ClusterUpdateSpecV1 Desired cluster replacement state.
