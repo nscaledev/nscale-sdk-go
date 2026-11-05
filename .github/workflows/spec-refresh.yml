@@ -1,0 +1,211 @@
+name: spec-refresh
+
+# Keeps the vendored specs and generated clients in step with nscaledev/openapi.
+#
+# nscaledev/openapi sends a `openapi-published` repository_dispatch whenever its
+# publish bot pushes a spec (see notify-sdk.yml there). The nightly schedule is
+# a backstop for a dispatch that never arrives, and workflow_dispatch is for
+# kicking a refresh by hand.
+#
+# Each run pins one nscaledev/openapi commit (the current tip of main, not the
+# one in the dispatch payload, so a late-arriving dispatch can never roll a
+# client back), works out which packages drifted at that commit, and gives each
+# its own PR on a stable `automation/spec-refresh-<pkg>` branch. A later run
+# replaces that branch, so a busy spec like reservation/main keeps one rolling
+# PR rather than one per publish.
+#
+# The PR title decides the release: the repo squash-merges with the PR title,
+# and release-please reads that. The title gets `!` when apidiff finds an
+# incompatible change in the generated Go API. That is stricter than an HTTP
+# compatibility check: dropping an optional response field is harmless on the
+# wire but deletes a struct field here. Methods added to ClientInterface and
+# ClientWithResponsesInterface are ignored, because every new endpoint adds one
+# and nobody is expected to implement those interfaces outside this repo.
+# Check the title before merging all the same.
+#
+# Runs as the nscale-actions GitHub App, so its PRs trigger `ci` without the
+# "Approve and run" click that GITHUB_TOKEN-authored PRs need (see
+# release-please.yml). Needs NSCALE_ACTIONS_APP_ID (variable) and
+# NSCALE_ACTIONS_APP_PK (secret) visible to this repo, and the App installed on
+# it with contents and pull-requests write.
+
+on:
+  repository_dispatch:
+    types: [openapi-published]
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One run at a time. GitHub keeps only the newest pending run, which is fine:
+# every run reads the tip of nscaledev/openapi main, so it supersedes the others.
+concurrency:
+  group: spec-refresh
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash  # -eo pipefail, unlike the implicit default
+
+env:
+  OPENAPI_REPO: nscaledev/openapi
+  MODULE: github.com/nscaledev/nscale-sdk-go
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      ref: ${{ steps.ref.outputs.ref }}
+      packages: ${{ steps.drift.outputs.packages }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4.0.0
+
+      - name: Pin nscaledev/openapi commit
+        id: ref
+        env:
+          DISPATCHED: ${{ github.event.client_payload.sha }}
+        run: |
+          ref="$(git ls-remote "https://github.com/${OPENAPI_REPO}.git" refs/heads/main | cut -f1)"
+          test -n "$ref"
+          echo "Pinned ${OPENAPI_REPO}@${ref} (dispatched for ${DISPATCHED:-n/a})"
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+
+      - name: Find drifted packages
+        id: drift
+        env:
+          OPENAPI_REF: ${{ steps.ref.outputs.ref }}
+        run: |
+          just sync
+          packages="$(git diff --name-only -- '*/openapi.yaml' | cut -d/ -f1 | jq -R . | jq -s -c .)"
+          echo "Drifted: $packages"
+          echo "packages=$packages" >> "$GITHUB_OUTPUT"
+
+  refresh:
+    needs: detect
+    if: needs.detect.outputs.packages != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pkg: ${{ fromJSON(needs.detect.outputs.packages) }}
+    env:
+      PKG: ${{ matrix.pkg }}
+      OPENAPI_REF: ${{ needs.detect.outputs.ref }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4.0.0
+
+      - name: Install apidiff and oasdiff
+        run: |
+          go install golang.org/x/exp/cmd/apidiff@v0.0.0-20261014143641-f0251eb4aa3e
+          go install github.com/oasdiff/oasdiff@v1.33.0
+
+      - name: Snapshot the current Go API
+        run: |
+          apidiff -w "$RUNNER_TEMP/base.export" "$MODULE/$PKG"
+          git show "HEAD:$PKG/openapi.yaml" > "$RUNNER_TEMP/base.yaml"
+
+      - name: Refresh, regenerate and test
+        run: |
+          just update "$PKG"
+          go test "./$PKG/..." -count=1
+
+      - name: Describe the change
+        id: describe
+        run: |
+          # The spec directory this package tracks, e.g. nks-core/main.
+          path="$(just --evaluate specs | tr ' ' '\n' | awk -F: -v p="$PKG" '$1 == p { print $2 }')"
+          test -n "$path"
+
+          # See the header comment for why interface additions are ignored.
+          # Run apart from the filter so an apidiff failure fails the step
+          # rather than quietly reading as "nothing incompatible".
+          apidiff -incompatible "$RUNNER_TEMP/base.export" "$MODULE/$PKG" > "$RUNNER_TEMP/apidiff.txt"
+          grep -vE '^- (ClientInterface|ClientWithResponsesInterface)\.[A-Za-z0-9_]+: added$' \
+            "$RUNNER_TEMP/apidiff.txt" > "$RUNNER_TEMP/incompatible.txt" || true
+
+          # A spec change that leaves the generated code alone (say, a server
+          # URL) is vendored as a chore so it doesn't cut a release on its own.
+          type="feat" bang=""
+          if git diff --quiet -- "$PKG/*.gen.go"; then type="chore"; fi
+          if [[ -s "$RUNNER_TEMP/incompatible.txt" ]]; then bang="!"; fi
+          title="${type}(${PKG})${bang}: refresh client from ${path}"
+
+          # Drops oasdiff's "# API Changelog x vs. y" heading: info.version is not maintained upstream.
+          oasdiff changelog "$RUNNER_TEMP/base.yaml" "$PKG/openapi.yaml" -f markdown \
+            | sed '/^# API Changelog/d' > "$RUNNER_TEMP/changelog.md" \
+            || echo "_oasdiff failed; see the job log._" > "$RUNNER_TEMP/changelog.md"
+
+          short="${OPENAPI_REF:0:7}"
+          url="https://github.com/${OPENAPI_REPO}/tree/${OPENAPI_REF}/${path}"
+          {
+            echo "Automated refresh of \`${PKG}\` from [\`${path}\` @ \`${short}\`](${url})."
+            echo
+            echo "### Go API"
+            echo
+            if [[ -n "$bang" ]]; then
+              echo "apidiff found incompatible changes, so this is marked breaking (\`!\`):"
+              echo
+              echo '```'
+              head -c 20000 "$RUNNER_TEMP/incompatible.txt"
+              echo '```'
+            else
+              echo "No incompatible changes to the generated Go API."
+            fi
+            echo
+            echo "<details><summary>HTTP API changelog (oasdiff)</summary>"
+            echo
+            head -c 30000 "$RUNNER_TEMP/changelog.md"
+            echo
+            echo "</details>"
+            echo
+            echo "---"
+            echo "Opened by [spec-refresh](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}). The next upstream publish replaces this branch, so don't push to it. The PR title becomes the squash commit that release-please reads, so check it before merging."
+          } > "$RUNNER_TEMP/pr-body.md"
+
+          {
+            echo "title=$title"
+            echo "message<<EOF"
+            echo "$title"
+            echo
+            echo "Generated from ${OPENAPI_REPO}@${OPENAPI_REF} (${path})."
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Mint App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ vars.NSCALE_ACTIONS_APP_ID }}
+          private-key: ${{ secrets.NSCALE_ACTIONS_APP_PK }}
+
+      - name: Open or update PR
+        id: pr
+        uses: nscaledev/actions/git/signed-pr@7841ebf2b6f0182814504923ccce4927fb82bf4f # v2.1.0
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          branch: automation/spec-refresh-${{ matrix.pkg }}
+          commit-message: ${{ steps.describe.outputs.message }}
+          title: ${{ steps.describe.outputs.title }}
+          body-file: ${{ runner.temp }}/pr-body.md
+
+      # signed-pr only sets the title on create, but a later publish can make an
+      # open PR breaking (or not), and the title is what gets released.
+      - name: Sync PR title
+        if: steps.pr.outputs.pr-number != ''
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          NUMBER: ${{ steps.pr.outputs.pr-number }}
+          TITLE: ${{ steps.describe.outputs.title }}
+        run: gh pr edit "$NUMBER" --title "$TITLE"
