@@ -128,6 +128,7 @@ const (
 	InstanceLifecyclePhaseError      InstanceLifecyclePhase = "Error"
 	InstanceLifecyclePhasePending    InstanceLifecyclePhase = "Pending"
 	InstanceLifecyclePhaseQueued     InstanceLifecyclePhase = "Queued"
+	InstanceLifecyclePhaseRebooting  InstanceLifecyclePhase = "Rebooting"
 	InstanceLifecyclePhaseRebuilding InstanceLifecyclePhase = "Rebuilding"
 	InstanceLifecyclePhaseRunning    InstanceLifecyclePhase = "Running"
 	InstanceLifecyclePhaseStopped    InstanceLifecyclePhase = "Stopped"
@@ -144,6 +145,8 @@ func (e InstanceLifecyclePhase) Valid() bool {
 	case InstanceLifecyclePhasePending:
 		return true
 	case InstanceLifecyclePhaseQueued:
+		return true
+	case InstanceLifecyclePhaseRebooting:
 		return true
 	case InstanceLifecyclePhaseRebuilding:
 		return true
@@ -472,8 +475,11 @@ type HealthStatusReason string
 // baremetal servers waiting on hardware, Building for servers the
 // provider is actively bringing up. Rebuilding means an already
 // provisioned server is being reimaged in place and is not usable until
-// it completes. Error means the provider reported the server in a
-// terminal error state.
+// it completes. Rebooting means a soft or hard reboot has been accepted
+// and is in flight; it returns to Running once the provider has
+// processed the request. To confirm the guest actually restarted, use
+// OS-level evidence such as a changed boot ID or boot time. Error
+// means the provider reported the server in a terminal error state.
 type InstanceLifecyclePhase string
 
 // KubernetesLabelValue A valid Kubernetes label value, typically used for resource names that can be
@@ -565,6 +571,7 @@ type PlacementPolicyV2 string
 type PlacementReadinessModeV2 string
 
 // PlacementReadinessPolicyV2 Controls how current host readiness affects Placement selection.
+// Defaults to Prefer.
 type PlacementReadinessPolicyV2 struct {
 	// Mode Require only selects hosts that pass current readiness preflight. Prefer
 	// selects ready hosts first but may use structurally claimable hosts to
@@ -638,7 +645,7 @@ type PlacementServerV2Read struct {
 
 // PlacementServerV2Status Read only runtime status information about a placement server.
 type PlacementServerV2Status struct {
-	// DesiredState The accepted member intent, omitted until lifecycle initialization.
+	// DesiredState The accepted desired state of the member, omitted for Legacy members.
 	DesiredState *PlacementServerV2StatusDesiredState `json:"desiredState,omitempty"`
 
 	// DriftState The server's image-convergence state relative to the placement's
@@ -654,6 +661,18 @@ type PlacementServerV2Status struct {
 	// progress; Drifted may persist until reconciliation is accepted.
 	DriftState *PlacementServerDriftStateV2 `json:"driftState,omitempty"`
 
+	// EntityTag Opaque quoted strong tag identifying the member version the
+	// client read: the member's identity, its desired-state version and
+	// the Placement configuration generation. Omitted for Legacy
+	// members. Supply the original value in If-Match on Boot or Drain;
+	// either action accepts it, subject to its own state checks.
+	EntityTag *string `json:"entityTag,omitempty"`
+
+	// Generation The version of the member's accepted desired state. It changes
+	// whenever the desired state or chosen image changes; it is not a
+	// count of requests.
+	Generation *int64 `json:"generation,omitempty"`
+
 	// HostReadiness Whether the host this server is bound to currently permits new boot
 	// work. Only Ready permits it. NotReady means the host refuses new
 	// boot work. Unresolved means the server's binding no longer resolves
@@ -661,6 +680,12 @@ type PlacementServerV2Status struct {
 	// refreshes this value periodically, so a change to the host appears
 	// after the next refresh rather than on each read.
 	HostReadiness PlacementServerV2StatusHostReadiness `json:"hostReadiness"`
+
+	// HostReadinessObservedAt When the host was last read for the published hostReadiness.
+	// Present for members whose readiness the service records per
+	// member; omitted for others. A verdict older than the service's
+	// freshness limit reads as Unknown.
+	HostReadinessObservedAt *time.Time `json:"hostReadinessObservedAt,omitempty"`
 
 	// HostReadinessReason Why the host has its current readiness, omitted when there is no
 	// reason to report.
@@ -670,10 +695,10 @@ type PlacementServerV2Status struct {
 	// pinned Region Server boot target.
 	InfrastructureRef string `json:"infrastructureRef"`
 
-	// LifecycleRevision The revision of the member lifecycle snapshot.
-	LifecycleRevision *int64 `json:"lifecycleRevision,omitempty"`
-
-	// LifecycleState The persisted member lifecycle projection, omitted until lifecycle initialization.
+	// LifecycleState The member's progress towards its desired state, omitted for
+	// Legacy members. An accepted Boot reads Provisioning and an
+	// accepted Drain reads Draining before the service has observed
+	// them.
 	LifecycleState *PlacementServerV2StatusLifecycleState `json:"lifecycleState,omitempty"`
 
 	// MacAddress The MAC address of the server.
@@ -682,11 +707,10 @@ type PlacementServerV2Status struct {
 	// NetworkId The network the placement server belongs to.
 	NetworkId string `json:"networkId"`
 
-	// ObservedGeneration The latest completed member operation generation.
+	// ObservedGeneration The desired-state version the service last processed. Equality
+	// with generation alone does not mean success; consult
+	// lifecycleState.
 	ObservedGeneration *int64 `json:"observedGeneration,omitempty"`
-
-	// OperationGeneration The latest accepted member operation generation.
-	OperationGeneration *int64 `json:"operationGeneration,omitempty"`
 
 	// Ordinal The zero-based position of this server within its Placement,
 	// assigned once at allocation and stable for the lifetime of the
@@ -703,8 +727,11 @@ type PlacementServerV2Status struct {
 	// baremetal servers waiting on hardware, Building for servers the
 	// provider is actively bringing up. Rebuilding means an already
 	// provisioned server is being reimaged in place and is not usable until
-	// it completes. Error means the provider reported the server in a
-	// terminal error state.
+	// it completes. Rebooting means a soft or hard reboot has been accepted
+	// and is in flight; it returns to Running once the provider has
+	// processed the request. To confirm the guest actually restarted, use
+	// OS-level evidence such as a changed boot ID or boot time. Error
+	// means the provider reported the server in a terminal error state.
 	PowerState *InstanceLifecyclePhase `json:"powerState,omitempty"`
 
 	// PrivateIP The private IP address of the server.
@@ -712,13 +739,6 @@ type PlacementServerV2Status struct {
 
 	// PublicIP The public IP address of the server.
 	PublicIP *string `json:"publicIP,omitempty"`
-
-	// ReconcileETag Opaque, quoted strong action tag binding this member lifecycle
-	// revision and the owning Placement spec generation. Omitted until
-	// lifecycle initialization. Prepared for conditional reconciliation;
-	// this release rejects token-bearing reconcile requests with 409
-	// until conditional execution is available.
-	ReconcileETag *string `json:"reconcileETag,omitempty"`
 
 	// RegionId The region the placement server belongs to.
 	RegionId string `json:"regionId"`
@@ -737,7 +757,7 @@ type PlacementServerV2Status struct {
 	TopologyPath *[]string `json:"topologyPath,omitempty"`
 }
 
-// PlacementServerV2StatusDesiredState The accepted member intent, omitted until lifecycle initialization.
+// PlacementServerV2StatusDesiredState The accepted desired state of the member, omitted for Legacy members.
 type PlacementServerV2StatusDesiredState string
 
 // PlacementServerV2StatusHostReadiness Whether the host this server is bound to currently permits new boot
@@ -748,7 +768,10 @@ type PlacementServerV2StatusDesiredState string
 // after the next refresh rather than on each read.
 type PlacementServerV2StatusHostReadiness string
 
-// PlacementServerV2StatusLifecycleState The persisted member lifecycle projection, omitted until lifecycle initialization.
+// PlacementServerV2StatusLifecycleState The member's progress towards its desired state, omitted for
+// Legacy members. An accepted Boot reads Provisioning and an
+// accepted Drain reads Draining before the service has observed
+// them.
 type PlacementServerV2StatusLifecycleState string
 
 // PlacementServersV2Read A list of placement servers.
@@ -797,6 +820,7 @@ type PlacementV2CreateSpec struct {
 	NetworkId string `json:"networkId"`
 
 	// ReadinessPolicy Controls how current host readiness affects Placement selection.
+	// Defaults to Prefer.
 	ReadinessPolicy *PlacementReadinessPolicyV2 `json:"readinessPolicy,omitempty"`
 
 	// ReservationId The reservation to allocate hosts from.
@@ -832,6 +856,7 @@ type PlacementV2Spec struct {
 	Count int `json:"count"`
 
 	// ReadinessPolicy Controls how current host readiness affects Placement selection.
+	// Defaults to Prefer.
 	ReadinessPolicy *PlacementReadinessPolicyV2 `json:"readinessPolicy,omitempty"`
 
 	// ServerSpec Region server options applied to each pinned server.
@@ -1445,6 +1470,9 @@ type HardRebootParameter = bool
 // IfMatchParameter defines model for ifMatchParameter.
 type IfMatchParameter = string
 
+// MemberIfMatchParameter defines model for memberIfMatchParameter.
+type MemberIfMatchParameter = string
+
 // NetworkIDQueryParameter defines model for networkIDQueryParameter.
 type NetworkIDQueryParameter = []string
 
@@ -1459,9 +1487,6 @@ type PlacementIDParameter = string
 
 // ProjectIDQueryParameter defines model for projectIDQueryParameter.
 type ProjectIDQueryParameter = []string
-
-// ReconcileIfMatchParameter defines model for reconcileIfMatchParameter.
-type ReconcileIfMatchParameter = string
 
 // RegionIDQueryParameter defines model for regionIDQueryParameter.
 type RegionIDQueryParameter = []string
@@ -1510,6 +1535,12 @@ type InsufficientCapacityResponse = Error
 
 // InternalServerErrorResponse Generic error message, compatible with oauth2.
 type InternalServerErrorResponse = Error
+
+// MemberActionPreconditionFailedResponse Generic error message, compatible with oauth2.
+type MemberActionPreconditionFailedResponse = Error
+
+// MemberAdmissionUnavailableResponse Generic error message, compatible with oauth2.
+type MemberAdmissionUnavailableResponse = Error
 
 // NotFoundResponse Generic error message, compatible with oauth2.
 type NotFoundResponse = Error
@@ -1626,21 +1657,28 @@ type ListPlacementsParams struct {
 	NetworkID *NetworkIDQueryParameter `form:"networkID,omitempty" json:"networkID,omitempty"`
 }
 
+// BootPlacementServerParams defines parameters for BootPlacementServer.
+type BootPlacementServerParams struct {
+	// IfMatch The original quoted entityTag from a member read, the same tag for
+	// Boot and Drain. One strong tag is required by admission; missing
+	// returns 428, malformed returns 400 and stale returns 412. Keep the
+	// original value after an uncertain response.
+	IfMatch *MemberIfMatchParameter `json:"If-Match,omitempty"`
+}
+
+// DrainPlacementServerParams defines parameters for DrainPlacementServer.
+type DrainPlacementServerParams struct {
+	// IfMatch The original quoted entityTag from a member read, the same tag for
+	// Boot and Drain. One strong tag is required by admission; missing
+	// returns 428, malformed returns 400 and stale returns 412. Keep the
+	// original value after an uncertain response.
+	IfMatch *MemberIfMatchParameter `json:"If-Match,omitempty"`
+}
+
 // RebootPlacementServerParams defines parameters for RebootPlacementServer.
 type RebootPlacementServerParams struct {
 	// Hard Whether the reboot is hard. Defaults to false.
 	Hard *HardRebootParameter `form:"hard,omitempty" json:"hard,omitempty"`
-}
-
-// ReconcilePlacementServerParams defines parameters for ReconcilePlacementServer.
-type ReconcilePlacementServerParams struct {
-	// IfMatch The original server-issued status.reconcileETag from a member read,
-	// including its double quotes. Retry with the same value; never refresh
-	// it automatically after a conflict. Conditional admission will require
-	// one strong entity tag (missing: 428, stale: 412, malformed: 400).
-	// It remains optional for Legacy compatibility; this release rejects
-	// token-bearing requests with 409 because conditional execution is inactive.
-	IfMatch *ReconcileIfMatchParameter `json:"If-Match,omitempty"`
 }
 
 // ListReservationUnitsParams defines parameters for ListReservationUnits.
@@ -1856,6 +1894,26 @@ type ClientInterface interface {
 	// Corresponds with GET /api/v2/placements/{placementID}/servers/{serverID} (the `GetPlacementServer` operationId).
 	GetPlacementServer(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// BootPlacementServer Boot placement server
+	//
+	// Requires reservation:placement-servers/update and the original
+	// entityTag in If-Match. Retry with the same tag after an uncertain reply;
+	// a 412 then may mean the first request was applied, so reread and decide.
+	// Production rejects this action while Explicit execution is disabled.
+	//
+	// Corresponds with POST /api/v2/placements/{placementID}/servers/{serverID}/boot (the `BootPlacementServer` operationId).
+	BootPlacementServer(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, params *BootPlacementServerParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// DrainPlacementServer Drain placement server
+	//
+	// Requires reservation:placement-servers/update and the original
+	// entityTag in If-Match. Retry with the same tag after an uncertain reply;
+	// a 412 then may mean the first request was applied, so reread and decide.
+	// Production rejects this action while Explicit execution is disabled.
+	//
+	// Corresponds with POST /api/v2/placements/{placementID}/servers/{serverID}/drain (the `DrainPlacementServer` operationId).
+	DrainPlacementServer(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, params *DrainPlacementServerParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// RebootPlacementServer Reboot placement server
 	//
 	// Reboot a placement server.
@@ -1865,13 +1923,11 @@ type ClientInterface interface {
 
 	// ReconcilePlacementServer Reconcile placement server
 	//
-	// Reconcile a placement server to the placement image. Conditional
-	// reconciliation is not active in this release: requests carrying
-	// If-Match return 409 without accepting work. Headerless Legacy
-	// requests retain their existing behavior.
+	// Reconcile a placement server to the current Placement image.
+	// The request has no body or client precondition.
 	//
 	// Corresponds with POST /api/v2/placements/{placementID}/servers/{serverID}/reconcile (the `ReconcilePlacementServer` operationId).
-	ReconcilePlacementServer(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, params *ReconcilePlacementServerParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	ReconcilePlacementServer(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// StopPlacementServer Stop placement server
 	//
@@ -2157,6 +2213,46 @@ func (c *Client) GetPlacementServer(ctx context.Context, placementID PlacementID
 	return c.Client.Do(req)
 }
 
+// BootPlacementServer Boot placement server
+//
+// Requires reservation:placement-servers/update and the original
+// entityTag in If-Match. Retry with the same tag after an uncertain reply;
+// a 412 then may mean the first request was applied, so reread and decide.
+// Production rejects this action while Explicit execution is disabled.
+//
+// Corresponds with POST /api/v2/placements/{placementID}/servers/{serverID}/boot (the `BootPlacementServer` operationId).
+func (c *Client) BootPlacementServer(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, params *BootPlacementServerParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewBootPlacementServerRequest(c.Server, placementID, serverID, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// DrainPlacementServer Drain placement server
+//
+// Requires reservation:placement-servers/update and the original
+// entityTag in If-Match. Retry with the same tag after an uncertain reply;
+// a 412 then may mean the first request was applied, so reread and decide.
+// Production rejects this action while Explicit execution is disabled.
+//
+// Corresponds with POST /api/v2/placements/{placementID}/servers/{serverID}/drain (the `DrainPlacementServer` operationId).
+func (c *Client) DrainPlacementServer(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, params *DrainPlacementServerParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDrainPlacementServerRequest(c.Server, placementID, serverID, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 // RebootPlacementServer Reboot placement server
 //
 // Reboot a placement server.
@@ -2176,14 +2272,12 @@ func (c *Client) RebootPlacementServer(ctx context.Context, placementID Placemen
 
 // ReconcilePlacementServer Reconcile placement server
 //
-// Reconcile a placement server to the placement image. Conditional
-// reconciliation is not active in this release: requests carrying
-// If-Match return 409 without accepting work. Headerless Legacy
-// requests retain their existing behavior.
+// Reconcile a placement server to the current Placement image.
+// The request has no body or client precondition.
 //
 // Corresponds with POST /api/v2/placements/{placementID}/servers/{serverID}/reconcile (the `ReconcilePlacementServer` operationId).
-func (c *Client) ReconcilePlacementServer(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, params *ReconcilePlacementServerParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewReconcilePlacementServerRequest(c.Server, placementID, serverID, params)
+func (c *Client) ReconcilePlacementServer(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewReconcilePlacementServerRequest(c.Server, placementID, serverID)
 	if err != nil {
 		return nil, err
 	}
@@ -2912,6 +3006,118 @@ func NewGetPlacementServerRequest(server string, placementID PlacementIDParamete
 	return req, nil
 }
 
+// NewBootPlacementServerRequest constructs an http.Request for the BootPlacementServer method
+func NewBootPlacementServerRequest(server string, placementID PlacementIDParameter, serverID ServerIDParameter, params *BootPlacementServerParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "placementID", placementID, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithOptions("simple", false, "serverID", serverID, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v2/placements/%s/servers/%s/boot", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+
+		if params.IfMatch != nil {
+			var headerParam0 string
+
+			headerParam0, err = runtime.StyleParamWithOptions("simple", false, "If-Match", *params.IfMatch, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "string", Format: ""})
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("If-Match", headerParam0)
+		}
+
+	}
+
+	return req, nil
+}
+
+// NewDrainPlacementServerRequest constructs an http.Request for the DrainPlacementServer method
+func NewDrainPlacementServerRequest(server string, placementID PlacementIDParameter, serverID ServerIDParameter, params *DrainPlacementServerParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "placementID", placementID, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithOptions("simple", false, "serverID", serverID, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v2/placements/%s/servers/%s/drain", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+
+		if params.IfMatch != nil {
+			var headerParam0 string
+
+			headerParam0, err = runtime.StyleParamWithOptions("simple", false, "If-Match", *params.IfMatch, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "string", Format: ""})
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("If-Match", headerParam0)
+		}
+
+	}
+
+	return req, nil
+}
+
 // NewRebootPlacementServerRequest constructs an http.Request for the RebootPlacementServer method
 func NewRebootPlacementServerRequest(server string, placementID PlacementIDParameter, serverID ServerIDParameter, params *RebootPlacementServerParams) (*http.Request, error) {
 	var err error
@@ -2981,7 +3187,7 @@ func NewRebootPlacementServerRequest(server string, placementID PlacementIDParam
 }
 
 // NewReconcilePlacementServerRequest constructs an http.Request for the ReconcilePlacementServer method
-func NewReconcilePlacementServerRequest(server string, placementID PlacementIDParameter, serverID ServerIDParameter, params *ReconcilePlacementServerParams) (*http.Request, error) {
+func NewReconcilePlacementServerRequest(server string, placementID PlacementIDParameter, serverID ServerIDParameter) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -3016,21 +3222,6 @@ func NewReconcilePlacementServerRequest(server string, placementID PlacementIDPa
 	req, err := http.NewRequest(http.MethodPost, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
-	}
-
-	if params != nil {
-
-		if params.IfMatch != nil {
-			var headerParam0 string
-
-			headerParam0, err = runtime.StyleParamWithOptions("simple", false, "If-Match", *params.IfMatch, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "string", Format: ""})
-			if err != nil {
-				return nil, err
-			}
-
-			req.Header.Set("If-Match", headerParam0)
-		}
-
 	}
 
 	return req, nil
@@ -3593,6 +3784,30 @@ type ClientWithResponsesInterface interface {
 	// Corresponds with GET /api/v2/placements/{placementID}/servers/{serverID} (the `GetPlacementServer` operationId).
 	GetPlacementServerWithResponse(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, reqEditors ...RequestEditorFn) (*GetPlacementServerResponse, error)
 
+	// BootPlacementServerWithResponse Boot placement server
+	//
+	// Requires reservation:placement-servers/update and the original
+	// entityTag in If-Match. Retry with the same tag after an uncertain reply;
+	// a 412 then may mean the first request was applied, so reread and decide.
+	// Production rejects this action while Explicit execution is disabled.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with POST /api/v2/placements/{placementID}/servers/{serverID}/boot (the `BootPlacementServer` operationId).
+	BootPlacementServerWithResponse(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, params *BootPlacementServerParams, reqEditors ...RequestEditorFn) (*BootPlacementServerResponse, error)
+
+	// DrainPlacementServerWithResponse Drain placement server
+	//
+	// Requires reservation:placement-servers/update and the original
+	// entityTag in If-Match. Retry with the same tag after an uncertain reply;
+	// a 412 then may mean the first request was applied, so reread and decide.
+	// Production rejects this action while Explicit execution is disabled.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with POST /api/v2/placements/{placementID}/servers/{serverID}/drain (the `DrainPlacementServer` operationId).
+	DrainPlacementServerWithResponse(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, params *DrainPlacementServerParams, reqEditors ...RequestEditorFn) (*DrainPlacementServerResponse, error)
+
 	// RebootPlacementServerWithResponse Reboot placement server
 	//
 	// Reboot a placement server.
@@ -3604,15 +3819,13 @@ type ClientWithResponsesInterface interface {
 
 	// ReconcilePlacementServerWithResponse Reconcile placement server
 	//
-	// Reconcile a placement server to the placement image. Conditional
-	// reconciliation is not active in this release: requests carrying
-	// If-Match return 409 without accepting work. Headerless Legacy
-	// requests retain their existing behavior.
+	// Reconcile a placement server to the current Placement image.
+	// The request has no body or client precondition.
 	//
 	// Returns a wrapper object for the known response body format(s).
 	//
 	// Corresponds with POST /api/v2/placements/{placementID}/servers/{serverID}/reconcile (the `ReconcilePlacementServer` operationId).
-	ReconcilePlacementServerWithResponse(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, params *ReconcilePlacementServerParams, reqEditors ...RequestEditorFn) (*ReconcilePlacementServerResponse, error)
+	ReconcilePlacementServerWithResponse(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, reqEditors ...RequestEditorFn) (*ReconcilePlacementServerResponse, error)
 
 	// StopPlacementServerWithResponse Stop placement server
 	//
@@ -4384,6 +4597,221 @@ func (r GetPlacementServerResponse) ContentType() string {
 	return ""
 }
 
+// BootPlacementServerResponse503Headers the declared response headers of an HTTP 503 response for BootPlacementServer
+type BootPlacementServerResponse503Headers struct {
+	RetryAfter *string
+}
+
+type BootPlacementServerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON400 the response for an HTTP 400 `application/json` response
+	JSON400 *BadRequestResponse
+	// JSON401 the response for an HTTP 401 `application/json` response
+	JSON401 *UnauthorizedResponse
+	// JSON403 the response for an HTTP 403 `application/json` response
+	JSON403 *ForbiddenResponse
+	// JSON404 the response for an HTTP 404 `application/json` response
+	JSON404 *NotFoundResponse
+	// JSON409 the response for an HTTP 409 `application/json` response
+	JSON409 *ConflictResponse
+	// JSON412 the response for an HTTP 412 `application/json` response
+	JSON412 *MemberActionPreconditionFailedResponse
+	// JSON422 the response for an HTTP 422 `application/json` response
+	JSON422 *UnprocessableContentResponse
+	// JSON428 the response for an HTTP 428 `application/json` response
+	JSON428 *PreconditionRequiredResponse
+	// JSON500 the response for an HTTP 500 `application/json` response
+	JSON500 *InternalServerErrorResponse
+	// JSON503 the response for an HTTP 503 `application/json` response
+	JSON503 *MemberAdmissionUnavailableResponse
+	// Headers503 the parsed response headers for an HTTP 503 response
+	Headers503 *BootPlacementServerResponse503Headers
+}
+
+// GetJSON400 returns the response for an HTTP 400 `application/json` response
+func (r BootPlacementServerResponse) GetJSON400() *BadRequestResponse {
+	return r.JSON400
+}
+
+// GetJSON401 returns the response for an HTTP 401 `application/json` response
+func (r BootPlacementServerResponse) GetJSON401() *UnauthorizedResponse {
+	return r.JSON401
+}
+
+// GetJSON403 returns the response for an HTTP 403 `application/json` response
+func (r BootPlacementServerResponse) GetJSON403() *ForbiddenResponse {
+	return r.JSON403
+}
+
+// GetJSON404 returns the response for an HTTP 404 `application/json` response
+func (r BootPlacementServerResponse) GetJSON404() *NotFoundResponse {
+	return r.JSON404
+}
+
+// GetJSON409 returns the response for an HTTP 409 `application/json` response
+func (r BootPlacementServerResponse) GetJSON409() *ConflictResponse {
+	return r.JSON409
+}
+
+// GetJSON412 returns the response for an HTTP 412 `application/json` response
+func (r BootPlacementServerResponse) GetJSON412() *MemberActionPreconditionFailedResponse {
+	return r.JSON412
+}
+
+// GetJSON422 returns the response for an HTTP 422 `application/json` response
+func (r BootPlacementServerResponse) GetJSON422() *UnprocessableContentResponse {
+	return r.JSON422
+}
+
+// GetJSON428 returns the response for an HTTP 428 `application/json` response
+func (r BootPlacementServerResponse) GetJSON428() *PreconditionRequiredResponse {
+	return r.JSON428
+}
+
+// GetJSON500 returns the response for an HTTP 500 `application/json` response
+func (r BootPlacementServerResponse) GetJSON500() *InternalServerErrorResponse {
+	return r.JSON500
+}
+
+// GetJSON503 returns the response for an HTTP 503 `application/json` response
+func (r BootPlacementServerResponse) GetJSON503() *MemberAdmissionUnavailableResponse {
+	return r.JSON503
+}
+
+// GetBody returns the raw response body bytes
+func (r BootPlacementServerResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r BootPlacementServerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r BootPlacementServerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r BootPlacementServerResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+// DrainPlacementServerResponse503Headers the declared response headers of an HTTP 503 response for DrainPlacementServer
+type DrainPlacementServerResponse503Headers struct {
+	RetryAfter *string
+}
+
+type DrainPlacementServerResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON400 the response for an HTTP 400 `application/json` response
+	JSON400 *BadRequestResponse
+	// JSON401 the response for an HTTP 401 `application/json` response
+	JSON401 *UnauthorizedResponse
+	// JSON403 the response for an HTTP 403 `application/json` response
+	JSON403 *ForbiddenResponse
+	// JSON404 the response for an HTTP 404 `application/json` response
+	JSON404 *NotFoundResponse
+	// JSON409 the response for an HTTP 409 `application/json` response
+	JSON409 *ConflictResponse
+	// JSON412 the response for an HTTP 412 `application/json` response
+	JSON412 *MemberActionPreconditionFailedResponse
+	// JSON428 the response for an HTTP 428 `application/json` response
+	JSON428 *PreconditionRequiredResponse
+	// JSON500 the response for an HTTP 500 `application/json` response
+	JSON500 *InternalServerErrorResponse
+	// JSON503 the response for an HTTP 503 `application/json` response
+	JSON503 *MemberAdmissionUnavailableResponse
+	// Headers503 the parsed response headers for an HTTP 503 response
+	Headers503 *DrainPlacementServerResponse503Headers
+}
+
+// GetJSON400 returns the response for an HTTP 400 `application/json` response
+func (r DrainPlacementServerResponse) GetJSON400() *BadRequestResponse {
+	return r.JSON400
+}
+
+// GetJSON401 returns the response for an HTTP 401 `application/json` response
+func (r DrainPlacementServerResponse) GetJSON401() *UnauthorizedResponse {
+	return r.JSON401
+}
+
+// GetJSON403 returns the response for an HTTP 403 `application/json` response
+func (r DrainPlacementServerResponse) GetJSON403() *ForbiddenResponse {
+	return r.JSON403
+}
+
+// GetJSON404 returns the response for an HTTP 404 `application/json` response
+func (r DrainPlacementServerResponse) GetJSON404() *NotFoundResponse {
+	return r.JSON404
+}
+
+// GetJSON409 returns the response for an HTTP 409 `application/json` response
+func (r DrainPlacementServerResponse) GetJSON409() *ConflictResponse {
+	return r.JSON409
+}
+
+// GetJSON412 returns the response for an HTTP 412 `application/json` response
+func (r DrainPlacementServerResponse) GetJSON412() *MemberActionPreconditionFailedResponse {
+	return r.JSON412
+}
+
+// GetJSON428 returns the response for an HTTP 428 `application/json` response
+func (r DrainPlacementServerResponse) GetJSON428() *PreconditionRequiredResponse {
+	return r.JSON428
+}
+
+// GetJSON500 returns the response for an HTTP 500 `application/json` response
+func (r DrainPlacementServerResponse) GetJSON500() *InternalServerErrorResponse {
+	return r.JSON500
+}
+
+// GetJSON503 returns the response for an HTTP 503 `application/json` response
+func (r DrainPlacementServerResponse) GetJSON503() *MemberAdmissionUnavailableResponse {
+	return r.JSON503
+}
+
+// GetBody returns the raw response body bytes
+func (r DrainPlacementServerResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r DrainPlacementServerResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DrainPlacementServerResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r DrainPlacementServerResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type RebootPlacementServerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -4460,6 +4888,11 @@ func (r RebootPlacementServerResponse) ContentType() string {
 	return ""
 }
 
+// ReconcilePlacementServerResponse503Headers the declared response headers of an HTTP 503 response for ReconcilePlacementServer
+type ReconcilePlacementServerResponse503Headers struct {
+	RetryAfter *string
+}
+
 type ReconcilePlacementServerResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -4473,14 +4906,14 @@ type ReconcilePlacementServerResponse struct {
 	JSON404 *NotFoundResponse
 	// JSON409 the response for an HTTP 409 `application/json` response
 	JSON409 *ConflictResponse
-	// JSON412 the response for an HTTP 412 `application/json` response
-	JSON412 *Error
 	// JSON422 the response for an HTTP 422 `application/json` response
 	JSON422 *UnprocessableContentResponse
-	// JSON428 the response for an HTTP 428 `application/json` response
-	JSON428 *Error
 	// JSON500 the response for an HTTP 500 `application/json` response
 	JSON500 *InternalServerErrorResponse
+	// JSON503 the response for an HTTP 503 `application/json` response
+	JSON503 *MemberAdmissionUnavailableResponse
+	// Headers503 the parsed response headers for an HTTP 503 response
+	Headers503 *ReconcilePlacementServerResponse503Headers
 }
 
 // GetJSON400 returns the response for an HTTP 400 `application/json` response
@@ -4508,24 +4941,19 @@ func (r ReconcilePlacementServerResponse) GetJSON409() *ConflictResponse {
 	return r.JSON409
 }
 
-// GetJSON412 returns the response for an HTTP 412 `application/json` response
-func (r ReconcilePlacementServerResponse) GetJSON412() *Error {
-	return r.JSON412
-}
-
 // GetJSON422 returns the response for an HTTP 422 `application/json` response
 func (r ReconcilePlacementServerResponse) GetJSON422() *UnprocessableContentResponse {
 	return r.JSON422
 }
 
-// GetJSON428 returns the response for an HTTP 428 `application/json` response
-func (r ReconcilePlacementServerResponse) GetJSON428() *Error {
-	return r.JSON428
-}
-
 // GetJSON500 returns the response for an HTTP 500 `application/json` response
 func (r ReconcilePlacementServerResponse) GetJSON500() *InternalServerErrorResponse {
 	return r.JSON500
+}
+
+// GetJSON503 returns the response for an HTTP 503 `application/json` response
+func (r ReconcilePlacementServerResponse) GetJSON503() *MemberAdmissionUnavailableResponse {
+	return r.JSON503
 }
 
 // GetBody returns the raw response body bytes
@@ -5338,6 +5766,42 @@ func (c *ClientWithResponses) GetPlacementServerWithResponse(ctx context.Context
 	return ParseGetPlacementServerResponse(rsp)
 }
 
+// BootPlacementServerWithResponse Boot placement server
+//
+// Requires reservation:placement-servers/update and the original
+// entityTag in If-Match. Retry with the same tag after an uncertain reply;
+// a 412 then may mean the first request was applied, so reread and decide.
+// Production rejects this action while Explicit execution is disabled.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with POST /api/v2/placements/{placementID}/servers/{serverID}/boot (the `BootPlacementServer` operationId).
+func (c *ClientWithResponses) BootPlacementServerWithResponse(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, params *BootPlacementServerParams, reqEditors ...RequestEditorFn) (*BootPlacementServerResponse, error) {
+	rsp, err := c.BootPlacementServer(ctx, placementID, serverID, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseBootPlacementServerResponse(rsp)
+}
+
+// DrainPlacementServerWithResponse Drain placement server
+//
+// Requires reservation:placement-servers/update and the original
+// entityTag in If-Match. Retry with the same tag after an uncertain reply;
+// a 412 then may mean the first request was applied, so reread and decide.
+// Production rejects this action while Explicit execution is disabled.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with POST /api/v2/placements/{placementID}/servers/{serverID}/drain (the `DrainPlacementServer` operationId).
+func (c *ClientWithResponses) DrainPlacementServerWithResponse(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, params *DrainPlacementServerParams, reqEditors ...RequestEditorFn) (*DrainPlacementServerResponse, error) {
+	rsp, err := c.DrainPlacementServer(ctx, placementID, serverID, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDrainPlacementServerResponse(rsp)
+}
+
 // RebootPlacementServerWithResponse Reboot placement server
 //
 // Reboot a placement server.
@@ -5355,16 +5819,14 @@ func (c *ClientWithResponses) RebootPlacementServerWithResponse(ctx context.Cont
 
 // ReconcilePlacementServerWithResponse Reconcile placement server
 //
-// Reconcile a placement server to the placement image. Conditional
-// reconciliation is not active in this release: requests carrying
-// If-Match return 409 without accepting work. Headerless Legacy
-// requests retain their existing behavior.
+// Reconcile a placement server to the current Placement image.
+// The request has no body or client precondition.
 //
 // Returns a wrapper object for the known response body format(s).
 //
 // Corresponds with POST /api/v2/placements/{placementID}/servers/{serverID}/reconcile (the `ReconcilePlacementServer` operationId).
-func (c *ClientWithResponses) ReconcilePlacementServerWithResponse(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, params *ReconcilePlacementServerParams, reqEditors ...RequestEditorFn) (*ReconcilePlacementServerResponse, error) {
-	rsp, err := c.ReconcilePlacementServer(ctx, placementID, serverID, params, reqEditors...)
+func (c *ClientWithResponses) ReconcilePlacementServerWithResponse(ctx context.Context, placementID PlacementIDParameter, serverID ServerIDParameter, reqEditors ...RequestEditorFn) (*ReconcilePlacementServerResponse, error) {
+	rsp, err := c.ReconcilePlacementServer(ctx, placementID, serverID, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -6068,6 +6530,212 @@ func ParseGetPlacementServerResponse(rsp *http.Response) (*GetPlacementServerRes
 	return response, nil
 }
 
+// ParseBootPlacementServerResponse parses an HTTP response from a BootPlacementServerWithResponse call
+func ParseBootPlacementServerResponse(rsp *http.Response) (*BootPlacementServerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &BootPlacementServerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case rsp.StatusCode == 202:
+		break // No content-type
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequestResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest UnauthorizedResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ForbiddenResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFoundResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ConflictResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 412:
+		var dest MemberActionPreconditionFailedResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON412 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest UnprocessableContentResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON422 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 428:
+		var dest PreconditionRequiredResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON428 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest MemberAdmissionUnavailableResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	}
+
+	switch {
+	case rsp.StatusCode == 503:
+		var headers BootPlacementServerResponse503Headers
+		if values := rsp.Header.Values("Retry-After"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Retry-After", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.RetryAfter = &value
+		}
+		response.Headers503 = &headers
+	}
+
+	return response, nil
+}
+
+// ParseDrainPlacementServerResponse parses an HTTP response from a DrainPlacementServerWithResponse call
+func ParseDrainPlacementServerResponse(rsp *http.Response) (*DrainPlacementServerResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DrainPlacementServerResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case rsp.StatusCode == 200:
+		break // No content-type
+
+	case rsp.StatusCode == 202:
+		break // No content-type
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequestResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest UnauthorizedResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ForbiddenResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFoundResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ConflictResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 412:
+		var dest MemberActionPreconditionFailedResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON412 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 428:
+		var dest PreconditionRequiredResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON428 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest MemberAdmissionUnavailableResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	}
+
+	switch {
+	case rsp.StatusCode == 503:
+		var headers DrainPlacementServerResponse503Headers
+		if values := rsp.Header.Values("Retry-After"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Retry-After", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.RetryAfter = &value
+		}
+		response.Headers503 = &headers
+	}
+
+	return response, nil
+}
+
 // ParseRebootPlacementServerResponse parses an HTTP response from a RebootPlacementServerWithResponse call
 func ParseRebootPlacementServerResponse(rsp *http.Response) (*RebootPlacementServerResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -6146,6 +6814,9 @@ func ParseReconcilePlacementServerResponse(rsp *http.Response) (*ReconcilePlacem
 	}
 
 	switch {
+	case rsp.StatusCode == 200:
+		break // No content-type
+
 	case rsp.StatusCode == 202:
 		break // No content-type
 
@@ -6184,26 +6855,12 @@ func ParseReconcilePlacementServerResponse(rsp *http.Response) (*ReconcilePlacem
 		}
 		response.JSON409 = &dest
 
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 412:
-		var dest Error
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON412 = &dest
-
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
 		var dest UnprocessableContentResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON422 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 428:
-		var dest Error
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON428 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest InternalServerErrorResponse
@@ -6212,6 +6869,26 @@ func ParseReconcilePlacementServerResponse(rsp *http.Response) (*ReconcilePlacem
 		}
 		response.JSON500 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest MemberAdmissionUnavailableResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	}
+
+	switch {
+	case rsp.StatusCode == 503:
+		var headers ReconcilePlacementServerResponse503Headers
+		if values := rsp.Header.Values("Retry-After"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "Retry-After", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.RetryAfter = &value
+		}
+		response.Headers503 = &headers
 	}
 
 	return response, nil
