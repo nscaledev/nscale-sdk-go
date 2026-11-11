@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.9.0](https://github.com/nscaledev/nscale-sdk-go/compare/v0.8.0...v0.9.0) (2026-11-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **reservation:** refresh client from main ([#31](https://github.com/nscaledev/nscale-sdk-go/issues/31))
+
+### Features
+
+* **reservation:** refresh client from main ([#31](https://github.com/nscaledev/nscale-sdk-go/issues/31)) ([f68427c](https://github.com/nscaledev/nscale-sdk-go/commit/f68427ce15eccea9e9ba30d26211188dc77d893f))
+
 ## [0.8.0](https://github.com/nscaledev/nscale-sdk-go/compare/v0.7.0...v0.8.0) (2026-10-29)
 
 
