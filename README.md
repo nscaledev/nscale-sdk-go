@@ -39,6 +39,8 @@ Pre-1.0, a breaking change (`feat!:` / `BREAKING CHANGE:`) bumps the minor, not 
 
 ### Refreshing a client
 
+Usually you don't. [`spec-refresh`](.github/workflows/spec-refresh.yml) runs whenever `nscaledev/openapi` publishes a spec, and nightly as a backstop. It opens one PR per drifted package on an `automation/spec-refresh-<pkg>` branch and keeps updating it on later publishes. The PR title gets `!` when [`apidiff`](https://pkg.go.dev/golang.org/x/exp/cmd/apidiff) finds an incompatible change to the generated Go API. Squash-merging uses that title, and release-please reads it, so check it before you merge. To refresh by hand, or to try a change locally:
+
 Everything runs through [`just`](https://github.com/casey/just). The Justfile's `specs` variable is the single source of truth for which upstream spec each package tracks:
 
     just sources             # show each package and the spec it tracks
