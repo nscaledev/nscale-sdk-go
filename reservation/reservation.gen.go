@@ -359,6 +359,27 @@ func (e ReservationUnitConsumerV2Type) Valid() bool {
 	}
 }
 
+// Defines values for ReservationUnitIneligibilityV2Reason.
+const (
+	ReservationUnitIneligibilityV2ReasonClaimPolicy ReservationUnitIneligibilityV2Reason = "claim_policy"
+	ReservationUnitIneligibilityV2ReasonFlavorScope ReservationUnitIneligibilityV2Reason = "flavor_scope"
+	ReservationUnitIneligibilityV2ReasonSpine       ReservationUnitIneligibilityV2Reason = "spine"
+)
+
+// Valid indicates whether the value is a known member of the ReservationUnitIneligibilityV2Reason enum.
+func (e ReservationUnitIneligibilityV2Reason) Valid() bool {
+	switch e {
+	case ReservationUnitIneligibilityV2ReasonClaimPolicy:
+		return true
+	case ReservationUnitIneligibilityV2ReasonFlavorScope:
+		return true
+	case ReservationUnitIneligibilityV2ReasonSpine:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ResourceHealthStatus.
 const (
 	ResourceHealthStatusDegraded ResourceHealthStatus = "degraded"
@@ -426,6 +447,15 @@ func (e WhenUnsatisfiableV2) Valid() bool {
 	default:
 		return false
 	}
+}
+
+// AddedUnitV2 A reservation unit added by an add request.
+type AddedUnitV2 struct {
+	// Id Opaque, Reservation-scoped accepted unit ID the added unit now carries, for use as a release unit ID in later requests.
+	Id string `json:"id"`
+
+	// InfrastructureRefs Ironic node UUIDs of the hosts that were added.
+	InfrastructureRefs []string `json:"infrastructureRefs"`
 }
 
 // ArchitectureV2 A CPU architecture.
@@ -1004,6 +1034,33 @@ type ReleasedUnitV2 struct {
 	InfrastructureRefs []string `json:"infrastructureRefs"`
 }
 
+// ReservationUnitAddIneligibleV2 Structured reasons an add request could not proceed. Returned
+// instead of any partial add: if any requested unit is ineligible,
+// nothing is added.
+type ReservationUnitAddIneligibleV2 struct {
+	Units []ReservationUnitIneligibilityV2 `json:"units"`
+}
+
+// ReservationUnitAddRequest A request to add reservation units.
+type ReservationUnitAddRequest struct {
+	// Spec Reservation units to add.
+	Spec ReservationUnitAddSpec `json:"spec"`
+}
+
+// ReservationUnitAddResult The result of a reservation unit add request.
+type ReservationUnitAddResult struct {
+	AddedUnits []AddedUnitV2 `json:"addedUnits"`
+
+	// Reservation A reservation.
+	Reservation ReservationV2Read `json:"reservation"`
+}
+
+// ReservationUnitAddSpec Reservation units to add.
+type ReservationUnitAddSpec struct {
+	// UnitIds Opaque, free reservation unit IDs to add, as discovered from the organization topology view's unreserved pool. Not provider inventory identifiers, device IDs, path labels, pod IDs, or the Reservation-scoped handles release requests use.
+	UnitIds []string `json:"unitIds"`
+}
+
 // ReservationUnitBlockerV2 A requested reservation unit that could not be released.
 type ReservationUnitBlockerV2 struct {
 	// Consumers Blocking consumers visible to the caller. Empty when the unit is occupied but no blocking Placement details are readable.
@@ -1069,6 +1126,18 @@ type ReservationUnitHostV2 struct {
 	// Memory The amount of memory in GiB on one host.
 	Memory int `json:"memory"`
 }
+
+// ReservationUnitIneligibilityV2 A requested reservation unit that cannot join the claim.
+type ReservationUnitIneligibilityV2 struct {
+	// Reason claim_policy: the unit has a host that fails the Reservation's claim policy. flavor_scope: the unit's hosts do not match the Reservation's device type. spine: the unit is outside the single spine the Reservation's claim must occupy.
+	Reason ReservationUnitIneligibilityV2Reason `json:"reason"`
+
+	// UnitId The opaque, free reservation unit ID that was refused.
+	UnitId string `json:"unitId"`
+}
+
+// ReservationUnitIneligibilityV2Reason claim_policy: the unit has a host that fails the Reservation's claim policy. flavor_scope: the unit's hosts do not match the Reservation's device type. spine: the unit is outside the single spine the Reservation's claim must occupy.
+type ReservationUnitIneligibilityV2Reason string
 
 // ReservationUnitReleaseBlockersV2 Structured reasons a release request could not proceed. Returned
 // instead of any partial release: if any requested unit is occupied,
@@ -1566,6 +1635,14 @@ type PreconditionFailedResponse = Error
 // PreconditionRequiredResponse Generic error message, compatible with oauth2.
 type PreconditionRequiredResponse = Error
 
+// ReservationUnitAddIneligibleResponse Structured reasons an add request could not proceed. Returned
+// instead of any partial add: if any requested unit is ineligible,
+// nothing is added.
+type ReservationUnitAddIneligibleResponse = ReservationUnitAddIneligibleV2
+
+// ReservationUnitAddResponse The result of a reservation unit add request.
+type ReservationUnitAddResponse = ReservationUnitAddResult
+
 // ReservationUnitReleaseBlockersResponse Structured reasons a release request could not proceed. Returned
 // instead of any partial release: if any requested unit is occupied,
 // no unit is released.
@@ -1583,6 +1660,9 @@ type ReservationV2Response = ReservationV2Read
 // ReservationsV2Response A list of reservations.
 type ReservationsV2Response = ReservationsV2Read
 
+// ServiceUnavailableResponse Generic error message, compatible with oauth2.
+type ServiceUnavailableResponse = Error
+
 // ServiceVersionResponse Build version information for the running service, stamped into the
 // binary at release time.  Developer builds report version 0.0.0.
 type ServiceVersionResponse = ServiceVersionRead
@@ -1598,6 +1678,9 @@ type PlacementV2CreateRequest = PlacementV2Create
 
 // PlacementV2UpdateRequest A placement update request. Only spec.serverSpec.imageId and spec.updateStrategy may change.
 type PlacementV2UpdateRequest = PlacementV2Update
+
+// ReservationUnitAddRequestBody A request to add reservation units.
+type ReservationUnitAddRequestBody = ReservationUnitAddRequest
 
 // ReservationUnitReleaseRequestBody A request to release reservation units.
 type ReservationUnitReleaseRequestBody = ReservationUnitReleaseRequest
@@ -1709,6 +1792,12 @@ type ListReservationsParams struct {
 	RegionID *RegionIDQueryParameter `form:"regionID,omitempty" json:"regionID,omitempty"`
 }
 
+// AddReservationUnitsParams defines parameters for AddReservationUnits.
+type AddReservationUnitsParams struct {
+	// IfMatch The entity tag of the current state the caller expects to mutate, quoted as a strong entity tag (for example the value of a prior response's ETag header). The endpoint requires it and rejects a request that omits it with 428, and one whose tag no longer matches the resource's current entity tag with 412. It is declared optional at the schema level deliberately: request validation runs before the handler, and a schema-level requirement would reject an absent header with a generic 400 before the endpoint could return the precise 428. The endpoint owns the precondition instead.
+	IfMatch *IfMatchParameter `json:"If-Match,omitempty"`
+}
+
 // ReleaseReservationUnitsParams defines parameters for ReleaseReservationUnits.
 type ReleaseReservationUnitsParams struct {
 	// IfMatch The entity tag of the current state the caller expects to mutate, quoted as a strong entity tag (for example the value of a prior response's ETag header). The endpoint requires it and rejects a request that omits it with 428, and one whose tag no longer matches the resource's current entity tag with 412. It is declared optional at the schema level deliberately: request validation runs before the handler, and a schema-level requirement would reject an absent header with a generic 400 before the endpoint could return the precise 428. The endpoint owns the precondition instead.
@@ -1723,6 +1812,9 @@ type UpdatePlacementJSONRequestBody = PlacementV2Update
 
 // CreateReservationJSONRequestBody defines body for CreateReservation for application/json ContentType.
 type CreateReservationJSONRequestBody = ReservationV2Create
+
+// AddReservationUnitsJSONRequestBody defines body for AddReservationUnits for application/json ContentType.
+type AddReservationUnitsJSONRequestBody = ReservationUnitAddRequest
 
 // ReleaseReservationUnitsJSONRequestBody defines body for ReleaseReservationUnits for application/json ContentType.
 type ReleaseReservationUnitsJSONRequestBody = ReservationUnitReleaseRequest
@@ -1981,6 +2073,24 @@ type ClientInterface interface {
 	//
 	// Corresponds with GET /api/v2/reservations/{reservationID} (the `GetReservation` operationId).
 	GetReservation(ctx context.Context, reservationID ReservationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AddReservationUnitsWithBody Add reservation units
+	//
+	// Add reservation units.
+	//
+	// Takes any type of body and a specified content type.
+	//
+	// Corresponds with POST /api/v2/reservations/{reservationID}/units/add (the `AddReservationUnits` operationId).
+	AddReservationUnitsWithBody(ctx context.Context, reservationID ReservationIDParameter, params *AddReservationUnitsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// AddReservationUnits Add reservation units
+	//
+	// Add reservation units.
+	//
+	// Takes a body of the `application/json` content type.
+	//
+	// Corresponds with POST /api/v2/reservations/{reservationID}/units/add (the `AddReservationUnits` operationId).
+	AddReservationUnits(ctx context.Context, reservationID ReservationIDParameter, params *AddReservationUnitsParams, body AddReservationUnitsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ReleaseReservationUnitsWithBody Release reservation units
 	//
@@ -2401,6 +2511,44 @@ func (c *Client) DeleteReservation(ctx context.Context, reservationID Reservatio
 // Corresponds with GET /api/v2/reservations/{reservationID} (the `GetReservation` operationId).
 func (c *Client) GetReservation(ctx context.Context, reservationID ReservationIDParameter, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetReservationRequest(c.Server, reservationID)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// AddReservationUnitsWithBody Add reservation units
+//
+// Add reservation units.
+//
+// Takes any type of body and a specified content type.
+//
+// Corresponds with POST /api/v2/reservations/{reservationID}/units/add (the `AddReservationUnits` operationId).
+func (c *Client) AddReservationUnitsWithBody(ctx context.Context, reservationID ReservationIDParameter, params *AddReservationUnitsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAddReservationUnitsRequestWithBody(c.Server, reservationID, params, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// AddReservationUnits Add reservation units
+//
+// Add reservation units.
+//
+// Takes a body of the `application/json` content type.
+//
+// Corresponds with POST /api/v2/reservations/{reservationID}/units/add (the `AddReservationUnits` operationId).
+func (c *Client) AddReservationUnits(ctx context.Context, reservationID ReservationIDParameter, params *AddReservationUnitsParams, body AddReservationUnitsJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewAddReservationUnitsRequest(c.Server, reservationID, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -3544,6 +3692,68 @@ func NewGetReservationRequest(server string, reservationID ReservationIDParamete
 	return req, nil
 }
 
+// NewAddReservationUnitsRequest calls the generic AddReservationUnits builder with application/json body
+func NewAddReservationUnitsRequest(server string, reservationID ReservationIDParameter, params *AddReservationUnitsParams, body AddReservationUnitsJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewAddReservationUnitsRequestWithBody(server, reservationID, params, "application/json", bodyReader)
+}
+
+// NewAddReservationUnitsRequestWithBody constructs an http.Request for the AddReservationUnits method, with any body, and a specified content type
+func NewAddReservationUnitsRequestWithBody(server string, reservationID ReservationIDParameter, params *AddReservationUnitsParams, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "reservationID", reservationID, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v2/reservations/%s/units/add", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	if params != nil {
+
+		if params.IfMatch != nil {
+			var headerParam0 string
+
+			headerParam0, err = runtime.StyleParamWithOptions("simple", false, "If-Match", *params.IfMatch, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "string", Format: ""})
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("If-Match", headerParam0)
+		}
+
+	}
+
+	return req, nil
+}
+
 // NewReleaseReservationUnitsRequest calls the generic ReleaseReservationUnits builder with application/json body
 func NewReleaseReservationUnitsRequest(server string, reservationID ReservationIDParameter, params *ReleaseReservationUnitsParams, body ReleaseReservationUnitsJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
@@ -3889,6 +4099,24 @@ type ClientWithResponsesInterface interface {
 	//
 	// Corresponds with GET /api/v2/reservations/{reservationID} (the `GetReservation` operationId).
 	GetReservationWithResponse(ctx context.Context, reservationID ReservationIDParameter, reqEditors ...RequestEditorFn) (*GetReservationResponse, error)
+
+	// AddReservationUnitsWithBodyWithResponse Add reservation units
+	//
+	// Add reservation units.
+	//
+	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with POST /api/v2/reservations/{reservationID}/units/add (the `AddReservationUnits` operationId).
+	AddReservationUnitsWithBodyWithResponse(ctx context.Context, reservationID ReservationIDParameter, params *AddReservationUnitsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AddReservationUnitsResponse, error)
+
+	// AddReservationUnitsWithResponse Add reservation units
+	//
+	// Add reservation units.
+	//
+	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with POST /api/v2/reservations/{reservationID}/units/add (the `AddReservationUnits` operationId).
+	AddReservationUnitsWithResponse(ctx context.Context, reservationID ReservationIDParameter, params *AddReservationUnitsParams, body AddReservationUnitsJSONRequestBody, reqEditors ...RequestEditorFn) (*AddReservationUnitsResponse, error)
 
 	// ReleaseReservationUnitsWithBodyWithResponse Release reservation units
 	//
@@ -5427,6 +5655,124 @@ func (r GetReservationResponse) ContentType() string {
 	return ""
 }
 
+// AddReservationUnitsResponse200Headers the declared response headers of an HTTP 200 response for AddReservationUnits
+type AddReservationUnitsResponse200Headers struct {
+	ETag *string
+}
+
+type AddReservationUnitsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *ReservationUnitAddResponse
+	// JSON400 the response for an HTTP 400 `application/json` response
+	JSON400 *BadRequestResponse
+	// JSON401 the response for an HTTP 401 `application/json` response
+	JSON401 *UnauthorizedResponse
+	// JSON403 the response for an HTTP 403 `application/json` response
+	JSON403 *ForbiddenResponse
+	// JSON404 the response for an HTTP 404 `application/json` response
+	JSON404 *NotFoundResponse
+	// JSON409 the response for an HTTP 409 `application/json` response
+	JSON409 *ConflictResponse
+	// JSON412 the response for an HTTP 412 `application/json` response
+	JSON412 *PreconditionFailedResponse
+	// JSON422 the response for an HTTP 422 `application/json` response
+	JSON422 *ReservationUnitAddIneligibleResponse
+	// JSON428 the response for an HTTP 428 `application/json` response
+	JSON428 *PreconditionRequiredResponse
+	// JSON500 the response for an HTTP 500 `application/json` response
+	JSON500 *InternalServerErrorResponse
+	// JSON503 the response for an HTTP 503 `application/json` response
+	JSON503 *ServiceUnavailableResponse
+	// Headers200 the parsed response headers for an HTTP 200 response
+	Headers200 *AddReservationUnitsResponse200Headers
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r AddReservationUnitsResponse) GetJSON200() *ReservationUnitAddResponse {
+	return r.JSON200
+}
+
+// GetJSON400 returns the response for an HTTP 400 `application/json` response
+func (r AddReservationUnitsResponse) GetJSON400() *BadRequestResponse {
+	return r.JSON400
+}
+
+// GetJSON401 returns the response for an HTTP 401 `application/json` response
+func (r AddReservationUnitsResponse) GetJSON401() *UnauthorizedResponse {
+	return r.JSON401
+}
+
+// GetJSON403 returns the response for an HTTP 403 `application/json` response
+func (r AddReservationUnitsResponse) GetJSON403() *ForbiddenResponse {
+	return r.JSON403
+}
+
+// GetJSON404 returns the response for an HTTP 404 `application/json` response
+func (r AddReservationUnitsResponse) GetJSON404() *NotFoundResponse {
+	return r.JSON404
+}
+
+// GetJSON409 returns the response for an HTTP 409 `application/json` response
+func (r AddReservationUnitsResponse) GetJSON409() *ConflictResponse {
+	return r.JSON409
+}
+
+// GetJSON412 returns the response for an HTTP 412 `application/json` response
+func (r AddReservationUnitsResponse) GetJSON412() *PreconditionFailedResponse {
+	return r.JSON412
+}
+
+// GetJSON422 returns the response for an HTTP 422 `application/json` response
+func (r AddReservationUnitsResponse) GetJSON422() *ReservationUnitAddIneligibleResponse {
+	return r.JSON422
+}
+
+// GetJSON428 returns the response for an HTTP 428 `application/json` response
+func (r AddReservationUnitsResponse) GetJSON428() *PreconditionRequiredResponse {
+	return r.JSON428
+}
+
+// GetJSON500 returns the response for an HTTP 500 `application/json` response
+func (r AddReservationUnitsResponse) GetJSON500() *InternalServerErrorResponse {
+	return r.JSON500
+}
+
+// GetJSON503 returns the response for an HTTP 503 `application/json` response
+func (r AddReservationUnitsResponse) GetJSON503() *ServiceUnavailableResponse {
+	return r.JSON503
+}
+
+// GetBody returns the raw response body bytes
+func (r AddReservationUnitsResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r AddReservationUnitsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r AddReservationUnitsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r AddReservationUnitsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 // ReleaseReservationUnitsResponse200Headers the declared response headers of an HTTP 200 response for ReleaseReservationUnits
 type ReleaseReservationUnitsResponse200Headers struct {
 	ETag *string
@@ -5936,6 +6282,36 @@ func (c *ClientWithResponses) GetReservationWithResponse(ctx context.Context, re
 		return nil, err
 	}
 	return ParseGetReservationResponse(rsp)
+}
+
+// AddReservationUnitsWithBodyWithResponse Add reservation units
+//
+// Add reservation units.
+//
+// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with POST /api/v2/reservations/{reservationID}/units/add (the `AddReservationUnits` operationId).
+func (c *ClientWithResponses) AddReservationUnitsWithBodyWithResponse(ctx context.Context, reservationID ReservationIDParameter, params *AddReservationUnitsParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*AddReservationUnitsResponse, error) {
+	rsp, err := c.AddReservationUnitsWithBody(ctx, reservationID, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAddReservationUnitsResponse(rsp)
+}
+
+// AddReservationUnitsWithResponse Add reservation units
+//
+// Add reservation units.
+//
+// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with POST /api/v2/reservations/{reservationID}/units/add (the `AddReservationUnits` operationId).
+func (c *ClientWithResponses) AddReservationUnitsWithResponse(ctx context.Context, reservationID ReservationIDParameter, params *AddReservationUnitsParams, body AddReservationUnitsJSONRequestBody, reqEditors ...RequestEditorFn) (*AddReservationUnitsResponse, error) {
+	rsp, err := c.AddReservationUnits(ctx, reservationID, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseAddReservationUnitsResponse(rsp)
 }
 
 // ReleaseReservationUnitsWithBodyWithResponse Release reservation units
@@ -7247,6 +7623,115 @@ func ParseGetReservationResponse(rsp *http.Response) (*GetReservationResponse, e
 		}
 		response.JSON500 = &dest
 
+	}
+
+	return response, nil
+}
+
+// ParseAddReservationUnitsResponse parses an HTTP response from a AddReservationUnitsWithResponse call
+func ParseAddReservationUnitsResponse(rsp *http.Response) (*AddReservationUnitsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &AddReservationUnitsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ReservationUnitAddResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest BadRequestResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest UnauthorizedResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest ForbiddenResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFoundResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ConflictResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 412:
+		var dest PreconditionFailedResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON412 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest ReservationUnitAddIneligibleResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON422 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 428:
+		var dest PreconditionRequiredResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON428 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest InternalServerErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest ServiceUnavailableResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	}
+
+	switch {
+	case rsp.StatusCode == 200:
+		var headers AddReservationUnitsResponse200Headers
+		if values := rsp.Header.Values("ETag"); len(values) > 0 {
+			var value string
+			if err := runtime.BindStyledParameterWithOptions("simple", "ETag", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.ETag = &value
+		}
+		response.Headers200 = &headers
 	}
 
 	return response, nil
