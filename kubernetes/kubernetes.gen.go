@@ -170,6 +170,27 @@ func (e NodePoolPlacementConstraintsV1WhenUnsatisfiable) Valid() bool {
 	}
 }
 
+// Defines values for NodePoolPlacementReadinessPolicyV1Mode.
+const (
+	NodePoolPlacementReadinessPolicyV1ModeIgnore  NodePoolPlacementReadinessPolicyV1Mode = "Ignore"
+	NodePoolPlacementReadinessPolicyV1ModePrefer  NodePoolPlacementReadinessPolicyV1Mode = "Prefer"
+	NodePoolPlacementReadinessPolicyV1ModeRequire NodePoolPlacementReadinessPolicyV1Mode = "Require"
+)
+
+// Valid indicates whether the value is a known member of the NodePoolPlacementReadinessPolicyV1Mode enum.
+func (e NodePoolPlacementReadinessPolicyV1Mode) Valid() bool {
+	switch e {
+	case NodePoolPlacementReadinessPolicyV1ModeIgnore:
+		return true
+	case NodePoolPlacementReadinessPolicyV1ModePrefer:
+		return true
+	case NodePoolPlacementReadinessPolicyV1ModeRequire:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for NodePoolProvisioningModeV1.
 const (
 	NodePoolProvisioningModeV1Compute     NodePoolProvisioningModeV1 = "compute"
@@ -817,6 +838,15 @@ type NodePoolPlacementConstraintsV1Policy string
 // NodePoolPlacementConstraintsV1WhenUnsatisfiable Fail rejects an unsatisfied spread; bestEffort chooses the closest layout.
 type NodePoolPlacementConstraintsV1WhenUnsatisfiable string
 
+// NodePoolPlacementReadinessPolicyV1 Immutable host readiness policy for a reservation-backed node pool's placement. When omitted, Prefer applies.
+type NodePoolPlacementReadinessPolicyV1 struct {
+	// Mode Require selects only hosts that currently pass readiness checks; Prefer selects ready hosts first but may use other reserved hosts to satisfy the request; Ignore does not consider readiness.
+	Mode NodePoolPlacementReadinessPolicyV1Mode `json:"mode"`
+}
+
+// NodePoolPlacementReadinessPolicyV1Mode Require selects only hosts that currently pass readiness checks; Prefer selects ready hosts first but may use other reserved hosts to satisfy the request; Ignore does not consider readiness.
+type NodePoolPlacementReadinessPolicyV1Mode string
+
 // NodePoolProvisioningModeV1 Capacity source used to provision node pool workers.
 type NodePoolProvisioningModeV1 string
 
@@ -878,6 +908,9 @@ type NodePoolReservationStatusV1 struct {
 type NodePoolReservationV1 struct {
 	// Constraints Immutable topology placement policy for a reservation-backed node pool.
 	Constraints *NodePoolPlacementConstraintsV1 `json:"constraints,omitempty"`
+
+	// ReadinessPolicy Immutable host readiness policy for a reservation-backed node pool's placement. When omitted, Prefer applies.
+	ReadinessPolicy *NodePoolPlacementReadinessPolicyV1 `json:"readinessPolicy,omitempty"`
 
 	// ReservationId Reservation ID to consume capacity from. Required when provisioningMode is reservation.
 	ReservationId *string `json:"reservationId,omitempty"`
